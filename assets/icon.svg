@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Floating Labels for CF7">
+<style>
+  @keyframes jgor-border { 0%, 20.5% { stroke: #80868b; } 29.5%, 92.7% { stroke: #1a73e8; } 100.0%, 100% { stroke: #80868b; } }
+  @keyframes jgor-label { 0%, 20.5% { transform: translate(0, 0) scale(1); fill: #5f6368; } 29.5%, 92.7% { transform: translate(0, -36px) scale(0.72); fill: #1a73e8; } 100.0%, 100% { transform: translate(0, 0) scale(1); fill: #5f6368; } }
+  @keyframes jgor-notch { 0%, 20.5% { opacity: 0; } 29.5%, 92.7% { opacity: 1; } 100.0%, 100% { opacity: 0; } }
+  @keyframes jgor-typed { 0%, 29.5% { width: 0; } 45.0%, 92.7% { width: 80px; } 100.0%, 100% { width: 0; } }
+  @keyframes jgor-caret { 0%, 20.5% { opacity: 0; } 29.5%, 45.0% { opacity: 1; } 92.7%, 100% { opacity: 0; } }
+  .jgor-field { animation: jgor-border 4.4s ease-out infinite; }
+  .jgor-label { transform-origin: 46px 128px; animation: jgor-label 4.4s ease-out infinite; }
+  .jgor-notch { animation: jgor-notch 4.4s step-end infinite; }
+  .jgor-typed { animation: jgor-typed 4.4s steps(4, end) infinite; }
+  .jgor-caret { animation: jgor-caret 4.4s step-end infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .jgor-field, .jgor-label, .jgor-notch, .jgor-typed, .jgor-caret { animation: none; }
+  }
+</style>
+<rect width="256" height="256" fill="#fff"/>
+<rect class="jgor-field" x="24" y="92" width="208" height="72" rx="14" fill="#fff" stroke="#80868b" stroke-width="7"/>
+<rect class="jgor-notch" x="40" y="85" width="56" height="14" fill="#fff" opacity="0"/>
+<text class="jgor-label" x="46" y="128" dominant-baseline="central" font-family="'Noto Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="30" fill="#5f6368">Name</text>
+<clipPath id="jgor-typed-clip"><rect class="jgor-typed" x="46" y="100" width="0" height="56"/></clipPath>
+<text x="46" y="128" dominant-baseline="central" font-family="'Noto Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="30" fill="#1d2327" clip-path="url(#jgor-typed-clip)">Anna</text>
+<rect class="jgor-caret" x="48" y="112" width="3" height="32" fill="#1d2327" opacity="0"/>
+</svg>
