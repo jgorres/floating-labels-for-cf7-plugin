@@ -68,6 +68,7 @@ $jgor_flcf7_file = JGOR_FLCF7_PATH . 'assets/js/block-editor.js';
 $jgor_flcf7_js   = file_exists( $jgor_flcf7_file ) ? (string) file_get_contents( $jgor_flcf7_file ) : '';
 jgor_flcf7_check( 'file: assets/js/block-editor.js exists', '' !== $jgor_flcf7_js );
 jgor_flcf7_check( 'file: targets the Contact Form 7 block and the filter editor.BlockEdit', str_contains( $jgor_flcf7_js, "'" . $jgor_flcf7_block . "'" ) && str_contains( $jgor_flcf7_js, "'editor.BlockEdit'" ) );
+jgor_flcf7_check( 'file: targets the Shortcode block with a [contact-form-7] shortcode', str_contains( $jgor_flcf7_js, "'core/shortcode'" ) && str_contains( $jgor_flcf7_js, 'contact-form-7\\b' ) );
 $jgor_flcf7_classes = array( 'jgor-flcf7-on', 'jgor-flcf7-off', 'jgor-flcf7-mode-placeholder', 'jgor-flcf7-mode-label', 'jgor-flcf7-marker-on', 'jgor-flcf7-marker-off' );
 foreach ( JGOR_FLCF7_Settings::STYLES as $jgor_flcf7_style ) {
 	$jgor_flcf7_classes[] = JGOR_FLCF7_Markup::HTML_CLASS_STYLE_PREFIX . $jgor_flcf7_style;

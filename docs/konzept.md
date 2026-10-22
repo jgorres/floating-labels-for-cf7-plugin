@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.0 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
+Version: 2.1 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -83,8 +83,8 @@ floating-labels-for-cf7/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
 │   ├── verify-markup.php             62 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
 │   ├── verify-admin.php              40 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
-│   ├── verify-editor.php             15 PASS/FAIL-Prüfungen für Modul 5, Enqueue (wp eval-file)
-│   └── verify-editor-js.mjs          28 PASS/FAIL-Prüfungen für das Editor-Script (node)
+│   ├── verify-editor.php             16 PASS/FAIL-Prüfungen für Modul 5, Enqueue (wp eval-file)
+│   └── verify-editor-js.mjs          47 PASS/FAIL-Prüfungen für das Editor-Script (node)
 ├── docs/
 │   ├── konzept.md                    dieses Dokument
 │   ├── assets-erzeugen.py            Icon (SVG und APNG) und Banner (APNG), Pillow
@@ -197,7 +197,10 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   Shortcode-Attributen `html_*`; das Panel „Form attributes“ des Blocks
   zeigt `htmlClass` als Feld „Class“, die Panels erscheinen erst, wenn ein
   Formular gewählt ist (`attributes.id`), und `html_class` wird nur bei
-  nicht leerem Wert in den Shortcode geschrieben.
+  nicht leerem Wert in den Shortcode geschrieben. Der Shortcode-Block
+  (`core/shortcode`) hat keine eigenen Einstellungen; sein Attribut `text`
+  enthält den Shortcode als Klartext, WordPress parst `html_class` dort mit
+  doppelten, einfachen oder ohne Anführungszeichen.
 
 ## 6. Modul 1: Grundgerüst (`class-jgor-flcf7-plugin.php`, `class-jgor-flcf7-settings.php`)
 
@@ -626,9 +629,10 @@ Sanitize vom gespeicherten Wert abweicht. Folgen:
 
 ## 10. Modul 5: Block-Seitenleiste (`class-jgor-flcf7-editor.php`, `assets/js/block-editor.js`)
 
-Vorgezogen aus 1.1 am 22.10.2026 (Commit a820fd7): Wer den CF7-Block
-markiert, erwartet die Einstellungen unter „Block“ in der Seitenleiste,
-nicht in einem Klassenfeld.
+Vorgezogen aus 1.1 am 22.10.2026 (Commit a820fd7, Shortcode-Block am selben
+Abend): Wer den CF7-Block oder den Shortcode-Block mit dem Formular markiert,
+erwartet die Einstellungen unter „Block“ in der Seitenleiste, nicht in
+einem Klassenfeld oder im Shortcode-Text.
 
 - `JGOR_FLCF7_Editor` lädt auf `enqueue_block_editor_assets` das Script
   `assets/js/block-editor.js` (Handle `jgor-flcf7-editor`, Abhängigkeiten
@@ -642,10 +646,11 @@ nicht in einem Klassenfeld.
   `wp.*`-Pakete und `wp.element.createElement` statt JSX. Es hängt sich per
   `wp.hooks.addFilter( 'editor.BlockEdit', 'jgor-flcf7/block-editor', … )`
   mit einer Higher-Order-Component an alle Blöcke, gibt für fremde Blöcke
-  die Original-Komponente zurück und ergänzt beim CF7-Block, sobald ein
-  Formular gewählt ist (`attributes.id`, wie die CF7-Panels selbst), ein
-  `InspectorControls`-Panel „Floating Labels“ (`PanelBody`, offen, Felder in
-  einem vertikalen `Flex`).
+  die Original-Komponente zurück und ergänzt ein `InspectorControls`-Panel
+  „Floating Labels“ (`PanelBody`, offen, Felder in einem vertikalen `Flex`)
+  beim CF7-Block, sobald ein Formular gewählt ist (`attributes.id`, wie die
+  CF7-Panels selbst), und beim Shortcode-Block (`core/shortcode`), sobald
+  sein Text einen `[contact-form-7 …]`-Shortcode enthält.
 - Vier `SelectControl`-Felder, je eine Gruppe der Platzierungsklassen aus
   7.4, erster Eintrag immer „Default“ (keine Klasse der Gruppe, es gelten
   Website- und Formular-Einstellungen):
@@ -657,20 +662,26 @@ nicht in einem Klassenfeld.
 | Variant | Default, Outlined, Filled, Minimal | `jgor-flcf7-style-outlined`, `-filled`, `-minimal` |
 | Required fields | Default, Asterisk on, Asterisk off | `jgor-flcf7-marker-on`, `jgor-flcf7-marker-off` |
 
-- Speicherort ist ausschließlich das Block-Attribut `htmlClass`, das CF7 als
-  `html_class` des Shortcodes und als Klasse des `<form>` ausgibt und im
-  Panel „Form attributes“ als Feld „Class“ zeigt; beide Ansichten bleiben
-  synchron. `withGroupValue()` ersetzt die erste Klasse der Gruppe an Ort
+- Speicherort ist nur, was CF7 ohnehin liest (`storeFor()`): beim CF7-Block
+  das Attribut `htmlClass`, das CF7 als `html_class` des Shortcodes und als
+  Klasse des `<form>` ausgibt und im Panel „Form attributes“ als Feld
+  „Class“ zeigt, beide Ansichten bleiben synchron; beim Shortcode-Block das
+  Attribut `html_class` des ersten CF7-Shortcodes im Text
+  (`shortcodeHtmlClass()` liest doppelte, einfache und fehlende
+  Anführungszeichen, `withShortcodeHtmlClass()` schreibt mit doppelten,
+  ersetzt an Ort und Stelle, hängt vor `]` bzw. `/]` an und entfernt das
+  Attribut, wenn keine Klasse mehr übrig ist; Text ohne Shortcode bleibt
+  unverändert). `withGroupValue()` ersetzt die erste Klasse der Gruppe an Ort
   und Stelle, verwirft weitere Klassen derselben Gruppe, hängt eine fehlende
   an und entfernt die Gruppe bei „Default“; fremde Klassen bleiben
   unverändert. `currentValue()` liest wie der Server die letzte Klasse der
-  Gruppe. Ein Hinweistext im Panel nennt das Feld „Class“. Serverseitig
-  ändert sich nichts (7.4, Schicht 3); ohne das Plugin bleiben die Klassen
-  wirkungslos.
+  Gruppe. Ein Hinweistext im Panel nennt je Block das Feld „Class“ bzw. das
+  Attribut `html_class`. Serverseitig ändert sich nichts (7.4, Schicht 3);
+  ohne das Plugin bleiben die Klassen wirkungslos.
 - Die Helfer liegen auf `window.jgorFlcf7BlockEditor`, damit das
   Node-Prüfscript sie ohne Browser aufrufen kann (13).
-- Kein eigenes CSS. Der Shortcode-Block bleibt ohne Panel, dort gilt weiter
-  `html_class="…"`.
+- Kein eigenes CSS. Ein Shortcode in einem Absatz-Block (ohne
+  Shortcode-Block) bekommt kein Panel, dort gilt `html_class="…"` von Hand.
 
 ## 11. Multisite
 
@@ -753,19 +764,22 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   gespeicherte Option, prüfen mit den Defaults und stellen die Option danach
   wieder her (seit 22.10.2026; vorher setzten sie die Defaults zurück, was
   eine im Browser gemachte Einstellung wie den Pflichtstern verwarf).
-- `tests/verify-editor.php` prüft Modul 5 ohne Browser (15 Punkte): Klasse
+- `tests/verify-editor.php` prüft Modul 5 ohne Browser (16 Punkte): Klasse
   geladen, CF7-Block registriert, Hook, Enqueue (Quelle, Abhängigkeiten,
-  Version, Footer, Übersetzungen), Script-Datei (Blockname, Filter, alle
-  neun Platzierungsklassen, Text-Domain an jedem Text) und kein Enqueue ohne
-  registrierten Block (Registry wird wiederhergestellt).
-- `tests/verify-editor-js.mjs` prüft das Editor-Script unter Node (28
+  Version, Footer, Übersetzungen), Script-Datei (CF7-Block, Shortcode-Block,
+  Filter, alle neun Platzierungsklassen, Text-Domain an jedem Text) und kein
+  Enqueue ohne registrierten Block (Registry wird wiederhergestellt).
+- `tests/verify-editor-js.mjs` prüft das Editor-Script unter Node (47
   Punkte): die `wp.*`-Pakete sind Stubs, `createElement` liefert einfache
   Objekte; geprüft werden Filter-Registrierung, Gruppen und Klassen,
   `splitClasses()`, `currentValue()`, `withGroupValue()` (ersetzen,
-  anhängen, entfernen, Duplikate, fremde Klassen), die Higher-Order-Component
-  (fremder Block, CF7-Block ohne und mit Formular), das Panel (Titel, vier
-  Felder, Werte aus `htmlClass`, Hinweistext) und `setAttributes()` nach
-  einer Auswahl. `node --check` läuft davor.
+  anhängen, entfernen, Duplikate, fremde Klassen), `shortcodeHtmlClass()`
+  und `withShortcodeHtmlClass()` (Anführungszeichen, anhängen, ersetzen,
+  entfernen, umgebender Text, `/]`, Text ohne Shortcode), die
+  Higher-Order-Component (fremder Block, CF7-Block ohne und mit Formular,
+  Shortcode-Block ohne und mit CF7-Shortcode), das Panel (Titel, vier
+  Felder, Werte aus `htmlClass` bzw. `html_class`, Hinweistexte) und
+  `setAttributes()` nach einer Auswahl. `node --check` läuft davor.
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
@@ -777,7 +791,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   mit `skip_mail: on` → Labels sinken zurück, Einstellungsseite speichern
   und Hilfe-Reiter öffnen, Block-Editor: CF7-Block markieren, Panel
   „Floating Labels“ unter „Block“, Auswahl ändern, Feld „Class“ unter „Form
-  attributes“ zeigt die Klasse, Seite speichern und Frontend prüfen.
+  attributes“ zeigt die Klasse; Shortcode-Block mit `[contact-form-7 …]`
+  markieren, Auswahl ändern, `html_class` erscheint im Shortcode-Text; Seite
+  speichern und Frontend prüfen.
 - Assets: `python3 docs/assets-erzeugen.py` (Pillow, Noto Sans) zeichnet das
   Motiv „Feld bekommt Fokus, Label floatet auf die Rahmenlinie, Text wird
   getippt, Schleife“ mit den Default-Farben aus 8 und schreibt `icon.svg`
@@ -838,7 +854,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    1. `readme.txt` (Commit f39cea5), Plugin Check ohne Befund. Erledigt.
    2. Kontexthilfe (Commit 61cf91b), `verify-admin.php` 39 Prüfungen. Erledigt.
    3. `.pot` (Commit cf0d9cc), 74 Texte, seit dem Fehlerfall 78, seit
-      Modul 5 88. Erledigt; vor jedem Release neu erzeugen.
+      Modul 5 89. Erledigt; vor jedem Release neu erzeugen.
    4. Assets (Commit dfd3c79): animiertes Icon, animierte Banner,
       Screenshots 1–4 per Script. Offen: Screenshots 5 (Einstellungsseite)
       und 6 (Panel im CF7-Block), Nutzer im Browser.
@@ -855,10 +871,10 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
       README des Repos), Einreichung bei WordPress.org; danach GlotPress
       (de/default, de/formal).
 6. Modul 5 Block-Seitenleiste (10), vorgezogen aus 1.1. Erledigt am
-   22.10.2026 (Commit a820fd7): 15 und 28 Prüfungen PASS, `composer check`
-   ohne Befund, Plugin Check auf dem ZIP ohne Befund. Offen: Sichtprüfung im
-   Block-Editor und Screenshot 6 (Nutzer), Hostsharing erneut mit `dateien`
-   nachziehen und lesend prüfen.
+   22.10.2026 (Commit a820fd7, Shortcode-Block im Folge-Commit): 16 und 47
+   Prüfungen PASS, `composer check` ohne Befund, Plugin Check auf dem ZIP
+   ohne Befund. Offen: Sichtprüfung im Block-Editor und Screenshot 6
+   (Nutzer), Hostsharing erneut mit `dateien` nachziehen und lesend prüfen.
 
 ## 15. Offen
 
@@ -901,3 +917,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 1.8 | 22.10.2026 | Fehlerfall (Commit ba9a53c): CF7-Hinweis im Feld auf der Textzeile (links bei leerem, rechts bei gefülltem Feld), Label floatet bei Fehler in allen Varianten, Senden-Button bei `form.invalid` in Fehlerfarbe mit Fehlertext über Hülle `jgor-flcf7-submit` (Modul 2) und Grid-Overlay (8); Einstellung `submit_error_text` mit Textfeld (6, 9), Filter `jgor_flcf7_submit_error_text` (7.4), Properties `--jgor-flcf7-submit-error-background` und `-color`; Assets mit Rand und gerundeten Ecken, Beispieltexte John Doe; Prüfungen 62/40, `.pot` 78 Texte; `use-floating-validation-tip` aus §14 erledigt |
 | 1.9 | 22.10.2026 | Hostsharing-Gegenprobe nach dem Fehlerfall (§12, §13 5.5): Dateien und Formular-HTML identisch, Plugin Check ohne Befund; `datenbank` nur bei geänderten Seiten oder Formularen nötig |
 | 2.0 | 22.10.2026 | Modul 5 Block-Seitenleiste (Commit a820fd7), vorgezogen aus 1.1: neuer Abschnitt 10, die bisherigen Abschnitte 10–14 werden 11–15 (Verweise angepasst); §3 Dateien, §4 „Kein JavaScript im Frontend“, §5 Block-Panels, §6 Bootstrap, §7.4 Panel als Weg für Schicht 3, §13 Prüfscripte `verify-editor.php` (15) und `verify-editor-js.mjs` (28), Option-Sicherung in `verify-markup.php` und `verify-admin.php`, Browser-Matrix um Fehlerfall und Block-Editor ergänzt, ZIP 12 Dateien; readme Screenshot 6; `.pot` 88 Texte |
+| 2.1 | 22.10.2026 | Modul 5 auch für den Shortcode-Block `core/shortcode` mit `[contact-form-7 …]`: Panel liest und schreibt `html_class` im Shortcode-Text (`storeFor()`, `shortcodeHtmlClass()`, `withShortcodeHtmlClass()`); §5, §10, §13 (Prüfungen 16/47, Browser-Matrix), §14; readme und Kontexthilfe; `.pot` 89 Texte |

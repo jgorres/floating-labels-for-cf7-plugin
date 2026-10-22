@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-22T16:11:48+00:00\n"
+"POT-Creation-Date: 2026-10-22T16:42:39+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: floating-labels-for-cf7\n"
@@ -52,7 +52,7 @@ msgid "Plugin activation stopped"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:125
-#: assets/js/block-editor.js:212
+#: assets/js/block-editor.js:344
 msgid "Floating Labels"
 msgstr ""
 
@@ -105,7 +105,7 @@ msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:194
 #: includes/class-jgor-flcf7-admin.php:602
-msgid "Select the Contact Form 7 block and open the panel \"Floating Labels\" in the block sidebar; it stores the choice as classes in the \"Class\" field of the block (panel \"Form attributes\"). The same classes work in the html_class attribute of the shortcode, so one form can look different on different pages:"
+msgid "Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel \"Floating Labels\" in the block sidebar. It stores the choice as classes in the \"Class\" field of the block (panel \"Form attributes\") or in the html_class attribute of the shortcode, so one form can look different on different pages:"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:196
@@ -175,7 +175,7 @@ msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:321
 #: includes/class-jgor-flcf7-admin.php:557
-#: assets/js/block-editor.js:72
+#: assets/js/block-editor.js:97
 msgid "Variant"
 msgstr ""
 
@@ -184,7 +184,7 @@ msgid "Stylesheet"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:323
-#: assets/js/block-editor.js:82
+#: assets/js/block-editor.js:107
 msgid "Required fields"
 msgstr ""
 
@@ -261,7 +261,7 @@ msgid "Untick every type to switch floating labels off without losing the other 
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:543
-#: assets/js/block-editor.js:75
+#: assets/js/block-editor.js:100
 msgid "Outlined"
 msgstr ""
 
@@ -270,7 +270,7 @@ msgid "Border all round; the label floats onto the border line."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:547
-#: assets/js/block-editor.js:76
+#: assets/js/block-editor.js:101
 msgid "Filled"
 msgstr ""
 
@@ -279,7 +279,7 @@ msgid "Tinted box with a bottom line; the label floats inside the box."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:551
-#: assets/js/block-editor.js:77
+#: assets/js/block-editor.js:102
 msgid "Minimal"
 msgstr ""
 
@@ -347,45 +347,49 @@ msgstr ""
 msgid "Settings of Floating Labels for CF7."
 msgstr ""
 
-#: assets/js/block-editor.js:54
+#: assets/js/block-editor.js:79
 msgid "Floating labels"
 msgstr ""
 
-#: assets/js/block-editor.js:56
-#: assets/js/block-editor.js:65
-#: assets/js/block-editor.js:74
-#: assets/js/block-editor.js:84
+#: assets/js/block-editor.js:81
+#: assets/js/block-editor.js:90
+#: assets/js/block-editor.js:99
+#: assets/js/block-editor.js:109
 msgid "Default"
 msgstr ""
 
-#: assets/js/block-editor.js:57
+#: assets/js/block-editor.js:82
 msgid "On"
 msgstr ""
 
-#: assets/js/block-editor.js:58
+#: assets/js/block-editor.js:83
 msgid "Off"
 msgstr ""
 
-#: assets/js/block-editor.js:63
+#: assets/js/block-editor.js:88
 msgid "Label source"
 msgstr ""
 
-#: assets/js/block-editor.js:66
+#: assets/js/block-editor.js:91
 msgid "Form template labels only"
 msgstr ""
 
-#: assets/js/block-editor.js:67
+#: assets/js/block-editor.js:92
 msgid "Placeholders only"
 msgstr ""
 
-#: assets/js/block-editor.js:85
+#: assets/js/block-editor.js:110
 msgid "Asterisk on"
 msgstr ""
 
-#: assets/js/block-editor.js:86
+#: assets/js/block-editor.js:111
 msgid "Asterisk off"
 msgstr ""
 
-#: assets/js/block-editor.js:203
+#: assets/js/block-editor.js:294
 msgid "\"Default\" keeps the settings of the site and of the form. The choices are stored as classes in the \"Class\" field of the panel \"Form attributes\"."
+msgstr ""
+
+#: assets/js/block-editor.js:307
+msgid "\"Default\" keeps the settings of the site and of the form. The choices are stored in the html_class attribute of the shortcode."
 msgstr ""

@@ -2,13 +2,16 @@
  * Floating Labels for CF7 – block editor script.
  *
  * Adds the panel "Floating Labels" to the sidebar of the Contact Form 7 block
- * (contact-form-7/contact-form-selector). Each select of the panel stands for
- * one group of placement classes of the plugin (on/off, label source, variant,
- * required marker). The chosen class is written into the block attribute
- * htmlClass, which Contact Form 7 prints as html_class of the shortcode and as
- * class of the <form>; the block shows the same attribute as "Class" in its
- * panel "Form attributes", so both views stay in sync. Classes the panel does
- * not know are kept untouched.
+ * (contact-form-7/contact-form-selector) and of a Shortcode block
+ * (core/shortcode) whose text holds a [contact-form-7 ...] shortcode. Each
+ * select of the panel stands for one group of placement classes of the
+ * plugin (on/off, label source, variant, required marker).
+ *
+ * The chosen class is stored where Contact Form 7 reads it anyway: in the
+ * block attribute htmlClass of the Contact Form 7 block (shown as "Class" in
+ * its panel "Form attributes"), or in the html_class attribute of the
+ * shortcode text of a Shortcode block. Classes the panel does not know are
+ * kept untouched.
  *
  * No build step: the script uses the global "wp" packages and
  * wp.element.createElement instead of JSX. The helpers are exposed on
@@ -33,11 +36,33 @@
 	var BLOCK_NAME = 'contact-form-7/contact-form-selector';
 
 	/**
+	 * Name of the core Shortcode block.
+	 *
+	 * @type {string}
+	 */
+	var SHORTCODE_BLOCK_NAME = 'core/shortcode';
+
+	/**
 	 * Namespace of the filter callback.
 	 *
 	 * @type {string}
 	 */
 	var FILTER_NAMESPACE = 'jgor-flcf7/block-editor';
+
+	/**
+	 * Matches the first [contact-form-7 ...] shortcode in a text.
+	 *
+	 * @type {RegExp}
+	 */
+	var SHORTCODE_PATTERN = /\[contact-form-7\b[^\]]*\]/;
+
+	/**
+	 * Matches the html_class attribute inside a shortcode: double quotes,
+	 * single quotes or no quotes, as WordPress parses them.
+	 *
+	 * @type {RegExp}
+	 */
+	var HTML_CLASS_ATTR_PATTERN = /\s+html_class=(?:"([^"]*)"|'([^']*)'|([^\s\]]+))/;
 
 	/**
 	 * Groups of placement classes, one select each (concept, section 7.4).
@@ -121,7 +146,7 @@
 	/**
 	 * Returns the class of a group present in the attribute, or ''.
 	 *
-	 * @param {*}      htmlClass Value of the attribute htmlClass.
+	 * @param {*}      htmlClass Value of the class attribute.
 	 * @param {Object} group     Entry of GROUPS.
 	 * @return {string} The last matching class, or '' for none.
 	 */
@@ -146,7 +171,7 @@
 	 * present the value is appended. An empty value removes the group. Other
 	 * classes are kept as they are.
 	 *
-	 * @param {*}      htmlClass Value of the attribute htmlClass.
+	 * @param {*}      htmlClass Value of the class attribute.
 	 * @param {Object} group     Entry of GROUPS.
 	 * @param {string} value     New class of the group, or '' for none.
 	 * @return {string} New attribute value.
@@ -173,14 +198,127 @@
 	}
 
 	/**
+	 * Finds the first Contact Form 7 shortcode in a text.
+	 *
+	 * @param {*} text Text of a Shortcode block.
+	 * @return {Object|null} Match (index, [0] = the shortcode) or null.
+	 */
+	function findShortcode( text ) {
+		if ( typeof text !== 'string' ) {
+			return null;
+		}
+
+		return text.match( SHORTCODE_PATTERN );
+	}
+
+	/**
+	 * Returns the html_class attribute of the first Contact Form 7 shortcode
+	 * in a text, or ''.
+	 *
+	 * @param {*} text Text of a Shortcode block.
+	 * @return {string} Attribute value, or '' when absent.
+	 */
+	function shortcodeHtmlClass( text ) {
+		var shortcode = findShortcode( text );
+		if ( ! shortcode ) {
+			return '';
+		}
+
+		var attr = shortcode[ 0 ].match( HTML_CLASS_ATTR_PATTERN );
+		if ( ! attr ) {
+			return '';
+		}
+
+		if ( attr[ 1 ] !== undefined ) {
+			return attr[ 1 ];
+		}
+
+		return attr[ 2 ] !== undefined ? attr[ 2 ] : attr[ 3 ];
+	}
+
+	/**
+	 * Returns the text with the html_class attribute of the first Contact
+	 * Form 7 shortcode set, replaced or removed.
+	 *
+	 * An existing attribute keeps its position and is rewritten with double
+	 * quotes; a missing one is appended before the closing bracket; an empty
+	 * value removes the attribute. Text without the shortcode comes back
+	 * unchanged.
+	 *
+	 * @param {*}      text  Text of a Shortcode block.
+	 * @param {string} value New attribute value, or '' for none.
+	 * @return {*} New text.
+	 */
+	function withShortcodeHtmlClass( text, value ) {
+		var shortcode = findShortcode( text );
+		if ( ! shortcode ) {
+			return text;
+		}
+
+		var tag = shortcode[ 0 ];
+		var updated;
+
+		if ( HTML_CLASS_ATTR_PATTERN.test( tag ) ) {
+			updated = tag.replace( HTML_CLASS_ATTR_PATTERN, value === '' ? '' : ' html_class="' + value + '"' );
+		} else if ( value !== '' ) {
+			updated = tag.replace( /\s*(\/?)\]$/, ' html_class="' + value + '"$1]' );
+		} else {
+			updated = tag;
+		}
+
+		return text.slice( 0, shortcode.index ) + updated + text.slice( shortcode.index + tag.length );
+	}
+
+	/**
+	 * Describes where the classes of a block live, or null for other blocks.
+	 *
+	 * Contact Form 7 block: the attribute htmlClass, once a form is selected
+	 * (like the panels of the block itself). Shortcode block: the html_class
+	 * attribute of the first [contact-form-7] shortcode in its text.
+	 *
+	 * @param {Object} props Block edit props (name, attributes, setAttributes).
+	 * @return {Object|null} {active, read, write, help} or null.
+	 */
+	function storeFor( props ) {
+		var attributes = props.attributes || {};
+
+		if ( props.name === BLOCK_NAME ) {
+			return {
+				active: !! attributes.id,
+				read: function () {
+					return typeof attributes.htmlClass === 'string' ? attributes.htmlClass : '';
+				},
+				write: function ( value ) {
+					props.setAttributes( { htmlClass: value } );
+				},
+				help: __( '"Default" keeps the settings of the site and of the form. The choices are stored as classes in the "Class" field of the panel "Form attributes".', 'floating-labels-for-cf7' )
+			};
+		}
+
+		if ( props.name === SHORTCODE_BLOCK_NAME ) {
+			return {
+				active: findShortcode( attributes.text ) !== null,
+				read: function () {
+					return shortcodeHtmlClass( attributes.text );
+				},
+				write: function ( value ) {
+					props.setAttributes( { text: withShortcodeHtmlClass( attributes.text, value ) } );
+				},
+				help: __( '"Default" keeps the settings of the site and of the form. The choices are stored in the html_class attribute of the shortcode.', 'floating-labels-for-cf7' )
+			};
+		}
+
+		return null;
+	}
+
+	/**
 	 * Builds the panel for one block instance.
 	 *
-	 * @param {Object}   attributes    Block attributes.
-	 * @param {Function} setAttributes Setter of the block.
+	 * @param {Object} store Result of storeFor().
 	 * @return {Object} Element tree (InspectorControls).
 	 */
-	function panel( attributes, setAttributes ) {
-		var htmlClass = typeof attributes.htmlClass === 'string' ? attributes.htmlClass : '';
+	function panel( store ) {
+		var htmlClass = store.read();
 
 		var controls = GROUPS.map( function ( group ) {
 			return el( wp.components.SelectControl, {
@@ -189,20 +327,14 @@
 				value: currentValue( htmlClass, group ),
 				options: group.options,
 				onChange: function ( value ) {
-					setAttributes( { htmlClass: withGroupValue( htmlClass, group, value ) } );
+					store.write( withGroupValue( htmlClass, group, value ) );
 				},
 				__nextHasNoMarginBottom: true,
 				__next40pxDefaultSize: true
 			} );
 		} );
 
-		controls.push(
-			el(
-				'p',
-				{ key: 'help', className: 'components-base-control__help' },
-				__( '"Default" keeps the settings of the site and of the form. The choices are stored as classes in the "Class" field of the panel "Form attributes".', 'floating-labels-for-cf7' )
-			)
-		);
+		controls.push( el( 'p', { key: 'help', className: 'components-base-control__help' }, store.help ) );
 
 		return el(
 			wp.blockEditor.InspectorControls,
@@ -217,22 +349,21 @@
 
 	/**
 	 * Wraps the edit component of every block; only the Contact Form 7 block
-	 * gets the panel, and only once a form is selected (like the panels of
-	 * the block itself).
+	 * and a Shortcode block with a Contact Form 7 shortcode get the panel.
 	 */
 	var withFloatingLabelsPanel = wp.compose.createHigherOrderComponent( function ( BlockEdit ) {
 		return function ( props ) {
-			if ( props.name !== BLOCK_NAME ) {
+			var store = storeFor( props );
+
+			if ( ! store ) {
 				return el( BlockEdit, props );
 			}
-
-			var hasForm = !! ( props.attributes && props.attributes.id );
 
 			return el(
 				Fragment,
 				null,
 				el( BlockEdit, props ),
-				hasForm ? panel( props.attributes, props.setAttributes ) : null
+				store.active ? panel( store ) : null
 			);
 		};
 	}, 'withJgorFlcf7FloatingLabelsPanel' );
@@ -241,10 +372,13 @@
 
 	window.jgorFlcf7BlockEditor = {
 		BLOCK_NAME: BLOCK_NAME,
+		SHORTCODE_BLOCK_NAME: SHORTCODE_BLOCK_NAME,
 		GROUPS: GROUPS,
 		splitClasses: splitClasses,
 		currentValue: currentValue,
 		withGroupValue: withGroupValue,
+		shortcodeHtmlClass: shortcodeHtmlClass,
+		withShortcodeHtmlClass: withShortcodeHtmlClass,
 		withFloatingLabelsPanel: withFloatingLabelsPanel
 	};
 } )( window.wp );

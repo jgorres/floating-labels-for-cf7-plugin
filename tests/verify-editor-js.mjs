@@ -9,7 +9,9 @@
  *
  * The WordPress packages are replaced by stubs: createElement returns plain
  * objects, so the element tree the panel builds can be inspected, and the
- * filter registration is recorded instead of applied.
+ * filter registration is recorded instead of applied. Covered: the class
+ * helpers, the html_class helpers for the Shortcode block, and the panel on
+ * the Contact Form 7 block and on a Shortcode block.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -101,7 +103,7 @@ const file = resolve( dirname( fileURLToPath( import.meta.url ) ), '../plugin/as
 vm.runInThisContext( readFileSync( file, 'utf8' ), { filename: file } );
 
 const api = globalThis.jgorFlcf7BlockEditor;
-check( 'api: window.jgorFlcf7BlockEditor exposed', !! api && typeof api.withGroupValue === 'function' );
+check( 'api: window.jgorFlcf7BlockEditor exposed', !! api && typeof api.withGroupValue === 'function' && typeof api.withShortcodeHtmlClass === 'function' );
 
 // Filter registration.
 check( 'filter: editor.BlockEdit registered once under jgor-flcf7/block-editor', filters.length === 1 && filters[ 0 ].hook === 'editor.BlockEdit' && filters[ 0 ].namespace === 'jgor-flcf7/block-editor' && typeof filters[ 0 ].callback === 'function' );
@@ -130,6 +132,22 @@ check( 'withGroupValue: drops duplicates of the group', api.withGroupValue( 'jgo
 check( 'withGroupValue: empty value removes the group, other classes stay', api.withGroupValue( 'a jgor-flcf7-off b jgor-flcf7-style-filled', byKey.enabled, '' ) === 'a b jgor-flcf7-style-filled' );
 check( 'withGroupValue: empty attribute and empty value -> empty string', api.withGroupValue( undefined, byKey.marker, '' ) === '' );
 check( 'withGroupValue: other groups untouched', api.withGroupValue( 'jgor-flcf7-mode-label', byKey.marker, 'jgor-flcf7-marker-on' ) === 'jgor-flcf7-mode-label jgor-flcf7-marker-on' );
+
+// Shortcode helpers.
+const sc = '[contact-form-7 id="123" title="Contact form 1"]';
+check( 'shortcodeHtmlClass: no shortcode -> empty', api.shortcodeHtmlClass( 'plain text' ) === '' && api.shortcodeHtmlClass( undefined ) === '' );
+check( 'shortcodeHtmlClass: shortcode without the attribute -> empty', api.shortcodeHtmlClass( sc ) === '' );
+check( 'shortcodeHtmlClass: double quotes', api.shortcodeHtmlClass( '[contact-form-7 id="1" html_class="a b"]' ) === 'a b' );
+check( 'shortcodeHtmlClass: single quotes', api.shortcodeHtmlClass( "[contact-form-7 id='1' html_class='a b']" ) === 'a b' );
+check( 'shortcodeHtmlClass: no quotes', api.shortcodeHtmlClass( '[contact-form-7 id=1 html_class=a]' ) === 'a' );
+check( 'shortcodeHtmlClass: first shortcode of two', api.shortcodeHtmlClass( '[contact-form-7 id="1" html_class="x"] [contact-form-7 id="2" html_class="y"]' ) === 'x' );
+check( 'withShortcodeHtmlClass: appends the attribute before the closing bracket', api.withShortcodeHtmlClass( sc, 'a' ) === '[contact-form-7 id="123" title="Contact form 1" html_class="a"]' );
+check( 'withShortcodeHtmlClass: keeps surrounding text', api.withShortcodeHtmlClass( 'before ' + sc + ' after', 'a' ) === 'before [contact-form-7 id="123" title="Contact form 1" html_class="a"] after' );
+check( 'withShortcodeHtmlClass: replaces in place with double quotes', api.withShortcodeHtmlClass( "[contact-form-7 id='1' html_class='old' title='t']", 'new' ) === "[contact-form-7 id='1' html_class=\"new\" title='t']" );
+check( 'withShortcodeHtmlClass: empty value removes the attribute', api.withShortcodeHtmlClass( '[contact-form-7 id="1" html_class="a" title="t"]', '' ) === '[contact-form-7 id="1" title="t"]' );
+check( 'withShortcodeHtmlClass: empty value without attribute -> unchanged', api.withShortcodeHtmlClass( sc, '' ) === sc );
+check( 'withShortcodeHtmlClass: self-closing shortcode', api.withShortcodeHtmlClass( '[contact-form-7 id="1" /]', 'a' ) === '[contact-form-7 id="1" html_class="a"/]' );
+check( 'withShortcodeHtmlClass: text without shortcode unchanged', api.withShortcodeHtmlClass( '[gallery]', 'a' ) === '[gallery]' && api.withShortcodeHtmlClass( undefined, 'a' ) === undefined );
 
 // The higher-order component.
 const BlockEdit = 'BlockEdit';
@@ -165,6 +183,31 @@ selects[ 0 ].props.onChange( 'jgor-flcf7-off' );
 check( 'change: on/off -> class appended, others kept', saved.htmlClass === 'custom jgor-flcf7-style-filled jgor-flcf7-off' );
 selects[ 2 ].props.onChange( '' );
 check( 'change: default -> class removed', saved.htmlClass === 'custom' );
+
+// Shortcode block.
+const plainShortcode = Wrapped( { name: api.SHORTCODE_BLOCK_NAME, attributes: { text: '[gallery ids="1,2"]' }, setAttributes: noop } );
+check( 'shortcode block: other shortcode -> no panel', plainShortcode.type === 'Fragment' && find( plainShortcode, 'InspectorControls' ) === null );
+let savedText = null;
+const shortcodeTree = Wrapped( {
+	name: api.SHORTCODE_BLOCK_NAME,
+	attributes: { text: 'Intro [contact-form-7 id="123" title="Contact form 1" html_class="custom jgor-flcf7-off"]' },
+	setAttributes: ( attributes ) => { savedText = attributes; },
+} );
+const shortcodePanel = find( shortcodeTree, 'PanelBody' );
+const shortcodeSelects = findAll( shortcodePanel, 'SelectControl' );
+check( 'shortcode block: panel with four selects, values read from html_class', !! shortcodePanel && shortcodeSelects.length === 4 && shortcodeSelects.map( ( select ) => select.props.value ).join( '|' ) === 'jgor-flcf7-off|||' );
+check( 'shortcode block: help text names html_class', String( find( shortcodePanel, 'p' ).children[ 0 ] ).includes( 'html_class attribute' ) );
+shortcodeSelects[ 2 ].props.onChange( 'jgor-flcf7-style-filled' );
+check( 'shortcode block: change -> setAttributes({ text }) with the attribute rewritten', savedText !== null && savedText.text === 'Intro [contact-form-7 id="123" title="Contact form 1" html_class="custom jgor-flcf7-off jgor-flcf7-style-filled"]' );
+shortcodeSelects[ 0 ].props.onChange( '' );
+check( 'shortcode block: default -> class removed, attribute kept while classes remain', savedText.text === 'Intro [contact-form-7 id="123" title="Contact form 1" html_class="custom"]' );
+const onlyOurs = Wrapped( {
+	name: api.SHORTCODE_BLOCK_NAME,
+	attributes: { text: '[contact-form-7 id="5" html_class="jgor-flcf7-on"]' },
+	setAttributes: ( attributes ) => { savedText = attributes; },
+} );
+findAll( find( onlyOurs, 'PanelBody' ), 'SelectControl' )[ 0 ].props.onChange( '' );
+check( 'shortcode block: last class removed -> attribute removed', savedText.text === '[contact-form-7 id="5"]' );
 
 if ( failed > 0 ) {
 	console.error( failed + ' check(s) failed.' );

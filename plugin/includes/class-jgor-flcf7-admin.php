@@ -191,7 +191,7 @@ final class JGOR_FLCF7_Admin {
 		return '<p>' . esc_html__( 'The settings of this screen apply to every form. Override them per form, per placement or per field; later layers win.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p><strong>' . esc_html__( 'Per form', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add lines to the "Additional Settings" tab of the form:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_additional_settings() ) . '</code></pre>'
-			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Select the Contact Form 7 block and open the panel "Floating Labels" in the block sidebar; it stores the choice as classes in the "Class" field of the block (panel "Form attributes"). The same classes work in the html_class attribute of the shortcode, so one form can look different on different pages:', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_html_classes() ) . '</code></pre>'
 			. '<p><strong>' . esc_html__( 'Per field', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add the option nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_nofloat() ) . '</code></pre>';
@@ -599,7 +599,7 @@ final class JGOR_FLCF7_Admin {
 		<pre><code><?php echo esc_html( $this->example_additional_settings() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per placement', 'floating-labels-for-cf7' ); ?></strong><br>
-		<?php esc_html_e( 'Select the Contact Form 7 block and open the panel "Floating Labels" in the block sidebar; it stores the choice as classes in the "Class" field of the block (panel "Form attributes"). The same classes work in the html_class attribute of the shortcode, so one form can look different on different pages:', 'floating-labels-for-cf7' ); ?></p>
+		<?php esc_html_e( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages:', 'floating-labels-for-cf7' ); ?></p>
 		<pre><code><?php echo esc_html( $this->example_html_classes() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per field', 'floating-labels-for-cf7' ); ?></strong><br>
