@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.2 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
+Version: 2.3 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -82,7 +82,7 @@ floating-labels-for-cf7/
 │   └── languages/floating-labels-for-cf7.pot  Übersetzungsvorlage (wp i18n make-pot)
 ├── tests/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
-│   ├── verify-markup.php             62 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
+│   ├── verify-markup.php             69 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
 │   ├── verify-admin.php              50 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
 │   ├── verify-design.php             26 PASS/FAIL-Prüfungen für die Design-Einstellungen (wp eval-file)
 │   ├── verify-editor.php             16 PASS/FAIL-Prüfungen für Modul 5, Enqueue (wp eval-file)
@@ -156,7 +156,12 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   `tel`, `textarea`, `number`, `range`, `date` und `captchar`. CF7 schreibt
   den Wert in das Attribut `placeholder`, der Default-Wert bleibt leer.
   Optionen `id:` und `class:` setzen `id` und `class` des Steuerelements.
-  Unbekannte Optionen wie `nofloat` nimmt der Parser an und ignoriert sie;
+  Die `id:`-Option gibt `WPCF7_FormTag::get_id_option()` je Request nur
+  einmal aus (statische Liste; Werte mit Präfix `wpcf7` nie): steht
+  dasselbe Formular zweimal auf einer Seite, hat das Feld beim zweiten
+  Rendering keine `id`, und das `<label for>` der Vorlage zeigt ins Leere
+  (7.2). Unbekannte Optionen wie `nofloat` nimmt der Parser an und
+  ignoriert sie;
   `WPCF7_FormTag::has_option()` liest sie.
 - **Form-Tag-Syntax:** Optionen ohne Anführungszeichen (`nofloat`, `id:x`,
   `min:0`) müssen vor den Werten in Anführungszeichen stehen
@@ -269,8 +274,8 @@ das Frontend begrenzt. Ablauf je Formular:
    Modi, Feldtypen, Variante und Pflichtstern aus der Option, übersteuert
    durch Additional Settings, `html_class` und Filter. Abgeschaltet, kein
    Modus aktiv oder kein Feldtyp erlaubt → unverändert.
-3. Felder sammeln: `scan_form_tags()` → Name → Basistyp, nur die wirksamen
-   Feldtypen. Ausgeschlossen: Tags mit
+3. Felder sammeln: `scan_form_tags()` → Name → Basistyp und `id:`-Option
+   (für 7.2), nur die wirksamen Feldtypen. Ausgeschlossen: Tags mit
    `has_option( 'nofloat' )`, Tags ohne Namen, Namen mit zwei verschiedenen
    Basistypen (mehrdeutig). Leere Liste → unverändert.
 4. HTML in DOMDocument laden (7.5), alle `span.wpcf7-form-control-wrap`
@@ -327,6 +332,12 @@ Zwei Formen der CF7-Standardvorlage:
   entfällt, ein dadurch leer gewordenes `<p>` wird entfernt. Hat der Filter
   `jgor_flcf7_label_text` den Text verändert, wird der Inhalt des Labels
   durch den neuen Klartext ersetzt; Inline-Markup geht dann verloren.
+  Hat das Steuerelement keine `id`, obwohl das Form-Tag eine `id:`-Option
+  trägt (CF7 gibt jede `id:` nur einmal je Seitenaufruf aus, 5), sucht das
+  Plugin das Label über den Wert der Option; das Steuerelement bekommt dann
+  eine ID nach 7.3, und das `for` des Labels zeigt darauf. So erhält auch
+  das zweite Exemplar desselben Formulars sein Floating Label, und das
+  sonst ins Leere zeigende Label der Vorlage ist korrekt verknüpft.
 
 In beiden Fällen wird ein vorhandener Placeholder ebenfalls auf ein
 Leerzeichen gesetzt, sonst lägen Placeholder und Label übereinander.
@@ -770,7 +781,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 ```
 
 - `tests/verify-markup.php` rendert die Formulare per `form_html()` und
-  prüft 62 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
+  prüft 69 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
   Placeholder-Modus, Ersatz des umschließenden Labels, Label-Text aus der
   Vorlage, Varianten- und Textarea-Klasse, IDs aus dem Unit-Tag, `for` =
   `id`, `placeholder=" "`, unberührte Felder (Submit, `nofloat`, Select,
@@ -778,7 +789,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   off|placeholder|label`, Filter `jgor_flcf7_enabled` und
   `jgor_flcf7_label_text` (auch Rückgabe leer), Typen-Einstellung ohne
   `textarea`, Formular (d) byteidentisch zum Original (Unit-Tag
-  normalisiert), zwei Instanzen mit verschiedenen IDs, UTF-8 und Entities,
+  normalisiert), zwei Instanzen mit verschiedenen IDs, zweites Rendering
+  von (c) ohne CF7-`id` (Label über die `id:`-Option gefunden, ID aus dem
+  Unit-Tag, `<br>` entfernt, vier Labels), UTF-8 und Entities,
   Steuerung je Formular (`floating_labels_style`, `_marker`, `_types`, leere
   Liste, ungültiger Wert), je Platzierung (`html_class`-Klassen samt
   Rangfolge über das Formular und `jgor-flcf7-on` gegen `floating_labels:
@@ -893,7 +906,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    Prüfung per `wp eval`. Erledigt am 22.10.2026 (Commit 124beaa, Prüfscripte
    756f4c1): 42 Prüfungen PASS, `composer check` ohne Befund. Erweitert am
    22.10.2026 um die Steuerung je Formular und Platzierung (7.4): 58
-   Prüfungen PASS.
+   Prüfungen PASS. Verknüpftes Label beim zweiten Rendering desselben
+   Formulars (7.2, Fund der Hostsharing-Gegenprobe) am 22.10.2026
+   nachgezogen: 69 Prüfungen PASS.
 3. Modul 3 CSS: Variante Outlined, dann Filled und Minimal, Fehlerzustand,
    Reduced Motion, RTL. Erledigt am 22.10.2026 (Commit aac696a), Sichtprüfung
    lokal; Browser-Matrix und Screenshots mit Schritt 5.
@@ -925,12 +940,16 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    22.10.2026 (Commit a820fd7, Shortcode-Block im Folge-Commit): 16 und 47
    Prüfungen PASS, `composer check` ohne Befund, Plugin Check auf dem ZIP
    ohne Befund. Offen: Sichtprüfung im Block-Editor und Screenshot 6
-   (Nutzer), Hostsharing erneut mit `dateien` nachziehen und lesend prüfen.
+   (Nutzer). Hostsharing am 22.10.2026 mit `dateien` nachgezogen und lesend
+   geprüft (13 Dateien identisch, `verify-editor.php` remote 16 PASS,
+   Plugin Check ohne Befund).
 7. Design-Einstellungen (9.2), vorgezogen aus 1.1. Erledigt am 22.10.2026
    (Commit b21db52): 26 und 50 Prüfungen PASS, `composer check` ohne
    Befund, Plugin Check auf dem ZIP ohne Befund. Offen: Sichtprüfung der
    Felder und des Farbwählers auf Silentium (Nutzer, Screenshot 5 zeigt sie
-   dann), Hostsharing mit `dateien` nachziehen.
+   dann). Hostsharing am 22.10.2026 nachgezogen (Kontaktseite identisch bis
+   auf `required_marker`); nach dem Fix in 7.2 erneut mit `dateien`
+   nachziehen.
 
 ## 15. Offen
 
@@ -972,3 +991,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.0 | 22.10.2026 | Modul 5 Block-Seitenleiste (Commit a820fd7), vorgezogen aus 1.1: neuer Abschnitt 10, die bisherigen Abschnitte 10–14 werden 11–15 (Verweise angepasst); §3 Dateien, §4 „Kein JavaScript im Frontend“, §5 Block-Panels, §6 Bootstrap, §7.4 Panel als Weg für Schicht 3, §13 Prüfscripte `verify-editor.php` (15) und `verify-editor-js.mjs` (28), Option-Sicherung in `verify-markup.php` und `verify-admin.php`, Browser-Matrix um Fehlerfall und Block-Editor ergänzt, ZIP 12 Dateien; readme Screenshot 6; `.pot` 88 Texte |
 | 2.1 | 22.10.2026 | Modul 5 auch für den Shortcode-Block `core/shortcode` mit `[contact-form-7 …]`: Panel liest und schreibt `html_class` im Shortcode-Text (`storeFor()`, `shortcodeHtmlClass()`, `withShortcodeHtmlClass()`); §5, §10, §13 (Prüfungen 16/47, Browser-Matrix), §14; readme und Kontexthilfe; `.pot` 89 Texte |
 | 2.2 | 22.10.2026 | Design-Einstellungen (Commit b21db52), vorgezogen aus 1.1: neuer Abschnitt 9.2 (Option `design`, Sanitize je Typ, Felder mit Farbwähler, Inline-Style nur für Abweichungen, Property `--jgor-flcf7-font-size`); §3 Dateien, §4, §6 Optionstabelle, §8 Property und Ausgabe, §9 Sektionen, §13 `verify-design.php` (26) und `verify-admin.php` (50), ZIP 13 Dateien, §14 Schritt 7, §15 Design-Punkt ersetzt; readme, Kontexthilfe; `.pot` 115 Texte |
+| 2.3 | 22.10.2026 | Fund der Hostsharing-Gegenprobe: CF7 gibt jede `id:`-Option nur einmal je Seitenaufruf aus, beim zweiten Rendering desselben Formulars fand Modul 2 das verknüpfte `<label for>` nicht; `fields()` liefert die `id:`-Option mit, `linked_label()` sucht damit, das Feld bekommt eine ID aus dem Unit-Tag (5, 7, 7.2); `verify-markup.php` 69 Prüfungen; §14 Schritte 2, 6, 7 |

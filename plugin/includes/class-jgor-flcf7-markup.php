@@ -8,7 +8,11 @@
  * and a <label for> with the label text follows the control inside the
  * span.wpcf7-form-control-wrap. The label text comes from the enclosing or
  * linked <label> of the form template (label mode) or from the placeholder
- * option of the form-tag (placeholder mode).
+ * option of the form-tag (placeholder mode). A linked <label for> is found
+ * through the id of the control or, when Contact Form 7 dropped that id
+ * because the same form is rendered a second time on the page, through the
+ * id option of the form-tag; the control then gets a fresh id and the label
+ * points at it.
  *
  * What applies to one rendering is decided in layers, see form_settings():
  * the plugin settings, the additional settings of the form, the classes in
@@ -503,16 +507,21 @@ final class JGOR_FLCF7_Markup {
 	}
 
 	/**
-	 * Names of the form-tags the module may rebuild, mapped to their base type.
+	 * Names of the form-tags the module may rebuild, mapped to their base
+	 * type and id option.
 	 *
 	 * Uses the form-tags of the template instead of guessing from attributes:
 	 * only tags whose base type is allowed for this rendering and that do not
 	 * carry the option "nofloat" qualify. A name used by two tags of
-	 * different types is ambiguous and skipped.
+	 * different types is ambiguous and skipped. The id option (id:...) is
+	 * kept because Contact Form 7 prints every id option only once per
+	 * request: when the same form is rendered twice on a page, the second
+	 * control has no id, while the <label for> of the template still names
+	 * the option (see linked_label()).
 	 *
 	 * @param WPCF7_ContactForm $form  The contact form being rendered.
 	 * @param string[]          $types Base types allowed for this rendering.
-	 * @return array<string, string>
+	 * @return array<string, array{type: string, id: string}> Field name => base type and id option ('' when none).
 	 */
 	private function fields( WPCF7_ContactForm $form, array $types ): array {
 		if ( empty( $types ) ) {
@@ -535,12 +544,17 @@ final class JGOR_FLCF7_Markup {
 				continue;
 			}
 
-			if ( isset( $fields[ $name ] ) && $fields[ $name ] !== $basetype ) {
+			if ( isset( $fields[ $name ] ) && $fields[ $name ]['type'] !== $basetype ) {
 				$ambiguous[ $name ] = true;
 				continue;
 			}
 
-			$fields[ $name ] = $basetype;
+			$id = $tag->get_option( 'id', 'id', true );
+
+			$fields[ $name ] = array(
+				'type' => $basetype,
+				'id'   => is_string( $id ) ? $id : '',
+			);
 		}
 
 		return array_diff_key( $fields, $ambiguous );
@@ -549,10 +563,10 @@ final class JGOR_FLCF7_Markup {
 	/**
 	 * Parses the form HTML, rebuilds the qualifying fields and serialises it again.
 	 *
-	 * @param string                $html   Form HTML.
-	 * @param WPCF7_ContactForm     $form   The contact form being rendered.
-	 * @param array<string, string> $fields Field names mapped to base types, see fields().
-	 * @param array<string, mixed>  $config Settings for this rendering, see form_settings().
+	 * @param string                                         $html   Form HTML.
+	 * @param WPCF7_ContactForm                              $form   The contact form being rendered.
+	 * @param array<string, array{type: string, id: string}> $fields Field names mapped to base type and id option, see fields().
+	 * @param array<string, mixed>                           $config Settings for this rendering, see form_settings().
 	 * @return string|null Rebuilt HTML, or null when nothing changed or parsing failed.
 	 *
 	 * @phpstan-param array{placeholder: bool, label: bool, types: string[], style: string, marker: bool, submit_error: string} $config
@@ -604,7 +618,7 @@ final class JGOR_FLCF7_Markup {
 				}
 
 				if ( null === $text ) {
-					$label = $this->linked_label( $xpath, $root, $control );
+					$label = $this->linked_label( $xpath, $root, $control, $fields[ $name ]['id'] );
 					if ( null !== $label ) {
 						$text = $this->normalize_text( $label->textContent );
 						if ( '' === $text ) {
@@ -920,16 +934,27 @@ final class JGOR_FLCF7_Markup {
 	/**
 	 * Returns the single <label for> pointing at the control, or null.
 	 *
-	 * The label must not contain a control itself (that is the enclosing
-	 * case, handled before).
+	 * The label is looked up by the id of the control or, when the control
+	 * has none, by the id option of its form-tag: Contact Form 7 prints every
+	 * id option only once per request (WPCF7_FormTag::get_id_option()), so
+	 * the second rendering of a form on one page has no id on the control
+	 * while the <label for> of the template still names the option. apply()
+	 * then gives the control a fresh id and points the label at it. The
+	 * label must not contain a control itself (that is the enclosing case,
+	 * handled before).
 	 *
-	 * @param DOMXPath   $xpath   XPath on the document.
-	 * @param DOMElement $root    Wrapper element of the fragment.
-	 * @param DOMElement $control The input or textarea.
+	 * @param DOMXPath   $xpath     XPath on the document.
+	 * @param DOMElement $root      Wrapper element of the fragment.
+	 * @param DOMElement $control   The input or textarea.
+	 * @param string     $id_option Id option of the form-tag, '' when none.
 	 * @return DOMElement|null
 	 */
-	private function linked_label( DOMXPath $xpath, DOMElement $root, DOMElement $control ): ?DOMElement {
+	private function linked_label( DOMXPath $xpath, DOMElement $root, DOMElement $control, string $id_option ): ?DOMElement {
 		$id = $control->getAttribute( 'id' );
+		if ( '' === $id ) {
+			$id = $id_option;
+		}
+
 		if ( '' === $id || str_contains( $id, "'" ) ) {
 			return null;
 		}

@@ -14,6 +14,9 @@
  * attribute) and the filters jgor_flcf7_form_settings, jgor_flcf7_enabled
  * and jgor_flcf7_label_text.
  *
+ * Form C is rendered a second time to cover the id option Contact Form 7
+ * prints only once per request (same form twice on a page).
+ *
  * Set FLCF7_DUMP=1 in the environment to print the rendered HTML of forms A
  * and C after the checks.
  *
@@ -215,6 +218,15 @@ jgor_flcf7_check( 'D: floating_labels: off -> byte-identical to original (unit t
 // (e) Same form twice: distinct ids.
 preg_match_all( '#id="(wpcf7-f' . $jgor_flcf7_id_b . '-o\d+-fl-your-name)"#', jgor_flcf7_render( $jgor_flcf7_id_b ) . jgor_flcf7_render( $jgor_flcf7_id_b ), $jgor_flcf7_m );
 jgor_flcf7_check( 'E: two instances, two different ids', 2 === count( $jgor_flcf7_m[1] ) && $jgor_flcf7_m[1][0] !== $jgor_flcf7_m[1][1] );
+
+// (c) a second time: Contact Form 7 prints the id option "fl-subject" only
+// once per request, so this rendering has no id on the control; the plugin
+// finds the linked label through the option and gives the control a fresh id.
+$jgor_flcf7_c2 = jgor_flcf7_render( $jgor_flcf7_id_c );
+jgor_flcf7_check( 'C twice: Contact Form 7 drops id="fl-subject" in the second rendering (precondition)', ! str_contains( $jgor_flcf7_c2, 'id="fl-subject"' ) );
+jgor_flcf7_check( 'C twice: linked label found through the id option, moved behind the control with a unit-tag id', (bool) preg_match( '#<input[^>]*id="(wpcf7-f' . $jgor_flcf7_id_c . '-o\d+-fl-your-subject)"[^>]*placeholder=" "[^>]*><label for="\1" class="jgor-flcf7-label">Subject</label></span>#', $jgor_flcf7_c2 ) );
+jgor_flcf7_check( 'C twice: <br> removed, 4 floating labels as in the first rendering', (bool) preg_match( '#<p>\s*<span class="wpcf7-form-control-wrap jgor-flcf7-wrap[^"]*" data-name="your-subject">#', $jgor_flcf7_c2 ) && 4 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_c2 ) );
+jgor_flcf7_labels_match( $jgor_flcf7_c2 );
 
 // Per form: additional settings (concept 7.4).
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, "floating_labels_style: filled\nfloating_labels_marker: on" );
