@@ -1,0 +1,227 @@
+/**
+ * Floating Labels for CF7 – front-end styles.
+ *
+ * One file for all three variants. The variant class (jgor-flcf7-outlined,
+ * jgor-flcf7-filled, jgor-flcf7-minimal) sits on the span.wpcf7-form-control-wrap
+ * (.jgor-flcf7-wrap). The label is the sibling right after the control, so
+ * every state is reached through sibling selectors. No JavaScript: the states
+ * come from :focus, :placeholder-shown (the placeholder is a single space),
+ * :autofill and the class .wpcf7-not-valid that Contact Form 7 sets.
+ *
+ * Geometry: the control inherits the font of the form and gets the padding
+ * from the custom properties; the label at rest sits on the first text line
+ * of the control (same top offset, same line height), independent of the
+ * wrap height, which grows when Contact Form 7 appends a validation tip. The
+ * floated label shrinks through transform: scale(), which keeps its em-based
+ * offsets in place. Logical properties keep the layout correct in
+ * right-to-left scripts.
+ *
+ * Themes adjust colours, sizes and timing through the custom properties
+ * below; set them on .wpcf7 or any ancestor.
+ */
+
+.wpcf7 {
+	--jgor-flcf7-padding-x: 0.75em;
+	--jgor-flcf7-padding-y: 0.75em;
+	--jgor-flcf7-label-color: #5f6368;
+	--jgor-flcf7-label-color-active: #1a73e8;
+	--jgor-flcf7-label-color-error: #dc3232;
+	--jgor-flcf7-label-size: 1em;
+	--jgor-flcf7-label-scale: 0.75;
+	--jgor-flcf7-border-width: 1px;
+	--jgor-flcf7-border-color: #80868b;
+	--jgor-flcf7-border-color-active: #1a73e8;
+	--jgor-flcf7-border-color-error: #dc3232;
+	--jgor-flcf7-radius: 4px;
+	--jgor-flcf7-background: #fff;
+	--jgor-flcf7-background-filled: rgba(0, 0, 0, 0.06);
+	--jgor-flcf7-duration: 0.15s;
+}
+
+/* ------------------------------------------------------------------
+ * Shared: wrap, control, label at rest
+ * ---------------------------------------------------------------- */
+
+/* Replaces the enclosing <label> of the template (label mode). */
+.wpcf7 .jgor-flcf7-field {
+	display: block;
+}
+
+.wpcf7 .jgor-flcf7-wrap {
+	display: block;
+	position: relative;
+}
+
+.wpcf7 .jgor-flcf7-wrap .jgor-flcf7-control {
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: var(--jgor-flcf7-padding-y) var(--jgor-flcf7-padding-x);
+	font: inherit;
+}
+
+.wpcf7 .jgor-flcf7-label {
+	position: absolute;
+	top: calc(var(--jgor-flcf7-padding-y) + var(--jgor-flcf7-border-width));
+	inset-inline-start: calc(var(--jgor-flcf7-padding-x) - 0.25em);
+	max-width: calc(100% - 2 * var(--jgor-flcf7-padding-x) + 0.5em);
+	margin: 0;
+	padding: 0 0.25em;
+	overflow: hidden;
+	font-size: var(--jgor-flcf7-label-size);
+	font-weight: inherit;
+	line-height: inherit;
+	color: var(--jgor-flcf7-label-color);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	transform-origin: 0 50%;
+	pointer-events: none;
+	transition:
+		top var(--jgor-flcf7-duration) ease,
+		transform var(--jgor-flcf7-duration) ease,
+		color var(--jgor-flcf7-duration) ease,
+		background-color var(--jgor-flcf7-duration) ease;
+}
+
+.wpcf7[dir="rtl"] .jgor-flcf7-label {
+	transform-origin: 100% 50%;
+}
+
+/* Contact Form 7 renders the validation tip behind the label; give it air. */
+.wpcf7 .jgor-flcf7-wrap .wpcf7-not-valid-tip {
+	margin-block-start: 0.25em;
+}
+
+/* ------------------------------------------------------------------
+ * Shared: focused, invalid, required marker
+ * ---------------------------------------------------------------- */
+
+.wpcf7 .jgor-flcf7-control:focus + .jgor-flcf7-label {
+	color: var(--jgor-flcf7-label-color-active);
+}
+
+.wpcf7 .jgor-flcf7-control.wpcf7-not-valid + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-control[aria-invalid="true"] + .jgor-flcf7-label {
+	color: var(--jgor-flcf7-label-color-error);
+}
+
+/* Only when enabled in the settings (class on the wrap). */
+.wpcf7 .jgor-flcf7-marker .jgor-flcf7-control[aria-required="true"] + .jgor-flcf7-label::after {
+	content: " *";
+}
+
+/* ------------------------------------------------------------------
+ * Variant: outlined (border all round, label floats onto the border)
+ * ---------------------------------------------------------------- */
+
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control {
+	border: var(--jgor-flcf7-border-width) solid var(--jgor-flcf7-border-color);
+	border-radius: var(--jgor-flcf7-radius);
+	background-color: var(--jgor-flcf7-background);
+	transition: border-color var(--jgor-flcf7-duration) ease;
+}
+
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control:focus {
+	border-color: var(--jgor-flcf7-border-color-active);
+}
+
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control.wpcf7-not-valid,
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control[aria-invalid="true"] {
+	border-color: var(--jgor-flcf7-border-color-error);
+}
+
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control:focus + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label {
+	top: 0;
+	background-color: var(--jgor-flcf7-background);
+	transform: translateY(-50%) scale(var(--jgor-flcf7-label-scale));
+}
+
+/* Kept apart: a browser without :autofill would drop a combined rule. */
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control:autofill + .jgor-flcf7-label {
+	top: 0;
+	background-color: var(--jgor-flcf7-background);
+	transform: translateY(-50%) scale(var(--jgor-flcf7-label-scale));
+}
+
+/* ------------------------------------------------------------------
+ * Variant: filled (tinted box, bottom line, label floats inside the box)
+ * ---------------------------------------------------------------- */
+
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control {
+	padding-block-start: calc(var(--jgor-flcf7-padding-y) + 0.6em);
+	padding-block-end: calc(var(--jgor-flcf7-padding-y) - 0.3em);
+	border: 0;
+	border-bottom: calc(var(--jgor-flcf7-border-width) + 1px) solid var(--jgor-flcf7-border-color);
+	border-radius: var(--jgor-flcf7-radius) var(--jgor-flcf7-radius) 0 0;
+	background-color: var(--jgor-flcf7-background-filled);
+	transition: border-color var(--jgor-flcf7-duration) ease;
+}
+
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control:focus {
+	border-color: var(--jgor-flcf7-border-color-active);
+}
+
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control.wpcf7-not-valid,
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control[aria-invalid="true"] {
+	border-color: var(--jgor-flcf7-border-color-error);
+}
+
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-label {
+	top: calc(var(--jgor-flcf7-padding-y) + 0.6em);
+}
+
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control:focus + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label {
+	top: 0.1em;
+	transform: scale(var(--jgor-flcf7-label-scale));
+}
+
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control:autofill + .jgor-flcf7-label {
+	top: 0.1em;
+	transform: scale(var(--jgor-flcf7-label-scale));
+}
+
+/* ------------------------------------------------------------------
+ * Variant: minimal (no colours, borders or backgrounds; the theme styles
+ * the control; the label floats above the field)
+ * ---------------------------------------------------------------- */
+
+.wpcf7 .jgor-flcf7-minimal {
+	padding-block-start: calc(var(--jgor-flcf7-label-size) * var(--jgor-flcf7-label-scale) * 1.6);
+}
+
+.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-label {
+	top: calc(var(--jgor-flcf7-label-size) * var(--jgor-flcf7-label-scale) * 1.6 + var(--jgor-flcf7-padding-y) + var(--jgor-flcf7-border-width));
+	transform-origin: 0 0;
+}
+
+.wpcf7[dir="rtl"] .jgor-flcf7-minimal .jgor-flcf7-label {
+	transform-origin: 100% 0;
+}
+
+.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-control:focus + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label {
+	top: 0;
+	inset-inline-start: 0;
+	transform: scale(var(--jgor-flcf7-label-scale));
+}
+
+.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-control:autofill + .jgor-flcf7-label {
+	top: 0;
+	inset-inline-start: 0;
+	transform: scale(var(--jgor-flcf7-label-scale));
+}
+
+/* ------------------------------------------------------------------
+ * Motion
+ * ---------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+	.wpcf7 .jgor-flcf7-label,
+	.wpcf7 .jgor-flcf7-wrap .jgor-flcf7-control {
+		transition: none;
+	}
+}

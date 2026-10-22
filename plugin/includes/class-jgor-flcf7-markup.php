@@ -51,6 +51,11 @@ final class JGOR_FLCF7_Markup {
 	public const TEXTAREA_CLASS = 'jgor-flcf7-textarea';
 
 	/**
+	 * Class added to the wrap when the setting "required_marker" is on.
+	 */
+	public const MARKER_CLASS = 'jgor-flcf7-marker';
+
+	/**
 	 * Id of the wrapper element the HTML fragment is parsed into.
 	 */
 	private const ROOT_ID = 'jgor-flcf7-root';
@@ -380,6 +385,9 @@ final class JGOR_FLCF7_Markup {
 		$this->add_class( $wrap, 'jgor-flcf7-' . $style );
 		if ( 'textarea' === strtolower( $control->tagName ) ) {
 			$this->add_class( $wrap, self::TEXTAREA_CLASS );
+		}
+		if ( $this->settings->get( 'required_marker' ) ) {
+			$this->add_class( $wrap, self::MARKER_CLASS );
 		}
 
 		$former_parent = null;

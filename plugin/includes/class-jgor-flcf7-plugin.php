@@ -82,8 +82,10 @@ final class JGOR_FLCF7_Plugin {
 		// alike, because Contact Form 7 renders previews in the admin too.
 		( new JGOR_FLCF7_Markup( $settings ) )->init();
 
-		// Modules 3 (CSS) and 4 (settings screen) are started here as they
-		// are implemented; each receives $settings.
+		// Module 3: stylesheet, enqueued from wpcf7_enqueue_styles.
+		( new JGOR_FLCF7_Assets( $settings ) )->init();
+
+		// Module 4 (settings screen) is started here once it is implemented.
 	}
 
 	/**
