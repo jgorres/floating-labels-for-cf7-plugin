@@ -11,6 +11,8 @@ Datum: 22.10.2026
 
 Farben und Maße folgen den Defaults der Custom Properties in
 plugin/assets/css/floating-labels.css (Variante Outlined). Schrift: Noto Sans.
+Alle Bilder haben einen dünnen schwarzen Rand mit gerundeten Ecken; außerhalb
+der Rundung sind sie transparent.
 
 Aufruf:
   python3 docs/assets-erzeugen.py            schreibt nach assets/
@@ -30,6 +32,8 @@ FONT_BOLD = "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf"
 FONT_REGULAR = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf"
 
 WHITE = (255, 255, 255, 255)
+CLEAR = (0, 0, 0, 0)
+BLACK = (0, 0, 0, 255)
 BORDER = (0x80, 0x86, 0x8B)      # --jgor-flcf7-border-color
 ACTIVE = (0x1A, 0x73, 0xE8)      # --jgor-flcf7-border-color-active
 LABEL = (0x5F, 0x63, 0x68)       # --jgor-flcf7-label-color
@@ -38,6 +42,8 @@ SUBTEXT = (0x50, 0x57, 0x5E)
 
 LABEL_SCALE = 0.72               # Verkleinerung des gefloateten Labels
 SS = 2                           # Supersampling beim Zeichnen (Kantenglättung)
+FRAME_RADIUS = 32 / 256          # Eckenradius des Bildrands, Anteil der kurzen Seite
+FRAME_WIDTH = {128: 1, 256: 2, 772: 1, 1544: 2}  # Randstärke in px je Bildbreite
 
 # Zeitplan (ms)
 HOLD_REST = 900
@@ -64,6 +70,17 @@ def ease_out(t):
 
 def font(path, size):
     return ImageFont.truetype(path, int(round(size)))
+
+
+def framed_canvas(width, height):
+    """Transparentes Bild in Supersampling-Größe mit weißer, gerundeter Fläche
+    und dünnem schwarzem Rand. Rückgabe: (Bild, Zeichenobjekt)."""
+    img = Image.new("RGBA", (width * SS, height * SS), CLEAR)
+    draw = ImageDraw.Draw(img)
+    radius = int(round(min(width, height) * FRAME_RADIUS * SS))
+    stroke = FRAME_WIDTH[width] * SS
+    draw.rounded_rectangle((0, 0, width * SS - 1, height * SS - 1), radius=radius, fill=WHITE, outline=BLACK, width=stroke)
+    return img, draw
 
 
 # ── Zustände der Animation ─────────────────────────────────────────────
@@ -125,14 +142,13 @@ def draw_field(draw, box, state, label, typed, size, stroke, radius, pad):
 
 
 # ── Icon ───────────────────────────────────────────────────────────────
-ICON_LABEL, ICON_TYPED = "Name", "Anna"
+ICON_LABEL, ICON_TYPED = "Name", "John"
 
 
 def icon_frame(state, px):
     """Ein Icon-Bild in px x px (gezeichnet mit Supersampling)."""
     s = px * SS / 256
-    img = Image.new("RGBA", (px * SS, px * SS), WHITE)
-    draw = ImageDraw.Draw(img)
+    img, draw = framed_canvas(px, px)
     box = (24 * s, 92 * s, 232 * s, 164 * s)
     draw_field(draw, box, state, ICON_LABEL, ICON_TYPED, size=30 * s, stroke=int(7 * s), radius=int(14 * s), pad=int(22 * s))
     return img.resize((px, px), Image.LANCZOS)
@@ -142,16 +158,15 @@ def icon_frame(state, px):
 BANNER_W, BANNER_H = 1544, 500
 TITLE = "Floating Labels for CF7"
 SUBTITLE = "Floating labels for Contact Form 7. Pure CSS, no JavaScript."
-FIELD1_LABEL, FIELD1_TYPED = "Your email", "anna@example.com"
-FIELD2_LABEL, FIELD2_TYPED = "Your name", "Anna Example"
+FIELD1_LABEL, FIELD1_TYPED = "Your email", "john@example.com"
+FIELD2_LABEL, FIELD2_TYPED = "Your name", "John Doe"
 
 
 def banner_frame(state, width):
     """Ein Banner-Bild in width x (width * 500 / 1544)."""
     height = int(round(width * BANNER_H / BANNER_W))
     s = width * SS / BANNER_W
-    img = Image.new("RGBA", (width * SS, height * SS), WHITE)
-    draw = ImageDraw.Draw(img)
+    img, draw = framed_canvas(width, height)
 
     draw.text((80 * s, 150 * s), TITLE, font=font(FONT_BOLD, 66 * s), fill=TEXT, anchor="ls")
     draw.text((82 * s, 206 * s), SUBTITLE, font=font(FONT_REGULAR, 28 * s), fill=SUBTEXT, anchor="ls")
@@ -194,7 +209,7 @@ def write_svg(path, total_ms, t_float, t_type, t_hold, t_return):
   @keyframes jgor-border {{ 0%, {rest_end} {{ stroke: #80868b; }} {float_end}, {hold_end} {{ stroke: #1a73e8; }} {return_end}, 100% {{ stroke: #80868b; }} }}
   @keyframes jgor-label {{ 0%, {rest_end} {{ transform: translate(0, 0) scale(1); fill: #5f6368; }} {float_end}, {hold_end} {{ transform: translate(0, -36px) scale({LABEL_SCALE}); fill: #1a73e8; }} {return_end}, 100% {{ transform: translate(0, 0) scale(1); fill: #5f6368; }} }}
   @keyframes jgor-notch {{ 0%, {rest_end} {{ opacity: 0; }} {float_end}, {hold_end} {{ opacity: 1; }} {return_end}, 100% {{ opacity: 0; }} }}
-  @keyframes jgor-typed {{ 0%, {float_end} {{ width: 0; }} {type_end}, {hold_end} {{ width: 80px; }} {return_end}, 100% {{ width: 0; }} }}
+  @keyframes jgor-typed {{ 0%, {float_end} {{ width: 0; }} {type_end}, {hold_end} {{ width: 84px; }} {return_end}, 100% {{ width: 0; }} }}
   @keyframes jgor-caret {{ 0%, {rest_end} {{ opacity: 0; }} {float_end}, {type_end} {{ opacity: 1; }} {hold_end}, 100% {{ opacity: 0; }} }}
   .jgor-field {{ animation: jgor-border {dur} ease-out infinite; }}
   .jgor-label {{ transform-origin: 46px 128px; animation: jgor-label {dur} ease-out infinite; }}
@@ -205,7 +220,7 @@ def write_svg(path, total_ms, t_float, t_type, t_hold, t_return):
     .jgor-field, .jgor-label, .jgor-notch, .jgor-typed, .jgor-caret {{ animation: none; }}
   }}
 </style>
-<rect width="256" height="256" fill="#fff"/>
+<rect x="1" y="1" width="254" height="254" rx="32" fill="#fff" stroke="#000" stroke-width="2"/>
 <rect class="jgor-field" x="24" y="92" width="208" height="72" rx="14" fill="#fff" stroke="#80868b" stroke-width="7"/>
 <rect class="jgor-notch" x="40" y="85" width="56" height="14" fill="#fff" opacity="0"/>
 <text class="jgor-label" x="46" y="128" dominant-baseline="central" font-family="'Noto Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="30" fill="#5f6368">{ICON_LABEL}</text>

@@ -44,9 +44,9 @@ cat > "${WORK_DIR}/setup.php" <<'PHP'
 <?php
 ( defined( 'WP_CLI' ) && WP_CLI ) || exit;
 
-$jgor_form = "<label> Your name\n    [text* your-name \"Anna Example\"] </label>\n\n"
-	. "<label> Your email\n    [email* your-email] </label>\n\n"
-	. "<label> Your message\n    [textarea your-message 40x4 \"Hello, I would like to know more about floating labels.\"] </label>\n\n"
+$jgor_form = "<label> Your name\n    [text* your-name \"John Doe\"] </label>\n\n"
+	. "<label> Your email\n    [email* your-email \"john@example.com\"] </label>\n\n"
+	. "<label> Your message\n    [textarea* your-message 40x4] </label>\n\n"
 	. "[submit class:wp-element-button \"Send message\"]";
 
 $jgor_existing = get_posts( array( 'post_type' => 'wpcf7_contact_form', 'title' => 'FL Screenshot', 'numberposts' => 1, 'post_status' => 'any' ) );
@@ -116,8 +116,8 @@ done
 
 # --------------------------------------------------
 # 3. Screenshot 4: Fehlerfall aus dem gerenderten HTML der Outlined-Seite.
-#    Das E-Mail-Feld bekommt die Klassen, die Contact Form 7 bei einem Fehler
-#    setzt, plus den Hinweis; Skripte werden entfernt, damit nichts nachträglich
+#    Das leere Pflichtfeld „Your message“ bekommt die Klassen, die Contact Form 7
+#    bei einem Fehler setzt, plus den Hinweis; Skripte werden entfernt, damit nichts nachträglich
 #    umbaut. Die Datei liegt kurz im Webroot der Site, damit CSS und Schriften
 #    von derselben Herkunft laden (Schriften unterliegen CORS).
 # --------------------------------------------------
@@ -128,10 +128,10 @@ src, dst = sys.argv[1], sys.argv[2]
 html = open(src, encoding="utf-8").read()
 html = re.sub(r"<script\b.*?</script>", "", html, flags=re.S)
 html = re.sub(r'(<form[^>]*class=")([^"]*wpcf7-form)', r"\1\2 invalid", html, count=1)
-tag = re.search(r'<input[^>]*name="your-email"[^>]*>', html).group(0)
+tag = re.search(r'<textarea[^>]*name="your-message"[^>]*>', html).group(0)
 fixed = tag.replace('aria-invalid="false"', 'aria-invalid="true"').replace('class="', 'class="wpcf7-not-valid ', 1)
 html = html.replace(tag, fixed, 1)
-html = re.sub(r'(data-name="your-email">.*?</label>)', r'\1<span class="wpcf7-not-valid-tip" aria-hidden="true">Please fill out this field.</span>', html, count=1, flags=re.S)
+html = re.sub(r'(data-name="your-message">.*?</label>)', r'\1<span class="wpcf7-not-valid-tip" aria-hidden="true">Please fill out this field.</span>', html, count=1, flags=re.S)
 html = re.sub(r'<div class="wpcf7-response-output"[^>]*>.*?</div>', '<div class="wpcf7-response-output" aria-hidden="true">One or more fields have an error. Please check and try again.</div>', html, count=1, flags=re.S)
 open(dst, "w", encoding="utf-8").write(html)
 PY
