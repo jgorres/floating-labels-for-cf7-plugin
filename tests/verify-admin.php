@@ -12,8 +12,9 @@
  * buffer. Checks: menu placement (Contact Form 7 parent and the fallback),
  * registered sections and fields, the rendered form (names, nonce, defaults,
  * escaping), settings fixed through the filter jgor_flcf7_settings, the
- * capability check, the "Settings" action link, and that the CSS snippet
- * matches the custom properties in assets/css/floating-labels.css.
+ * capability check, the "Settings" action link, the contextual help tabs,
+ * and that the CSS snippet matches the custom properties in
+ * assets/css/floating-labels.css.
  *
  * Nothing is saved; the plugin option is left untouched.
  *
@@ -24,6 +25,8 @@
 
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 require_once ABSPATH . 'wp-admin/includes/template.php';
+require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
+require_once ABSPATH . 'wp-admin/includes/screen.php';
 
 // eval-file runs this file inside a function scope: the counter lives in $GLOBALS.
 $GLOBALS['jgor_flcf7_failed'] = 0;
@@ -118,6 +121,19 @@ jgor_flcf7_check( 'menu: page url under Settings', str_contains( $jgor_flcf7_adm
 // Back to the normal case for the remaining checks.
 jgor_flcf7_fake_parent( 'wpcf7-dashboard' );
 $jgor_flcf7_admin->add_menu();
+
+// Contextual help: registered on the load hook of the page, three tabs and a sidebar.
+$jgor_flcf7_hook = get_plugin_page_hookname( JGOR_FLCF7_Admin::PAGE_SLUG, 'wpcf7-dashboard' );
+jgor_flcf7_check( 'help: add_help_tabs() hooked to load-' . $jgor_flcf7_hook, false !== has_action( 'load-' . $jgor_flcf7_hook, array( $jgor_flcf7_admin, 'add_help_tabs' ) ) );
+set_current_screen( $jgor_flcf7_hook );
+$jgor_flcf7_admin->add_help_tabs();
+$jgor_flcf7_screen = get_current_screen();
+$jgor_flcf7_tabs   = $jgor_flcf7_screen instanceof WP_Screen ? $jgor_flcf7_screen->get_help_tabs() : array();
+jgor_flcf7_check( 'help: three tabs', 3 === count( $jgor_flcf7_tabs ) && array( 'jgor-flcf7-help-overview', 'jgor-flcf7-help-controls', 'jgor-flcf7-help-design' ) === array_keys( $jgor_flcf7_tabs ), implode( ', ', array_keys( $jgor_flcf7_tabs ) ) );
+jgor_flcf7_check( 'help: controls tab carries the escaped examples', isset( $jgor_flcf7_tabs['jgor-flcf7-help-controls']['content'] ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-controls']['content'], 'nofloat placeholder &quot;Your name&quot;]' ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-controls']['content'], 'floating_labels_types: text email textarea' ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-controls']['content'], 'jgor-flcf7-style-minimal' ) );
+jgor_flcf7_check( 'help: design tab carries the css snippet', isset( $jgor_flcf7_tabs['jgor-flcf7-help-design']['content'] ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-design']['content'], '--jgor-flcf7-duration: 0.15s;' ) );
+jgor_flcf7_check( 'help: overview tab escapes <label>', isset( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'] ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'], 'a &lt;label&gt; that encloses' ) );
+jgor_flcf7_check( 'help: sidebar links to the plugin page and the Contact Form 7 docs', $jgor_flcf7_screen instanceof WP_Screen && str_contains( $jgor_flcf7_screen->get_help_sidebar(), 'https://github.com/jgorres/floating-labels-for-cf7-plugin' ) && str_contains( $jgor_flcf7_screen->get_help_sidebar(), 'https://contactform7.com/additional-settings/' ) );
 
 // Sections and fields.
 $jgor_flcf7_admin->register_fields();

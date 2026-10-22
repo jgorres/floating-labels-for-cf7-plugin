@@ -14,7 +14,8 @@
  *
  * Colours and sizes have no fields: the screen shows the CSS custom
  * properties of the stylesheet as a read-only snippet to copy into the theme
- * (concept, section 9).
+ * (concept, section 9). The "Help" tab of the screen repeats the control
+ * layers and the snippet as contextual help.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -116,7 +117,7 @@ final class JGOR_FLCF7_Admin {
 	public function add_menu(): void {
 		$this->parent = $this->parent_slug();
 
-		add_submenu_page(
+		$hook = add_submenu_page(
 			$this->parent,
 			__( 'Floating Labels for CF7', 'floating-labels-for-cf7' ),
 			__( 'Floating Labels', 'floating-labels-for-cf7' ),
@@ -124,6 +125,124 @@ final class JGOR_FLCF7_Admin {
 			self::PAGE_SLUG,
 			array( $this, 'render_page' )
 		);
+
+		if ( is_string( $hook ) && '' !== $hook ) {
+			add_action( 'load-' . $hook, array( $this, 'add_help_tabs' ) );
+		}
+	}
+
+	/**
+	 * Adds the contextual help ("Help" tab) of the settings page.
+	 *
+	 * Runs on load-{hook} of the page, when the current screen exists.
+	 *
+	 * @return void
+	 */
+	public function add_help_tabs(): void {
+		$screen = get_current_screen();
+		if ( ! $screen instanceof WP_Screen ) {
+			return;
+		}
+
+		$screen->add_help_tab(
+			array(
+				'id'      => 'jgor-flcf7-help-overview',
+				'title'   => __( 'Overview', 'floating-labels-for-cf7' ),
+				'content' => $this->help_overview(),
+			)
+		);
+		$screen->add_help_tab(
+			array(
+				'id'      => 'jgor-flcf7-help-controls',
+				'title'   => __( 'Per form and placement', 'floating-labels-for-cf7' ),
+				'content' => $this->help_controls(),
+			)
+		);
+		$screen->add_help_tab(
+			array(
+				'id'      => 'jgor-flcf7-help-design',
+				'title'   => __( 'Design', 'floating-labels-for-cf7' ),
+				'content' => $this->help_design(),
+			)
+		);
+		$screen->set_help_sidebar( $this->help_sidebar() );
+	}
+
+	/**
+	 * Content of the help tab "Overview".
+	 *
+	 * @return string HTML.
+	 */
+	private function help_overview(): string {
+		return '<p>' . esc_html__( 'A floating label sits inside the empty field like a placeholder and moves to the top edge, smaller, as soon as the field is focused or filled. The plugin rebuilds the markup Contact Form 7 renders and ships the stylesheet; it needs no JavaScript.', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p>' . esc_html__( 'Text, email, URL, telephone, number and textarea fields get floating labels. Checkboxes, radio buttons, selects, file uploads, quizzes and CAPTCHAs keep their original markup.', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p>' . esc_html__( 'The label text comes from the form template (a <label> that encloses the field or points at its id) or from the placeholder option of the form-tag. A label in the template wins over a placeholder.', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p>' . esc_html__( 'Fields the plugin does not recognise are left exactly as Contact Form 7 renders them.', 'floating-labels-for-cf7' ) . '</p>';
+	}
+
+	/**
+	 * Content of the help tab "Per form and placement".
+	 *
+	 * @return string HTML.
+	 */
+	private function help_controls(): string {
+		return '<p>' . esc_html__( 'The settings of this screen apply to every form. Override them per form, per placement or per field; later layers win.', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p><strong>' . esc_html__( 'Per form', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add lines to the "Additional Settings" tab of the form:', 'floating-labels-for-cf7' ) . '</p>'
+			. '<pre><code>' . esc_html( $this->example_additional_settings() ) . '</code></pre>'
+			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add classes to the "Class" field of the Contact Form 7 block (panel "Form attributes") or to the html_class attribute of the shortcode. The same form can then look different on different pages:', 'floating-labels-for-cf7' ) . '</p>'
+			. '<pre><code>' . esc_html( $this->example_html_classes() ) . '</code></pre>'
+			. '<p><strong>' . esc_html__( 'Per field', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add the option nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ) . '</p>'
+			. '<pre><code>' . esc_html( $this->example_nofloat() ) . '</code></pre>';
+	}
+
+	/**
+	 * Content of the help tab "Design".
+	 *
+	 * @return string HTML.
+	 */
+	private function help_design(): string {
+		return '<p>' . esc_html__( 'Colours, sizes and timing are CSS custom properties on the .wpcf7 wrapper. Copy the snippet into Appearance > Customize > Additional CSS or into your child theme and change the values you need; properties you leave out keep their defaults.', 'floating-labels-for-cf7' ) . '</p>'
+			. '<pre><code>' . esc_html( $this->css_snippet() ) . '</code></pre>'
+			. '<p>' . esc_html__( 'To style one form only, replace .wpcf7 with the id of its wrapper, for example [id^="wpcf7-f123-"], or with a class you add through the html_class attribute.', 'floating-labels-for-cf7' ) . '</p>';
+	}
+
+	/**
+	 * Sidebar of the help tabs: links to the plugin page and the Contact Form 7 docs.
+	 *
+	 * @return string HTML.
+	 */
+	private function help_sidebar(): string {
+		return '<p><strong>' . esc_html__( 'For more information:', 'floating-labels-for-cf7' ) . '</strong></p>'
+			. '<p><a href="' . esc_url( 'https://github.com/jgorres/floating-labels-for-cf7-plugin' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Plugin page and source code', 'floating-labels-for-cf7' ) . '</a></p>'
+			. '<p><a href="' . esc_url( 'https://contactform7.com/additional-settings/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Contact Form 7: Additional Settings', 'floating-labels-for-cf7' ) . '</a></p>'
+			. '<p><a href="' . esc_url( 'https://contactform7.com/text-fields/' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Contact Form 7: form-tag options', 'floating-labels-for-cf7' ) . '</a></p>';
+	}
+
+	/**
+	 * Example lines for the "Additional Settings" tab of a form (concept 7.4).
+	 *
+	 * @return string Plain text.
+	 */
+	private function example_additional_settings(): string {
+		return "floating_labels: off\nfloating_labels: placeholder\nfloating_labels: label\nfloating_labels_style: filled\nfloating_labels_marker: on\nfloating_labels_types: text email textarea";
+	}
+
+	/**
+	 * Example classes for the html_class attribute of a placement (concept 7.4).
+	 *
+	 * @return string Plain text.
+	 */
+	private function example_html_classes(): string {
+		return "jgor-flcf7-off  jgor-flcf7-on\njgor-flcf7-mode-placeholder  jgor-flcf7-mode-label\njgor-flcf7-style-outlined  jgor-flcf7-style-filled  jgor-flcf7-style-minimal\njgor-flcf7-marker-on  jgor-flcf7-marker-off\n\n[contact-form-7 id=\"123\" html_class=\"jgor-flcf7-style-filled\"]";
+	}
+
+	/**
+	 * Example form-tag with the option nofloat (concept 7.4).
+	 *
+	 * @return string Plain text.
+	 */
+	private function example_nofloat(): string {
+		return '[text* your-name nofloat placeholder "Your name"]';
 	}
 
 	/**
@@ -446,15 +565,15 @@ final class JGOR_FLCF7_Admin {
 
 		<p><strong><?php esc_html_e( 'Per form', 'floating-labels-for-cf7' ); ?></strong><br>
 		<?php esc_html_e( 'Add lines to the "Additional Settings" tab of the form:', 'floating-labels-for-cf7' ); ?></p>
-		<pre><code><?php echo esc_html( "floating_labels: off\nfloating_labels: placeholder\nfloating_labels: label\nfloating_labels_style: filled\nfloating_labels_marker: on\nfloating_labels_types: text email textarea" ); ?></code></pre>
+		<pre><code><?php echo esc_html( $this->example_additional_settings() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per placement', 'floating-labels-for-cf7' ); ?></strong><br>
 		<?php esc_html_e( 'Add classes to the "Class" field of the Contact Form 7 block (panel "Form attributes") or to the html_class attribute of the shortcode. The same form can then look different on different pages:', 'floating-labels-for-cf7' ); ?></p>
-		<pre><code><?php echo esc_html( "jgor-flcf7-off  jgor-flcf7-on\njgor-flcf7-mode-placeholder  jgor-flcf7-mode-label\njgor-flcf7-style-outlined  jgor-flcf7-style-filled  jgor-flcf7-style-minimal\njgor-flcf7-marker-on  jgor-flcf7-marker-off\n\n[contact-form-7 id=\"123\" html_class=\"jgor-flcf7-style-filled\"]" ); ?></code></pre>
+		<pre><code><?php echo esc_html( $this->example_html_classes() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per field', 'floating-labels-for-cf7' ); ?></strong><br>
 		<?php esc_html_e( 'Add the option nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ); ?></p>
-		<pre><code><?php echo esc_html( '[text* your-name nofloat placeholder "Your name"]' ); ?></code></pre>
+		<pre><code><?php echo esc_html( $this->example_nofloat() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'For developers', 'floating-labels-for-cf7' ); ?></strong><br>
 		<?php esc_html_e( 'Filters: jgor_flcf7_settings (fix settings in code), jgor_flcf7_form_settings (per rendering), jgor_flcf7_enabled (per form), jgor_flcf7_label_text (per field), jgor_flcf7_field_types (selectable types).', 'floating-labels-for-cf7' ); ?></p>
