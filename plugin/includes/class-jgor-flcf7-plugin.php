@@ -5,7 +5,7 @@
  * Every module is a class of its own in includes/. This class decides which
  * of them run and hands them the settings: the markup rebuild (module 2) and
  * the stylesheet (module 3) on every request, the settings screen (module 4)
- * in the admin only.
+ * and the panel in the Contact Form 7 block (module 5) in the admin only.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -86,9 +86,11 @@ final class JGOR_FLCF7_Plugin {
 		// Module 3: stylesheet, enqueued from wpcf7_enqueue_styles.
 		( new JGOR_FLCF7_Assets( $settings ) )->init();
 
-		// Module 4: settings screen and plugin action link, admin only.
+		// Module 4: settings screen and plugin action link; module 5: the
+		// panel in the sidebar of the Contact Form 7 block. Admin only.
 		if ( is_admin() ) {
 			( new JGOR_FLCF7_Admin( $settings ) )->init();
+			( new JGOR_FLCF7_Editor() )->init();
 		}
 	}
 

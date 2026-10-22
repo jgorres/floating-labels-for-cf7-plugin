@@ -17,8 +17,10 @@
  * Set FLCF7_DUMP=1 in the environment to print the rendered HTML of forms A
  * and C after the checks.
  *
- * The script changes the plugin option temporarily (type list) and restores
- * the defaults afterwards; the forms themselves are not modified.
+ * The checks assume the default settings: the script saves the stored
+ * option, runs on the defaults (and changes them temporarily for some
+ * checks) and restores the saved option afterwards; the forms themselves
+ * are not modified.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -153,6 +155,11 @@ function jgor_flcf7_labels_match( string $html ): void {
 	}
 }
 
+// Save the stored option and run on the defaults.
+$jgor_flcf7_saved_option = get_option( 'jgor_flcf7_settings', false );
+update_option( 'jgor_flcf7_settings', JGOR_FLCF7_Settings::instance()->defaults() );
+JGOR_FLCF7_Settings::instance()->reset_cache();
+
 $jgor_flcf7_id_a = jgor_flcf7_form_id( 'Contact form 1' );
 $jgor_flcf7_id_b = jgor_flcf7_form_id( 'FL Test B Placeholder' );
 $jgor_flcf7_id_c = jgor_flcf7_form_id( 'FL Test C Mixed' );
@@ -282,8 +289,7 @@ $jgor_flcf7_option['submit_error_text'] = '  <b>Check</b> again  ';
 update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
 JGOR_FLCF7_Settings::instance()->reset_cache();
 jgor_flcf7_check( 'submit error text from the option is sanitized', str_contains( jgor_flcf7_render( $jgor_flcf7_id_b ), '>Check again</span>' ) );
-delete_option( 'jgor_flcf7_settings' );
-JGOR_FLCF7_Settings::instance()->ensure_option();
+update_option( 'jgor_flcf7_settings', JGOR_FLCF7_Settings::instance()->defaults() );
 JGOR_FLCF7_Settings::instance()->reset_cache();
 
 // Filter jgor_flcf7_label_text.
@@ -308,14 +314,22 @@ update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
 JGOR_FLCF7_Settings::instance()->reset_cache();
 $jgor_flcf7_t = jgor_flcf7_render( $jgor_flcf7_id_b );
 jgor_flcf7_check( 'types without textarea -> textarea untouched', str_contains( $jgor_flcf7_t, 'placeholder="Your message"' ) && 2 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_t ) );
-delete_option( 'jgor_flcf7_settings' );
-JGOR_FLCF7_Settings::instance()->ensure_option();
+update_option( 'jgor_flcf7_settings', JGOR_FLCF7_Settings::instance()->defaults() );
 JGOR_FLCF7_Settings::instance()->reset_cache();
 
 // UTF-8 and entities (in memory only).
 $jgor_flcf7_u_form = WPCF7_ContactForm::get_instance( $jgor_flcf7_id_b );
 $jgor_flcf7_u_form->set_properties( array( 'form' => '[text* name placeholder "Straße & Ort – Prüfung"]' ) );
 jgor_flcf7_check( 'UTF-8 and entities in label text', str_contains( $jgor_flcf7_u_form->form_html(), '>Straße &amp; Ort – Prüfung</label>' ) );
+
+// Restore the option as it was before the run.
+if ( false === $jgor_flcf7_saved_option ) {
+	delete_option( 'jgor_flcf7_settings' );
+	JGOR_FLCF7_Settings::instance()->ensure_option();
+} else {
+	update_option( 'jgor_flcf7_settings', $jgor_flcf7_saved_option );
+}
+JGOR_FLCF7_Settings::instance()->reset_cache();
 
 if ( getenv( 'FLCF7_DUMP' ) ) {
 	WP_CLI::log( "\n----- A -----\n" . $jgor_flcf7_a . "\n----- C -----\n" . $jgor_flcf7_c );

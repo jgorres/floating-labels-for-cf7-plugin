@@ -16,7 +16,8 @@
  * and that the CSS snippet matches the custom properties in
  * assets/css/floating-labels.css.
  *
- * Nothing is saved; the plugin option is left untouched.
+ * The checks assume the default settings: the script saves the stored
+ * option, runs on the defaults and restores the saved option afterwards.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -86,6 +87,10 @@ if ( ! $jgor_flcf7_admins ) {
 wp_set_current_user( (int) $jgor_flcf7_admins[0]->ID );
 
 $jgor_flcf7_settings = JGOR_FLCF7_Settings::instance();
+
+// Save the stored option and run on the defaults.
+$jgor_flcf7_saved_option = get_option( 'jgor_flcf7_settings', false );
+update_option( 'jgor_flcf7_settings', $jgor_flcf7_settings->defaults() );
 $jgor_flcf7_settings->reset_cache();
 $jgor_flcf7_admin = new JGOR_FLCF7_Admin( $jgor_flcf7_settings );
 
@@ -228,6 +233,15 @@ if ( isset( $jgor_flcf7_block[1] ) ) {
 }
 jgor_flcf7_check( 'css: snippet properties equal the .wpcf7 rule of the stylesheet', JGOR_FLCF7_Admin::CSS_PROPERTIES === $jgor_flcf7_in_css, wp_json_encode( array_diff_assoc( $jgor_flcf7_in_css, JGOR_FLCF7_Admin::CSS_PROPERTIES ) ) . ' / ' . wp_json_encode( array_diff_assoc( JGOR_FLCF7_Admin::CSS_PROPERTIES, $jgor_flcf7_in_css ) ) );
 jgor_flcf7_check( 'css: snippet has one line per property', count( JGOR_FLCF7_Admin::CSS_PROPERTIES ) + 2 === count( explode( "\n", $jgor_flcf7_admin->css_snippet() ) ) );
+
+// Restore the option as it was before the run.
+if ( false === $jgor_flcf7_saved_option ) {
+	delete_option( 'jgor_flcf7_settings' );
+	$jgor_flcf7_settings->ensure_option();
+} else {
+	update_option( 'jgor_flcf7_settings', $jgor_flcf7_saved_option );
+}
+$jgor_flcf7_settings->reset_cache();
 
 if ( $GLOBALS['jgor_flcf7_failed'] > 0 ) {
 	WP_CLI::error( $GLOBALS['jgor_flcf7_failed'] . ' check(s) failed.' );

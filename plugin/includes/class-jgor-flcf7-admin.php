@@ -176,7 +176,7 @@ final class JGOR_FLCF7_Admin {
 	 * @return string HTML.
 	 */
 	private function help_overview(): string {
-		return '<p>' . esc_html__( 'A floating label sits inside the empty field like a placeholder and moves to the top edge, smaller, as soon as the field is focused or filled. The plugin rebuilds the markup Contact Form 7 renders and ships the stylesheet; it needs no JavaScript.', 'floating-labels-for-cf7' ) . '</p>'
+		return '<p>' . esc_html__( 'A floating label sits inside the empty field like a placeholder and moves to the top edge, smaller, as soon as the field is focused or filled. The plugin rebuilds the markup Contact Form 7 renders and ships the stylesheet; your pages need no JavaScript for it.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'Text, email, URL, telephone, number and textarea fields get floating labels. Checkboxes, radio buttons, selects, file uploads, quizzes and CAPTCHAs keep their original markup.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'The label text comes from the form template (a <label> that encloses the field or points at its id) or from the placeholder option of the form-tag. A label in the template wins over a placeholder.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'Fields the plugin does not recognise are left exactly as Contact Form 7 renders them.', 'floating-labels-for-cf7' ) . '</p>';
@@ -191,7 +191,7 @@ final class JGOR_FLCF7_Admin {
 		return '<p>' . esc_html__( 'The settings of this screen apply to every form. Override them per form, per placement or per field; later layers win.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p><strong>' . esc_html__( 'Per form', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add lines to the "Additional Settings" tab of the form:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_additional_settings() ) . '</code></pre>'
-			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add classes to the "Class" field of the Contact Form 7 block (panel "Form attributes") or to the html_class attribute of the shortcode. The same form can then look different on different pages:', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Select the Contact Form 7 block and open the panel "Floating Labels" in the block sidebar; it stores the choice as classes in the "Class" field of the block (panel "Form attributes"). The same classes work in the html_class attribute of the shortcode, so one form can look different on different pages:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_html_classes() ) . '</code></pre>'
 			. '<p><strong>' . esc_html__( 'Per field', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add the option nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_nofloat() ) . '</code></pre>';
@@ -599,7 +599,7 @@ final class JGOR_FLCF7_Admin {
 		<pre><code><?php echo esc_html( $this->example_additional_settings() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per placement', 'floating-labels-for-cf7' ); ?></strong><br>
-		<?php esc_html_e( 'Add classes to the "Class" field of the Contact Form 7 block (panel "Form attributes") or to the html_class attribute of the shortcode. The same form can then look different on different pages:', 'floating-labels-for-cf7' ); ?></p>
+		<?php esc_html_e( 'Select the Contact Form 7 block and open the panel "Floating Labels" in the block sidebar; it stores the choice as classes in the "Class" field of the block (panel "Form attributes"). The same classes work in the html_class attribute of the shortcode, so one form can look different on different pages:', 'floating-labels-for-cf7' ); ?></p>
 		<pre><code><?php echo esc_html( $this->example_html_classes() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per field', 'floating-labels-for-cf7' ); ?></strong><br>
