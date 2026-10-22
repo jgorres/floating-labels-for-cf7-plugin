@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 1.5 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–3 umgesetzt, Modul 4 folgt)
+Version: 1.6 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–4 umgesetzt, Release-Vorbereitung folgt)
 
 ## 1. Zweck
 
@@ -79,7 +79,8 @@ floating-labels-for-cf7/
 │   └── languages/floating-labels-for-cf7.pot
 ├── tests/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
-│   └── verify-markup.php             58 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
+│   ├── verify-markup.php             58 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
+│   └── verify-admin.php              33 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
 ├── docs/  assets/  glotpress/
 ├── composer.json, phpcs.xml.dist, phpstan.neon.dist, phpstan-bootstrap.php, stubs/
 └── build.sh, .distignore, .gitignore, LICENSE
@@ -194,9 +195,8 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   nichts zu stylen gibt. Die Option wird in jedem Fall auf `init`
   registriert (`register_setting()`, Gruppe `jgor_flcf7`), damit der
   Sanitize-Callback auch für `update_option()` in Code und WP-CLI greift. Die
-  Module 2 und 3 werden im Bootstrap gestartet, Modul 4 folgt dort, sobald
-  seine Klasse existiert (je Schritt, nicht vorab: PHPStan meldet
-  `class_exists()` auf eine fehlende Klasse als „immer falsch“).
+  Module 2 und 3 werden im Bootstrap auf jeder Anfrage gestartet, Modul 4 nur
+  bei `is_admin()`.
 - `JGOR_FLCF7_Settings` (Singleton `instance()`): Konstanten `OPTION`,
   `GROUP`, `BASE_TYPES` (text, email, url, tel, number, textarea), `STYLES`;
   Methoden `field_types()`, `defaults()`, `stored()` (Option plus Defaults,
@@ -492,30 +492,49 @@ oder Inline-CSS bräuchte.
 
 ## 9. Modul 4: Einstellungsseite (`class-jgor-flcf7-admin.php`)
 
-- Untermenü im CF7-Menü: Elternslug `wpcf7-dashboard` (CF7 6.2.3; ältere
-  Versionen `wpcf7`, Fallback über `$admin_page_hooks`), Slug
-  `wpcf7-floating-labels`, Capability `manage_options`, Settings API mit
-  `register_setting()` (aus Modul 1) und `sanitize()`, Nonce über
-  `settings_fields()`.
-- Felder: zwei Checkboxen für die Modi, Checkboxen je Feldtyp (Liste aus
-  `field_types()`), Radio für die Variante, Checkbox CSS laden, Checkbox
-  Pflichtfeld-Stern. Kurzer Hinweistext zu den Steuerwegen aus 7.4
-  (Additional Settings `floating_labels*`, `html_class`-Klassen, `nofloat`
-  vor den Werten in Anführungszeichen, Custom Properties) und den Filtern.
+- Untermenü „Floating Labels“ im CF7-Menü: Elternslug über
+  `$admin_page_hooks` ermittelt, `wpcf7-dashboard` (CF7 6.2.3), sonst `wpcf7`
+  (ältere CF7-Versionen), sonst `options-general.php`. Registrierung auf
+  `admin_menu` mit Priorität 20 (CF7 registriert mit 9), Slug
+  `wpcf7-floating-labels`, Capability `manage_options`. Formular an
+  `options.php` mit `settings_fields( 'jgor_flcf7' )`,
+  `do_settings_sections()`, `submit_button()`; `register_setting()` und
+  `sanitize()` kommen aus Modul 1.
+- Fünf Sektionen: „Label sources“ (Checkboxen `mode_label`,
+  `mode_placeholder`), „Field types“ (Checkboxen aus `field_types()`,
+  Beschriftung Text, Email, URL, Telephone, Number, Text area jeweils mit dem
+  Form-Tag-Typ in Klammern, per Filter ergänzte Typen nur mit ihrem
+  Schlüssel; alle abgewählt = Floating Labels aus), „Appearance“ (Radio für
+  die Variante mit Kurzbeschreibung, Checkbox Stylesheet laden, Checkbox
+  Pflichtstern), „Per form, per placement, per field“ (Hinweistext zu den
+  Steuerwegen aus 7.4 mit Codebeispielen für Additional Settings,
+  `html_class`-Klassen und `nofloat` vor den Werten in Anführungszeichen,
+  dazu die Filter) und „Design: CSS custom properties“ (unten).
 - Abschnitt „Design“: keine Eingabefelder für Farben und Maße. Stattdessen
-  ein schreibgeschützter Codeblock mit dem CSS-Snippet aus 8 (Selektor
-  `.wpcf7`, alle Custom Properties mit ihren Defaults) zum Kopieren in
-  Customizer → Zusätzliches CSS, Child-Theme, GeneratePress Element oder
-  `theme.json`. So bleiben Theme-Werte an einer Stelle, das Plugin gibt kein
-  Inline-CSS aus und braucht keine weiteren Optionswerte. Eingabefelder sind
-  für 1.1 vorgemerkt (14).
+  eine schreibgeschützte Textarea (`large-text code`) mit dem CSS-Snippet aus
+  8 (Selektor `.wpcf7`, alle Custom Properties mit ihren Defaults) zum
+  Kopieren in Customizer → Zusätzliches CSS, Child-Theme, GeneratePress
+  Element oder `theme.json`, plus Hinweis, wie ein einzelnes Formular über
+  seinen Wrapper (`[id^="wpcf7-f123-"]`) oder eine `html_class`-Klasse
+  gestylt wird. Properties und Defaults stehen in der Konstante
+  `JGOR_FLCF7_Admin::CSS_PROPERTIES`, die den `.wpcf7`-Block der CSS
+  spiegelt; `tests/verify-admin.php` prüft den Gleichstand. So bleiben
+  Theme-Werte an einer Stelle, das Plugin gibt kein Inline-CSS aus und
+  braucht keine weiteren Optionswerte. Eingabefelder sind für 1.1 vorgemerkt
+  (14).
 - Aus Code gesperrte Werte (`is_locked()` / `locked_keys()` der
-  Settings-Klasse) erscheinen `disabled` ohne `name`-Attribut und mit
-  Hinweis; sie werden nicht übertragen, `sanitize()` setzt für sie den
-  gespeicherten Wert (`stored()`) ein. Die Seite zeigt den wirksamen Wert
-  (`get()`), nicht den gespeicherten.
-- Kein eigenes Admin-CSS/JS, solange die Standardtabelle der Settings API
-  reicht.
+  Settings-Klasse) erscheinen `disabled` ohne `name`-Attribut, mit Hinweis
+  unter dem Feld und einer Info-Notice oben; sie werden nicht übertragen,
+  `sanitize()` setzt für sie den gespeicherten Wert (`stored()`) ein. Die
+  Seite zeigt den wirksamen Wert (`get()`), nicht den gespeicherten.
+- „Settings saved.“: WordPress zeigt die Meldung nach `options.php` nur auf
+  Seiten unter „Einstellungen“ selbst an. Das Modul ergänzt sie bei
+  `settings-updated` über `add_settings_error()` / `settings_errors()`,
+  außer wenn das Fallback-Elternmenü `options-general.php` aktiv ist.
+- „Settings“-Link in der Pluginliste (`plugin_action_links_…`, nur mit
+  `manage_options`), URL über `menu_page_url()`.
+- Kein eigenes Admin-CSS/JS; die Seite nutzt die WordPress-Klassen
+  `form-table`, `description`, `large-text code`, `notice`.
 
 ### 9.1 Konfiguration aus Code (`jgor_flcf7_settings`)
 
@@ -573,6 +592,7 @@ Tabellen, keine Dateien.
 ```bash
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/create-test-forms.php
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-markup.php
+wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-admin.php
 ```
 
 - `tests/verify-markup.php` rendert die Formulare per `form_html()` und
@@ -592,9 +612,23 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   `enabled` false, ungültige Werte).
   Das Script ändert die Option vorübergehend und stellt die Defaults danach
   wieder her. `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (33 Punkte): Menü
+  unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL, fünf
+  Sektionen und sechs Felder, das gerenderte Formular (Ziel `options.php`,
+  Nonce, Defaults, `for`/`id`, escapete Codebeispiele, Snippet in der
+  Textarea), gesperrte Werte (disabled, ohne `name`, Hinweise, Notice),
+  Capability (`wp_die()` ohne `manage_options`), „Settings“-Link und den
+  Gleichstand von `CSS_PROPERTIES` mit dem `.wpcf7`-Block der CSS. Das
+  Script lädt `wp-admin/includes/plugin.php` und `template.php` und
+  simuliert das CF7-Menü über `$admin_page_hooks` / `$_parent_pages`.
+  Beide Prüfscripte zählen Fehler in `$GLOBALS`, weil `wp eval-file` die
+  Datei in einem Funktionsscope ausführt; der Exit-Code ist bei Fehlern
+  ungleich 0.
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
-  Silentium; vor dem Release in Chromium, Firefox und Edge per Playwright:
+  Silentium (Frontend und Einstellungsseite
+  `wp-admin/admin.php?page=wpcf7-floating-labels`); vor dem Release in
+  Chromium, Firefox und Edge per Playwright:
   Ruhezustand, Fokus, Eingabe, Autofill, Fehlerfall (Pflichtfeld leer
   abschicken → Label und Rahmen rot, Tip unter dem Feld), Versand mit
   `skip_mail: on` → Labels sinken zurück; Screenshots für `assets/`.
@@ -621,7 +655,9 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 3. Modul 3 CSS: Variante Outlined, dann Filled und Minimal, Fehlerzustand,
    Reduced Motion, RTL. Erledigt am 22.10.2026 (Commit aac696a), Sichtprüfung
    lokal; Browser-Matrix und Screenshots mit Schritt 5.
-4. Modul 4 Einstellungsseite mit Sperren aus Code (9, 9.1).
+4. Modul 4 Einstellungsseite mit Sperren aus Code (9, 9.1). Erledigt am
+   22.10.2026 (Commit 2082122): 33 Prüfungen PASS, `composer check` ohne
+   Befund; Sichtprüfung der Seite im Browser steht aus.
 5. `readme.txt`, Kontexthilfe, `.pot`, Assets (Icon, Banner, Screenshots),
    Plugin Check, Repo öffentlich stellen, Release 1.0.0, Einreichung;
    danach GlotPress (de/default, de/formal).
@@ -666,3 +702,4 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 | 1.3 | 22.10.2026 | Module 2 und 3 umgesetzt (Commits 124beaa, aac696a, 756f4c1), Konzept an den Code angeglichen: Form-Tag-Syntax (`nofloat` vor Werten in Anführungszeichen), Werte von `floating_labels`, Prüfregeln je Wrap, ID-Eindeutigkeit, Wrap-Klassen `jgor-flcf7-textarea` und `jgor-flcf7-marker`, CSS-Geometrie (Label auf der ersten Textzeile, Floaten per `scale()`, Properties `--jgor-flcf7-padding-y`, `-border-width`, `-background-filled`, `-label-scale` statt `-label-size-floated`), Sperr-Definition des Filters `jgor_flcf7_settings` (9.1), Prüfscripte in `tests/`, Verzeichnisbaum |
 | 1.4 | 22.10.2026 | Entscheidung Design-Werte: 1.0 ohne Eingabefelder, die Einstellungsseite zeigt das CSS-Snippet mit allen Custom Properties (9); Eingabefelder mit `wp_add_inline_style()` als Erweiterung 1.1 vorgemerkt (14) |
 | 1.5 | 22.10.2026 | Steuerung je Formular (Additional Settings `floating_labels_style`, `floating_labels_marker`, `floating_labels_types`), je Platzierung (`html_class`-Klassen `jgor-flcf7-off`, `-on`, `-mode-*`, `-style-*`, `-marker-on`, `-marker-off`) und Filter `jgor_flcf7_form_settings` mit Rangfolge (7.4); Modul 2 entsprechend erweitert, 58 Prüfungen; §9 Elternslug `wpcf7-dashboard`; §14 Editor-Tab und Block-Seitenleiste für 1.1 |
+| 1.6 | 22.10.2026 | Modul 4 umgesetzt (Commit 2082122): §9 an den Code angeglichen (Elternslug-Ermittlung mit Fallback, fünf Sektionen, Textarea-Snippet aus `CSS_PROPERTIES`, Sperren mit Notice, „Settings saved“-Meldung, „Settings“-Link), §3 und §12 um `tests/verify-admin.php` (33 Prüfungen) und den `$GLOBALS`-Zähler der Prüfscripte, §6 Bootstrap, §13 Schritt 4 erledigt |
