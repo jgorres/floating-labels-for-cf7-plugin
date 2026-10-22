@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 1.1 · Stand: 22.10.2026 · Plugin-Version: noch kein Code
+Version: 1.2 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Gerüst, Module 2–4 folgen)
 
 ## 1. Zweck
 
@@ -46,7 +46,7 @@ in beiden Anreden über translate.wordpress.org.
 | Lokale Site | `https://floating-labels-for-cf7.gorres.local` (local-sites auf Bodhran, PHP 8.4, WordPress 7.1.3 „nackt“, Twenty Twenty-Five, Admin `jgorres`, Sprache en_US, de_DE installiert), CF7, Plugin Check und Query Monitor per wp-cli, Plugin per Symlink `wp-content/plugins/floating-labels-for-cf7` → `plugin/`; Browser läuft auf Silentium, Hosts-Eintrag dort über `hosts-von-bodhran.sh` |
 | Test-Site Hostsharing | `https://<hs-testsite>`: Paket `<hs-paket>`, Domain-Admin `<hs-admin>`, DB und DB-User `<hs-db>`, PHP 8.4 (`fcgiphpbin`, in HSAdmin gesetzt), Let’s Encrypt. Kopie der lokalen Site über Stufe 6 `local-sites-hostsharing.sh` (Zugangsdaten `~/.config/local-sites/hostsharing/floating-labels-for-cf7.gorres.local.env`); Änderungen nachschieben mit `dateien floating-labels-for-cf7.gorres.local --ueberschreiben`; wp-cli dort mit `php8.4 /home/pacs/<hs-paket>/bin/wp` |
 | Rechte | Einstellungsseite `manage_options` |
-| Geprüft gegen | CF7 6.2.3 (lokal und Hostsharing; verlangt WordPress 7.1 und PHP 8.3, liegt über `Requires at least` 6.5 und `Requires PHP` 8.1, Entscheidung beim Gerüst), Doku `https://contactform7.com/docs/` |
+| Geprüft gegen | CF7 6.2.3 (lokal und Hostsharing), Doku `https://contactform7.com/docs/`. CF7 6.2.3 verlangt für sich WordPress 7.1 und PHP 8.3; `Requires at least` 6.5 und `Requires PHP` 8.1 bleiben trotzdem (Entscheidung 22.10.2026): Das Plugin nutzt nur CF7-API, die es seit 5.x gibt, ältere CF7-Versionen laufen auf WP 6.5 / PHP 8.1 weiter |
 
 Namensprüfung: „Contact Form 7“ ist eine eingetragene Marke von Rock Lobster
 Inc. Die Trademark-Policy (`contactform7.com/trademark-policy/`) nimmt die
@@ -157,16 +157,25 @@ Aus der CF7-Doku und dem Quelltext 6.2.2:
 
 - Hauptdatei mit Header, Konstanten `JGOR_FLCF7_VERSION`, `JGOR_FLCF7_MIN_PHP`,
   `JGOR_FLCF7_FILE`, `JGOR_FLCF7_PATH`, `JGOR_FLCF7_URL`, Laden der Klassen
-  aus `includes/`, Start auf `plugins_loaded`.
+  aus `includes/` (mit `file_exists()`, fehlende Module werden übersprungen),
+  Start auf `plugins_loaded` mit Priorität 20 (nach CF7), Aktivierungs-Hook
+  mit PHP-Prüfung und `ensure_option()`.
 - `JGOR_FLCF7_Plugin::instance()->init()`: prüft `class_exists(
   'WPCF7_ContactForm' )` und `class_exists( 'DOMDocument' )`. Fehlt CF7, zeigt
   das Plugin einen Admin-Hinweis und registriert sonst nichts (der Header
   `Requires Plugins` verhindert die Aktivierung ohne CF7 ohnehin ab WP 6.5;
   der Hinweis deckt das spätere Deaktivieren von CF7 ab). Fehlt `ext-dom`,
   Hinweis und kein Umbau; das CSS wird trotzdem nicht geladen, weil es ohne
-  Umbau nichts zu stylen gibt.
-- `JGOR_FLCF7_Settings`: Defaults, `get()`, `sanitize()`, Option
-  `jgor_flcf7_settings` (Array, autoload). Werte:
+  Umbau nichts zu stylen gibt. Die Option wird in jedem Fall auf `init`
+  registriert (`register_setting()`, Gruppe `jgor_flcf7`), damit der
+  Sanitize-Callback auch für `update_option()` in Code und WP-CLI greift. Die
+  Module 2–4 werden im Bootstrap verdrahtet, sobald ihre Klasse existiert (je
+  Schritt, nicht vorab: PHPStan meldet `class_exists()` auf eine fehlende
+  Klasse als „immer falsch“).
+- `JGOR_FLCF7_Settings`: Konstanten `OPTION`, `GROUP`, `BASE_TYPES` (text,
+  email, url, tel, number, textarea), `STYLES`; `defaults()`, `all()`, `get()`,
+  `sanitize()`, `locked_keys()`, Option `jgor_flcf7_settings` (Array,
+  autoload). Werte:
 
 | Schlüssel | Typ | Default | Bedeutung |
 | --- | --- | --- | --- |
@@ -177,8 +186,15 @@ Aus der CF7-Doku und dem Quelltext 6.2.2:
 | `load_css` | bool | true | Plugin-CSS einbinden |
 | `required_marker` | bool | false | Stern hinter dem Label bei `aria-required` |
 
+- Filter `jgor_flcf7_field_types`: Liste der wählbaren Basistypen (Ausgang
+  `BASE_TYPES`). Ein per Filter ergänzter Typ wird erst umgebaut, wenn er in
+  `types` angehakt oder per `jgor_flcf7_settings` gesetzt ist; `sanitize()`
+  behält nur Typen aus dieser Liste, eine leere Liste ist gültig.
 - Filter `jgor_flcf7_settings` wie in Gorres Control REST-API 14.1: Werte aus
   Code übersteuern die Option, die Oberfläche zeigt sie schreibgeschützt.
+  Filterwerte durchlaufen dieselbe Sanitize-Prüfung wie Formulareingaben; ein
+  gesperrter Schlüssel behält beim Speichern seinen gespeicherten Wert (sein
+  Feld wird nicht übertragen).
 - Deaktivierung hinterlässt nichts; `uninstall.php` löscht die Option (bei
   Multisite je Site, siehe 10).
 
@@ -390,7 +406,9 @@ Tabellen, keine Dateien.
 1. Gerüst (Header, Konstanten, Bootstrap, Settings-Klasse, Hinweis ohne
    CF7), `stubs/cf7.php`, `composer install`, Commit. Erledigt am
    22.10.2026: GitHub-Remote (privat, Commit a8cdc4d), lokale Testsite und
-   Hostsharing-Testsite (Abschnitt 2).
+   Hostsharing-Testsite (Abschnitt 2), Gerüst (Commit 4a1c2c2; `composer
+   check` ohne Befund, lokal aktiviert, Sanitize, Filter-Sperre und Hinweis
+   ohne CF7 per wp-cli geprüft).
 2. Modul 2 Markup: Placeholder-Modus, dann Label-Modus, Ausnahmen, Filter.
    Prüfung per `wp eval`.
 3. Modul 3 CSS: Variante Outlined, dann Filled und Minimal, Fehlerzustand,
@@ -418,3 +436,4 @@ Tabellen, keine Dateien.
 | --- | --- | --- |
 | 1.0 | 21.10.2026 | Erste Fassung: Zweck, Eckdaten mit Namensprüfung, CF7-Grundlagen, vier Module, Prüfung, Reihenfolge |
 | 1.1 | 22.10.2026 | Testumgebung: GitHub-Repo (privat), lokale Site `floating-labels-for-cf7.gorres.local`, Hostsharing-Site `<hs-testsite>` (<hs-admin>, DB `<hs-db>`, PHP 8.4); CF7 6.2.3 verlangt WordPress 7.1 und PHP 8.3 |
+| 1.2 | 22.10.2026 | Gerüst umgesetzt (Commit 4a1c2c2): Hauptdatei, Bootstrap, Settings mit Filtern `jgor_flcf7_settings` und `jgor_flcf7_field_types`, Uninstall, CF7-Stubs; Entscheidung: `Requires at least` 6.5 und `Requires PHP` 8.1 bleiben |
