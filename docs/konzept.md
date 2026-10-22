@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.3 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
+Version: 2.4 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -75,18 +75,19 @@ floating-labels-for-cf7/
 │   │   ├── class-jgor-flcf7-markup.php    Modul 2: Umbau des Formular-HTML
 │   │   ├── class-jgor-flcf7-assets.php    Modul 3: CSS einbinden
 │   │   ├── class-jgor-flcf7-admin.php     Modul 4: Einstellungsseite
-│   │   └── class-jgor-flcf7-editor.php    Modul 5: Block-Seitenleiste (Editor-Script laden)
+│   │   ├── class-jgor-flcf7-editor.php    Modul 5: Block-Seitenleiste (Editor-Script und Daten laden)
+│   │   └── class-jgor-flcf7-placement-design.php  Modul 5, Server: Design je Platzierung (Block-Attribut, Shortcode-Attribut, style am Wrapper)
 │   ├── assets/css/floating-labels.css     Frontend (eine Datei, alle Varianten)
-│   ├── assets/js/block-editor.js          Panel „Floating Labels“ im CF7-Block, ohne Build-Schritt
+│   ├── assets/js/block-editor.js          Panels „Floating Labels“ (Platzierung und Design) im CF7- und Shortcode-Block, ohne Build-Schritt
 │   ├── assets/js/admin.js                 Farbwähler auf der Einstellungsseite
 │   └── languages/floating-labels-for-cf7.pot  Übersetzungsvorlage (wp i18n make-pot)
 ├── tests/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
-│   ├── verify-markup.php             69 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
+│   ├── verify-markup.php             82 PASS/FAIL-Prüfungen für Modul 2 und das Design je Platzierung (wp eval-file)
 │   ├── verify-admin.php              50 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
 │   ├── verify-design.php             26 PASS/FAIL-Prüfungen für die Design-Einstellungen (wp eval-file)
-│   ├── verify-editor.php             16 PASS/FAIL-Prüfungen für Modul 5, Enqueue (wp eval-file)
-│   └── verify-editor-js.mjs          47 PASS/FAIL-Prüfungen für das Editor-Script (node)
+│   ├── verify-editor.php             23 PASS/FAIL-Prüfungen für Modul 5, Enqueue und Block-Attribut (wp eval-file)
+│   └── verify-editor-js.mjs          76 PASS/FAIL-Prüfungen für das Editor-Script (node)
 ├── docs/
 │   ├── konzept.md                    dieses Dokument
 │   ├── assets-erzeugen.py            Icon (SVG und APNG) und Banner (APNG), Pillow
@@ -116,8 +117,10 @@ WordPress (Abschnitt 13).
   `:autofill`, `.wpcf7-not-valid` / `[aria-invalid="true"]`,
   `[aria-required]` und die Formularklasse `invalid`. CF7 setzt nach dem
   Versand `form.reset()`, dadurch sinken die Labels von selbst zurück.
-  Inline-CSS gibt es nur für geänderte Design-Werte (9.2), sonst ist das
-  Plugin ohne Inline-Anteile CSP-tauglich. Scripts laufen nur im Admin:
+  Inline-CSS gibt es nur für geänderte Design-Werte (9.2) und als
+  `style`-Attribut am Wrapper einer Platzierung mit eigenen Design-Werten
+  (10.1), sonst ist das Plugin ohne Inline-Anteile CSP-tauglich. Scripts
+  laufen nur im Admin:
   das Editor-Script von Modul 5 (10) und der Farbwähler der
   Einstellungsseite (9.2).
 - **Fehlerfall ohne Springen:** Bei Validierungsfehlern floatet das Label
@@ -209,7 +212,17 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   nicht leerem Wert in den Shortcode geschrieben. Der Shortcode-Block
   (`core/shortcode`) hat keine eigenen Einstellungen; sein Attribut `text`
   enthält den Shortcode als Klartext, WordPress parst `html_class` dort mit
-  doppelten, einfachen oder ohne Anführungszeichen.
+  doppelten, einfachen oder ohne Anführungszeichen. Der CF7-Block hat keinen
+  Server-Renderer (`block.json` ohne `render`): der Filter
+  `render_block_contact-form-7/contact-form-selector` liefert den
+  gespeicherten Inhalt mit noch unverarbeitetem Shortcode-Text.
+  Block-Attribute aus `block.json` erreichen den Editor über
+  `get_block_editor_server_block_settings()`, und der Block registriert sich
+  clientseitig ohne eigene Attributliste; ein per `register_block_type_args`
+  ergänztes Attribut gilt daher auch im Editor (10.1). WordPress’ Filter
+  `do_shortcode_tag` reicht alle Shortcode-Attribute roh durch
+  (`shortcode_parse_atts()`, Namen kleingeschrieben), auch unbekannte, die
+  CF7s `shortcode_atts()` verwirft.
 
 ## 6. Modul 1: Grundgerüst (`class-jgor-flcf7-plugin.php`, `class-jgor-flcf7-settings.php`)
 
@@ -228,8 +241,10 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   nichts zu stylen gibt. Die Option wird in jedem Fall auf `init`
   registriert (`register_setting()`, Gruppe `jgor_flcf7`), damit der
   Sanitize-Callback auch für `update_option()` in Code und WP-CLI greift. Die
-  Module 2 und 3 werden im Bootstrap auf jeder Anfrage gestartet, die Module
-  4 und 5 nur bei `is_admin()`.
+  Module 2 und 3 sowie der Server-Teil von Modul 5
+  (`JGOR_FLCF7_Placement_Design`, 10.1) werden im Bootstrap auf jeder
+  Anfrage gestartet, Modul 4 und das Editor-Script von Modul 5 nur bei
+  `is_admin()`.
 - `JGOR_FLCF7_Settings` (Singleton `instance()`): Konstanten `OPTION`,
   `GROUP`, `BASE_TYPES` (text, email, url, tel, number, textarea), `STYLES`;
   Methoden `field_types()`, `defaults()`, `stored()` (Option plus Defaults,
@@ -388,7 +403,9 @@ Schicht übersteuert die frühere, ungültige Werte werden ignoriert:
    so je Seite anders aussehen. Die Namen unterscheiden sich absichtlich von
    den Wrap-Klassen aus 7.6: CF7 schreibt `html_class` auf das `<form>`, eine
    Wrap-Klasse dort würde die Varianten-Regeln des CSS auf alle Felder
-   anwenden.
+   anwenden. Design-Werte je Platzierung laufen nicht über Klassen, sondern
+   über das Attribut `jgor_flcf7_design` bzw. das Block-Attribut
+   `jgorFlcf7Design` (10.1).
 4. **Filter `jgor_flcf7_form_settings`** (`$settings`, `$contact_form`):
    erhält das Array `enabled`, `mode_placeholder`, `mode_label`, `types`,
    `style`, `required_marker`, `submit_error_text` nach den Schichten 1–3
@@ -676,6 +693,9 @@ Animation sollen ohne CSS einstellbar sein.
 - Neue Property `--jgor-flcf7-font-size` (Default `1em`) auf dem Wrap:
   Steuerelement, Label, Tip und Paddings sind em-basiert und skalieren
   gemeinsam; `1em` behält die Schriftgröße des umgebenden Textes.
+- Je Platzierung lassen sich dieselben Properties im Block-Editor setzen
+  (10.1); sie werden als `style`-Attribut am Wrapper des Formulars ausgegeben
+  und gewinnen gegen Option und Inline-Regel.
 
 ## 10. Modul 5: Block-Seitenleiste (`class-jgor-flcf7-editor.php`, `assets/js/block-editor.js`)
 
@@ -690,7 +710,9 @@ einem Klassenfeld oder im Shortcode-Text.
   `wp-block-editor`, `wp-i18n`, Version `JGOR_FLCF7_VERSION`, Footer), aber
   nur, wenn der Block `contact-form-7/contact-form-selector` registriert ist
   (`WP_Block_Type_Registry`); Übersetzungen per
-  `wp_set_script_translations()` aus `languages/` bzw. den Sprachpaketen.
+  `wp_set_script_translations()` aus `languages/` bzw. den Sprachpaketen;
+  per `wp_add_inline_script( …, 'before' )` bekommt das Script die
+  Property-Liste `window.jgorFlcf7EditorData` für die Design-Panels (10.1).
   Start im Bootstrap zusammen mit Modul 4 unter `is_admin()`.
 - Das Script braucht keinen Build-Schritt: es nutzt die globalen
   `wp.*`-Pakete und `wp.element.createElement` statt JSX. Es hängt sich per
@@ -731,7 +753,55 @@ einem Klassenfeld oder im Shortcode-Text.
 - Die Helfer liegen auf `window.jgorFlcf7BlockEditor`, damit das
   Node-Prüfscript sie ohne Browser aufrufen kann (13).
 - Kein eigenes CSS. Ein Shortcode in einem Absatz-Block (ohne
-  Shortcode-Block) bekommt kein Panel, dort gilt `html_class="…"` von Hand.
+  Shortcode-Block) bekommt kein Panel, dort gelten `html_class="…"` und
+  `jgor_flcf7_design="…"` von Hand.
+
+### 10.1 Design je Platzierung
+
+Ergänzt am 22.10.2026 (Commit cbc7ca7): Farben, Maße und Animation (9.2)
+sollen auch je Platzierung im Block-Panel einstellbar sein, nicht nur
+global.
+
+- Drei weitere Panels unter „Floating Labels“, geschlossen: „Floating
+  labels: colours“ (`PanelColorSettings` aus `wp.blockEditor`, der kompakte
+  Farbwähler der Core-Blöcke mit Theme-Palette und freier Farbe, zehn
+  Zeilen; nur Hex-Farben werden übernommen, `colorValue()`), „Floating
+  labels: sizes“ (sechs `TextControl`-Felder) und „Floating labels:
+  animation“ (`label-scale` als Zahlenfeld 0,5–1, `duration` als
+  Textfeld). Leer = Wert der Einstellungsseite, der als Platzhalter steht.
+  Die Property-Liste (Schlüssel, Gruppe, Typ, übersetztes Label, wirksamer
+  Wert) liefert `JGOR_FLCF7_Editor::inline_data()` aus
+  `JGOR_FLCF7_Admin::DESIGN_GROUPS`, `design_label()` und
+  `JGOR_FLCF7_Settings::design()` als `window.jgorFlcf7EditorData`; ohne
+  die Daten zeigt das Script nur das erste Panel.
+- Speicherort (`storeFor()`): beim CF7-Block das Block-Attribut
+  `jgorFlcf7Design` (Objekt Property → Wert), das
+  `JGOR_FLCF7_Placement_Design` serverseitig per `register_block_type_args`
+  am Block deklariert (5); der gespeicherte Shortcode bleibt unverändert,
+  der Inhalt bleibt ohne Plugin gültig, ohne Werte verlässt das Attribut
+  den Block (`undefined`). Beim Shortcode-Block das Attribut
+  `jgor_flcf7_design="label-color:#123456;font-size:1.1em"` im Text,
+  gelesen und geschrieben wie `html_class` (`shortcodeDesign()`,
+  `withShortcodeDesign()`, entfällt ohne Werte); von Hand auch im
+  klassischen Editor nutzbar. `cleanDesign()` behält nur bekannte
+  Properties mit nicht leeren Werten und entfernt Zeichen, die den
+  Shortcode brechen würden; die Werte selbst prüft der Server.
+- Server (`class-jgor-flcf7-placement-design.php`, auf jeder Anfrage
+  gestartet): `render_block_contact-form-7/contact-form-selector` schreibt
+  das Block-Attribut zur Laufzeit als `jgor_flcf7_design` in den ersten
+  CF7-Shortcode des Blockinhalts (nichts wird gespeichert; ein schon
+  vorhandenes Attribut bleibt). `do_shortcode_tag` liest bei
+  `contact-form-7` das Attribut, `parse()`/`sanitize()` prüfen jeden Wert
+  mit `JGOR_FLCF7_Settings::sanitize_design_value()` und ordnen nach dem
+  `.wpcf7`-Block der CSS, `style()` baut `--jgor-flcf7-…: …;`, und die Regel
+  landet als `style`-Attribut am Wrapper `<div class="wpcf7 no-js" …>`, wo
+  das Stylesheet seine Defaults setzt; die Platzierung gewinnt so gegen
+  Option und Inline-Regel aus 9.2. Nichts bei ungültigen Werten, nichts bei
+  `load_css` aus. CSP-Vorbehalt wie in 9.2 (`style`-Attribute brauchen
+  `'unsafe-inline'` oder `'unsafe-hashes'` in `style-src`).
+- Unverändert: die Steuerung aus 7.4 (Klassen) und die globale Option
+  (9.2); `html_class` und `jgor_flcf7_design` stehen unabhängig
+  nebeneinander.
 
 ## 11. Multisite
 
@@ -755,8 +825,8 @@ Tabellen, keine Dateien.
   `dist/floating-labels-for-cf7-<version>.zip`; das ZIP in einen frischen
   Ordner entpacken und `wp plugin check <Ordner> --path=<Site>` laufen
   lassen (`Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens
-  150 Zeichen). Stand 22.10.2026: 13 Dateien, 48 KB (mit Modul 5 und
-  Design-Einstellungen), ohne Befund; ebenso
+  150 Zeichen). Stand 22.10.2026: 14 Dateien, 52 KB (mit Modul 5,
+  Design-Einstellungen und Design je Platzierung), ohne Befund; ebenso
   ohne Befund auf dem Symlink-Ordner der Testsite und auf der
   Hostsharing-Site.
 - Testsite `floating-labels-for-cf7.gorres.local` (CF7, Plugin Check, Query
@@ -781,7 +851,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 ```
 
 - `tests/verify-markup.php` rendert die Formulare per `form_html()` und
-  prüft 69 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
+  prüft 82 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
   Placeholder-Modus, Ersatz des umschließenden Labels, Label-Text aus der
   Vorlage, Varianten- und Textarea-Klasse, IDs aus dem Unit-Tag, `for` =
   `id`, `placeholder=" "`, unberührte Felder (Submit, `nofloat`, Select,
@@ -798,7 +868,11 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   off`), Filter `jgor_flcf7_form_settings` (Vorrang vor `html_class`,
   `enabled` false, ungültige Werte), Senden-Button (Hülle mit Fehlertext,
   Filter `jgor_flcf7_submit_error_text`, leerer Text ohne Fehler-Span,
-  Option wird bereinigt).
+  Option wird bereinigt), Design je Platzierung (10.1: `parse()`,
+  `serialize()`, `style()`; Shortcode-Attribut → `style` am Wrapper mit nur
+  gültigen Werten in CSS-Reihenfolge, ohne Attribut nichts; Block-Attribut
+  → Shortcode-Attribut per `render_block()`, vorhandenes Attribut bleibt,
+  nur ungültige Werte → unverändert; nichts bei `load_css` aus).
   `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
 - `tests/verify-admin.php` prüft Modul 4 ohne Browser (50 Punkte): Menü
   unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
@@ -826,22 +900,34 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   `inline_css()` und der Inline-Style hinter dem Stylesheet (leer bei
   Defaults, nur Abweichungen, ungültige Optionswerte verworfen, nichts bei
   `load_css` aus), Sperre per Filter und die `font-size`-Regel in der CSS.
-- `tests/verify-editor.php` prüft Modul 5 ohne Browser (16 Punkte): Klasse
+- `tests/verify-editor.php` prüft Modul 5 ohne Browser (23 Punkte): Klasse
   geladen, CF7-Block registriert, Hook, Enqueue (Quelle, Abhängigkeiten,
-  Version, Footer, Übersetzungen), Script-Datei (CF7-Block, Shortcode-Block,
-  Filter, alle neun Platzierungsklassen, Text-Domain an jedem Text) und kein
+  Version, Footer, Übersetzungen), Inline-Daten (`window.jgorFlcf7EditorData`
+  als JSON vor dem Script, alle 18 Properties, Gruppen 10/6/2 in der
+  Reihenfolge der Einstellungsseite, Typ, Label, wirksamer Wert als
+  Platzhalter), Block-Attribut `jgorFlcf7Design` am CF7-Block und in
+  `get_block_editor_server_block_settings()`, Script-Datei (CF7-Block,
+  Shortcode-Block, Filter, alle neun Platzierungsklassen, Design-Attribute,
+  Daten-Global, `PanelColorSettings`, Text-Domain an jedem Text) und kein
   Enqueue ohne registrierten Block (Registry wird wiederhergestellt).
-- `tests/verify-editor-js.mjs` prüft das Editor-Script unter Node (47
+- `tests/verify-editor-js.mjs` prüft das Editor-Script unter Node (76
   Punkte): die `wp.*`-Pakete sind Stubs, `createElement` liefert einfache
-  Objekte; geprüft werden Filter-Registrierung, Gruppen und Klassen,
+  Objekte, die Server-Daten sind mit den 18 Properties gestubbt; geprüft
+  werden Filter-Registrierung, Gruppen und Klassen,
   `splitClasses()`, `currentValue()`, `withGroupValue()` (ersetzen,
   anhängen, entfernen, Duplikate, fremde Klassen), `shortcodeHtmlClass()`
   und `withShortcodeHtmlClass()` (Anführungszeichen, anhängen, ersetzen,
   entfernen, umgebender Text, `/]`, Text ohne Shortcode), die
   Higher-Order-Component (fremder Block, CF7-Block ohne und mit Formular,
   Shortcode-Block ohne und mit CF7-Shortcode), das Panel (Titel, vier
-  Felder, Werte aus `htmlClass` bzw. `html_class`, Hinweistexte) und
-  `setAttributes()` nach einer Auswahl. `node --check` läuft davor.
+  Felder, Werte aus `htmlClass` bzw. `html_class`, Hinweistexte),
+  `setAttributes()` nach einer Auswahl, die Design-Helfer (`cleanDesign()`,
+  `parseDesign()`, `serializeDesign()`, `colorValue()`,
+  `shortcodeDesign()`, `withShortcodeDesign()`), die Design-Panels
+  (Farbzeilen mit Werten, Größen- und Animationsfelder mit Platzhaltern,
+  Zahlenfeld, Hinweise, Speichern als Block-Attribut bzw.
+  Shortcode-Attribut, Entfernen ohne Werte) und das Script ohne
+  Server-Daten (nur das erste Panel). `node --check` läuft davor.
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
@@ -856,7 +942,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   attributes“ zeigt die Klasse; Shortcode-Block mit `[contact-form-7 …]`
   markieren, Auswahl ändern, `html_class` erscheint im Shortcode-Text; Seite
   speichern und Frontend prüfen; Design: Farbe wählen, Größe eintragen,
-  speichern, Frontend und Inline-Style im Quelltext prüfen.
+  speichern, Frontend und Inline-Style im Quelltext prüfen; Design je
+  Platzierung: im Block-Panel eine Farbe und eine Größe setzen, speichern,
+  Frontend: `style`-Attribut am Wrapper nur dieses Formulars.
 - Assets: `python3 docs/assets-erzeugen.py` (Pillow, Noto Sans) zeichnet das
   Motiv „Feld bekommt Fokus, Label floatet auf die Rahmenlinie, Text wird
   getippt, Schleife“ mit den Default-Farben aus 8 und schreibt `icon.svg`
@@ -950,6 +1038,11 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    dann). Hostsharing am 22.10.2026 nachgezogen (Kontaktseite identisch bis
    auf `required_marker`); nach dem Fix in 7.2 erneut mit `dateien`
    nachziehen.
+8. Design je Platzierung (10.1). Erledigt am 22.10.2026 (Commit cbc7ca7):
+   82, 23 und 76 Prüfungen PASS, `composer check` ohne Befund, Plugin Check
+   auf dem ZIP (14 Dateien) ohne Befund, `.pot` 120 Texte. Offen:
+   Sichtprüfung der Panels auf Silentium (Nutzer, Screenshot 6 zeigt sie
+   dann), Hostsharing mit `dateien` nachziehen.
 
 ## 15. Offen
 
@@ -992,3 +1085,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.1 | 22.10.2026 | Modul 5 auch für den Shortcode-Block `core/shortcode` mit `[contact-form-7 …]`: Panel liest und schreibt `html_class` im Shortcode-Text (`storeFor()`, `shortcodeHtmlClass()`, `withShortcodeHtmlClass()`); §5, §10, §13 (Prüfungen 16/47, Browser-Matrix), §14; readme und Kontexthilfe; `.pot` 89 Texte |
 | 2.2 | 22.10.2026 | Design-Einstellungen (Commit b21db52), vorgezogen aus 1.1: neuer Abschnitt 9.2 (Option `design`, Sanitize je Typ, Felder mit Farbwähler, Inline-Style nur für Abweichungen, Property `--jgor-flcf7-font-size`); §3 Dateien, §4, §6 Optionstabelle, §8 Property und Ausgabe, §9 Sektionen, §13 `verify-design.php` (26) und `verify-admin.php` (50), ZIP 13 Dateien, §14 Schritt 7, §15 Design-Punkt ersetzt; readme, Kontexthilfe; `.pot` 115 Texte |
 | 2.3 | 22.10.2026 | Fund der Hostsharing-Gegenprobe: CF7 gibt jede `id:`-Option nur einmal je Seitenaufruf aus, beim zweiten Rendering desselben Formulars fand Modul 2 das verknüpfte `<label for>` nicht; `fields()` liefert die `id:`-Option mit, `linked_label()` sucht damit, das Feld bekommt eine ID aus dem Unit-Tag (5, 7, 7.2); `verify-markup.php` 69 Prüfungen; §14 Schritte 2, 6, 7 |
+| 2.4 | 22.10.2026 | Design je Platzierung im Block-Panel (Commit cbc7ca7): neuer Abschnitt 10.1 (Panels „Floating labels: colours/sizes/animation“, Block-Attribut `jgorFlcf7Design` per `register_block_type_args`, Shortcode-Attribut `jgor_flcf7_design`, `render_block_…` und `do_shortcode_tag`, `style` am Wrapper, neue Klasse `JGOR_FLCF7_Placement_Design`); §3 Dateien, §4, §5 Block-Rendering und Shortcode-Attribute, §6 Bootstrap, §7.4, §9.2, §10 Inline-Daten, §13 (`verify-markup.php` 82, `verify-editor.php` 23, `verify-editor-js.mjs` 76, ZIP 14 Dateien 52 KB, Browser-Matrix), §14 Schritt 8; readme, Kontexthilfe; `.pot` 120 Texte |
