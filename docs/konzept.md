@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 1.9 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–4 umgesetzt, Release-Vorbereitung läuft)
+Version: 2.0 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -74,19 +74,23 @@ floating-labels-for-cf7/
 │   │   ├── class-jgor-flcf7-settings.php  Defaults, Lesen und Sanitize der Option, Filter
 │   │   ├── class-jgor-flcf7-markup.php    Modul 2: Umbau des Formular-HTML
 │   │   ├── class-jgor-flcf7-assets.php    Modul 3: CSS einbinden
-│   │   └── class-jgor-flcf7-admin.php     Modul 4: Einstellungsseite
+│   │   ├── class-jgor-flcf7-admin.php     Modul 4: Einstellungsseite
+│   │   └── class-jgor-flcf7-editor.php    Modul 5: Block-Seitenleiste (Editor-Script laden)
 │   ├── assets/css/floating-labels.css     Frontend (eine Datei, alle Varianten)
+│   ├── assets/js/block-editor.js          Panel „Floating Labels“ im CF7-Block, ohne Build-Schritt
 │   └── languages/floating-labels-for-cf7.pot  Übersetzungsvorlage (wp i18n make-pot)
 ├── tests/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
 │   ├── verify-markup.php             62 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
-│   └── verify-admin.php              40 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
+│   ├── verify-admin.php              40 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
+│   ├── verify-editor.php             15 PASS/FAIL-Prüfungen für Modul 5, Enqueue (wp eval-file)
+│   └── verify-editor-js.mjs          28 PASS/FAIL-Prüfungen für das Editor-Script (node)
 ├── docs/
 │   ├── konzept.md                    dieses Dokument
 │   ├── assets-erzeugen.py            Icon (SVG und APNG) und Banner (APNG), Pillow
 │   └── screenshots-erzeugen.sh       Screenshots 1–4 auf der lokalen Testsite, Chromium headless
 ├── assets/                           WP.org-Assets: icon.svg, icon-128x128.png, icon-256x256.png,
-│                                     banner-772x250.png, banner-1544x500.png, screenshot-1..5.png
+│                                     banner-772x250.png, banner-1544x500.png, screenshot-1..6.png
 ├── glotpress/
 ├── composer.json, phpcs.xml.dist, phpstan.neon.dist, phpstan-bootstrap.php, stubs/
 └── build.sh, .distignore, .gitignore, LICENSE
@@ -95,8 +99,9 @@ floating-labels-for-cf7/
 `stubs/cf7.php` hält die CF7-Klassen und -Funktionen, die das Plugin
 aufruft (`WPCF7_ContactForm`, `WPCF7_FormTag`, `wpcf7_enqueue_styles`), damit
 PHPStan ohne CF7-Installation läuft. `tests/` liegt außerhalb von `plugin/`
-und kommt nicht ins Release-ZIP; die Scripte laufen nur unter WP-CLI
-(`defined( 'WP_CLI' )`) und nur auf lokalen Testsites (Abschnitt 12).
+und kommt nicht ins Release-ZIP; die PHP-Scripte laufen nur unter WP-CLI
+(`defined( 'WP_CLI' )`) und nur auf lokalen Testsites, das Node-Script ohne
+WordPress (Abschnitt 13).
 
 ## 4. Grundsätze
 
@@ -105,11 +110,13 @@ und kommt nicht ins Release-ZIP; die Scripte laufen nur unter WP-CLI
   Submit, eigenes HTML in der Vorlage) bleibt Byte für Byte so, wie CF7 es
   rendert. Schlägt der Umbau fehl oder ändert er kein Feld, geht das
   Original-HTML unverändert raus.
-- **Kein JavaScript:** Zustände über `:focus`, `:placeholder-shown`,
+- **Kein JavaScript im Frontend:** Zustände über `:focus`, `:placeholder-shown`,
   `:autofill`, `.wpcf7-not-valid` / `[aria-invalid="true"]`,
   `[aria-required]` und die Formularklasse `invalid`. CF7 setzt nach dem
   Versand `form.reset()`, dadurch sinken die Labels von selbst zurück. Das
-  CSS enthält keine Inline-Anteile, das Plugin ist CSP-tauglich.
+  CSS enthält keine Inline-Anteile, das Plugin ist CSP-tauglich. Das
+  einzige Script ist das Editor-Script von Modul 5 (10), nur im
+  Block-Editor.
 - **Fehlerfall ohne Springen:** Bei Validierungsfehlern floatet das Label
   des Feldes in der Fehlerfarbe nach oben, der CF7-Hinweis sitzt im Feld auf
   der Textzeile, und der Senden-Button wechselt Farbe und Text (8). Der
@@ -120,7 +127,8 @@ und kommt nicht ins Release-ZIP; die Scripte laufen nur unter WP-CLI
   `aria-invalid`, `aria-describedby`) bleiben erhalten.
 - **CF7-Konventionen:** Die Steuerung je Formular läuft über die Additional
   Settings (`floating_labels: off`, `floating_labels_style: filled`, …), je
-  Platzierung über das Shortcode-/Block-Attribut `html_class`, je Feld über
+  Platzierung über das Shortcode-/Block-Attribut `html_class` (im
+  Block-Editor per Panel „Floating Labels“, Modul 5), je Feld über
   eine Form-Tag-Option (`nofloat`); Rangfolge in 7.4. Das CSS folgt der
   Ladepolitik von CF7 über die Action `wpcf7_enqueue_styles`.
 - **Theme-freundlich:** Farben, Maße und Dauer als Custom Properties
@@ -186,7 +194,10 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
 - **Block-Editor:** Der CF7-Block (`contact-form-7/contact-form-selector`)
   rendert denselben Shortcode, der Filter greift dort ebenso. Seine
   Attribute `htmlId`, `htmlName`, `htmlTitle`, `htmlClass` entsprechen den
-  Shortcode-Attributen `html_*`.
+  Shortcode-Attributen `html_*`; das Panel „Form attributes“ des Blocks
+  zeigt `htmlClass` als Feld „Class“, die Panels erscheinen erst, wenn ein
+  Formular gewählt ist (`attributes.id`), und `html_class` wird nur bei
+  nicht leerem Wert in den Shortcode geschrieben.
 
 ## 6. Modul 1: Grundgerüst (`class-jgor-flcf7-plugin.php`, `class-jgor-flcf7-settings.php`)
 
@@ -205,8 +216,8 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   nichts zu stylen gibt. Die Option wird in jedem Fall auf `init`
   registriert (`register_setting()`, Gruppe `jgor_flcf7`), damit der
   Sanitize-Callback auch für `update_option()` in Code und WP-CLI greift. Die
-  Module 2 und 3 werden im Bootstrap auf jeder Anfrage gestartet, Modul 4 nur
-  bei `is_admin()`.
+  Module 2 und 3 werden im Bootstrap auf jeder Anfrage gestartet, die Module
+  4 und 5 nur bei `is_admin()`.
 - `JGOR_FLCF7_Settings` (Singleton `instance()`): Konstanten `OPTION`,
   `GROUP`, `BASE_TYPES` (text, email, url, tel, number, textarea), `STYLES`;
   Methoden `field_types()`, `defaults()`, `stored()` (Option plus Defaults,
@@ -236,7 +247,7 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   gesperrter Schlüssel behält beim Speichern seinen gespeicherten Wert (sein
   Feld wird nicht übertragen). Was „gesperrt“ heißt, steht in 9.1.
 - Deaktivierung hinterlässt nichts; `uninstall.php` löscht die Option (bei
-  Multisite je Site, siehe 10).
+  Multisite je Site, siehe 11).
 
 ## 7. Modul 2: Umbau des Markups (`class-jgor-flcf7-markup.php`)
 
@@ -349,8 +360,9 @@ Schicht übersteuert die frühere, ungültige Werte werden ignoriert:
    ab. Groß-/Kleinschreibung ist egal.
 3. **`html_class` der Platzierung** (Shortcode `[contact-form-7 id="…"
    html_class="…"]`, im CF7-Block das Feld „Class“ im Panel „Form
-   attributes“; gelesen per `shortcode_attr( 'html_class' )`). Erkannte
-   Klassen: `jgor-flcf7-off`, `jgor-flcf7-on`, `jgor-flcf7-mode-placeholder`,
+   attributes“; gelesen per `shortcode_attr( 'html_class' )`). Im
+   Block-Editor setzt das Panel „Floating Labels“ (Modul 5, 10) diese
+   Klassen per Auswahlfeld. Erkannte Klassen: `jgor-flcf7-off`, `jgor-flcf7-on`, `jgor-flcf7-mode-placeholder`,
    `jgor-flcf7-mode-label`, `jgor-flcf7-style-outlined`,
    `jgor-flcf7-style-filled`, `jgor-flcf7-style-minimal`,
    `jgor-flcf7-marker-on`, `jgor-flcf7-marker-off`. Dasselbe Formular kann
@@ -400,7 +412,7 @@ DOMDocument (`ext-dom`):
   kein Cache nötig.
 
 Sollte `WP_HTML_Processor` in einer späteren WP-Version Einfügen unterstützen,
-kann der Umbau darauf wechseln (Abschnitt 14).
+kann der Umbau darauf wechseln (Abschnitt 15).
 
 ### 7.6 Ergebnis-Markup
 
@@ -570,7 +582,7 @@ oder Inline-CSS bräuchte.
   spiegelt; `tests/verify-admin.php` prüft den Gleichstand. So bleiben
   Theme-Werte an einer Stelle, das Plugin gibt kein Inline-CSS aus und
   braucht keine weiteren Optionswerte. Eingabefelder sind für 1.1 vorgemerkt
-  (14).
+  (15).
 - Aus Code gesperrte Werte (`is_locked()` / `locked_keys()` der
   Settings-Klasse) erscheinen `disabled` ohne `name`-Attribut, mit Hinweis
   unter dem Feld und einer Info-Notice oben; sie werden nicht übertragen,
@@ -612,19 +624,67 @@ Sanitize vom gespeicherten Wert abweicht. Folgen:
   wie eine Formulareingabe bereinigt und fällt auf den gespeicherten Wert
   zurück; der Schlüssel bleibt frei.
 
-## 10. Multisite
+## 10. Modul 5: Block-Seitenleiste (`class-jgor-flcf7-editor.php`, `assets/js/block-editor.js`)
+
+Vorgezogen aus 1.1 am 22.10.2026 (Commit a820fd7): Wer den CF7-Block
+markiert, erwartet die Einstellungen unter „Block“ in der Seitenleiste,
+nicht in einem Klassenfeld.
+
+- `JGOR_FLCF7_Editor` lädt auf `enqueue_block_editor_assets` das Script
+  `assets/js/block-editor.js` (Handle `jgor-flcf7-editor`, Abhängigkeiten
+  `wp-hooks`, `wp-compose`, `wp-element`, `wp-components`,
+  `wp-block-editor`, `wp-i18n`, Version `JGOR_FLCF7_VERSION`, Footer), aber
+  nur, wenn der Block `contact-form-7/contact-form-selector` registriert ist
+  (`WP_Block_Type_Registry`); Übersetzungen per
+  `wp_set_script_translations()` aus `languages/` bzw. den Sprachpaketen.
+  Start im Bootstrap zusammen mit Modul 4 unter `is_admin()`.
+- Das Script braucht keinen Build-Schritt: es nutzt die globalen
+  `wp.*`-Pakete und `wp.element.createElement` statt JSX. Es hängt sich per
+  `wp.hooks.addFilter( 'editor.BlockEdit', 'jgor-flcf7/block-editor', … )`
+  mit einer Higher-Order-Component an alle Blöcke, gibt für fremde Blöcke
+  die Original-Komponente zurück und ergänzt beim CF7-Block, sobald ein
+  Formular gewählt ist (`attributes.id`, wie die CF7-Panels selbst), ein
+  `InspectorControls`-Panel „Floating Labels“ (`PanelBody`, offen, Felder in
+  einem vertikalen `Flex`).
+- Vier `SelectControl`-Felder, je eine Gruppe der Platzierungsklassen aus
+  7.4, erster Eintrag immer „Default“ (keine Klasse der Gruppe, es gelten
+  Website- und Formular-Einstellungen):
+
+| Feld | Werte | Klassen |
+| --- | --- | --- |
+| Floating labels | Default, On, Off | `jgor-flcf7-on`, `jgor-flcf7-off` |
+| Label source | Default, Form template labels only, Placeholders only | `jgor-flcf7-mode-label`, `jgor-flcf7-mode-placeholder` |
+| Variant | Default, Outlined, Filled, Minimal | `jgor-flcf7-style-outlined`, `-filled`, `-minimal` |
+| Required fields | Default, Asterisk on, Asterisk off | `jgor-flcf7-marker-on`, `jgor-flcf7-marker-off` |
+
+- Speicherort ist ausschließlich das Block-Attribut `htmlClass`, das CF7 als
+  `html_class` des Shortcodes und als Klasse des `<form>` ausgibt und im
+  Panel „Form attributes“ als Feld „Class“ zeigt; beide Ansichten bleiben
+  synchron. `withGroupValue()` ersetzt die erste Klasse der Gruppe an Ort
+  und Stelle, verwirft weitere Klassen derselben Gruppe, hängt eine fehlende
+  an und entfernt die Gruppe bei „Default“; fremde Klassen bleiben
+  unverändert. `currentValue()` liest wie der Server die letzte Klasse der
+  Gruppe. Ein Hinweistext im Panel nennt das Feld „Class“. Serverseitig
+  ändert sich nichts (7.4, Schicht 3); ohne das Plugin bleiben die Klassen
+  wirkungslos.
+- Die Helfer liegen auf `window.jgorFlcf7BlockEditor`, damit das
+  Node-Prüfscript sie ohne Browser aufrufen kann (13).
+- Kein eigenes CSS. Der Shortcode-Block bleibt ohne Panel, dort gilt weiter
+  `html_class="…"`.
+
+## 11. Multisite
 
 Option je Site, keine netzwerkweiten Einstellungen. `uninstall.php` läuft bei
 Multisite über alle Sites (`get_sites()`, `switch_to_blog()` /
 `restore_current_blog()` paarweise).
 
-## 11. Deinstallation (`uninstall.php`)
+## 12. Deinstallation (`uninstall.php`)
 
 `defined( 'WP_UNINSTALL_PLUGIN' ) || exit;`, dann `delete_option(
 'jgor_flcf7_settings' )`, bei Multisite je Site. Keine Transients, keine
 Tabellen, keine Dateien.
 
-## 12. Prüfung
+## 13. Prüfung
 
 - `composer check` (PHPCS/WPCS, PHPStan Level 6 mit `stubs/cf7.php`) vor
   jedem Commit.
@@ -634,7 +694,8 @@ Tabellen, keine Dateien.
   `dist/floating-labels-for-cf7-<version>.zip`; das ZIP in einen frischen
   Ordner entpacken und `wp plugin check <Ordner> --path=<Site>` laufen
   lassen (`Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens
-  150 Zeichen). Stand 22.10.2026: 10 Dateien, 32 KB, ohne Befund; ebenso
+  150 Zeichen). Stand 22.10.2026: 12 Dateien, 40 KB (mit Modul 5), ohne
+  Befund; ebenso
   ohne Befund auf dem Symlink-Ordner der Testsite und auf der
   Hostsharing-Site.
 - Testsite `floating-labels-for-cf7.gorres.local` (CF7, Plugin Check, Query
@@ -653,6 +714,8 @@ Tabellen, keine Dateien.
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/create-test-forms.php
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-markup.php
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-admin.php
+wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-editor.php
+node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 ```
 
 - `tests/verify-markup.php` rendert die Formulare per `form_html()` und
@@ -672,8 +735,7 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   `enabled` false, ungültige Werte), Senden-Button (Hülle mit Fehlertext,
   Filter `jgor_flcf7_submit_error_text`, leerer Text ohne Fehler-Span,
   Option wird bereinigt).
-  Das Script ändert die Option vorübergehend und stellt die Defaults danach
-  wieder her. `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
+  `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
 - `tests/verify-admin.php` prüft Modul 4 ohne Browser (40 Punkte): Menü
   unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
   Kontexthilfe (Hook, drei Reiter, escapete Beispiele, Snippet,
@@ -685,9 +747,25 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   `.wpcf7`-Block der CSS. Das
   Script lädt `wp-admin/includes/plugin.php` und `template.php` und
   simuliert das CF7-Menü über `$admin_page_hooks` / `$_parent_pages`.
-  Beide Prüfscripte zählen Fehler in `$GLOBALS`, weil `wp eval-file` die
+  Die PHP-Prüfscripte zählen Fehler in `$GLOBALS`, weil `wp eval-file` die
   Datei in einem Funktionsscope ausführt; der Exit-Code ist bei Fehlern
-  ungleich 0.
+  ungleich 0. `verify-markup.php` und `verify-admin.php` sichern die
+  gespeicherte Option, prüfen mit den Defaults und stellen die Option danach
+  wieder her (seit 22.10.2026; vorher setzten sie die Defaults zurück, was
+  eine im Browser gemachte Einstellung wie den Pflichtstern verwarf).
+- `tests/verify-editor.php` prüft Modul 5 ohne Browser (15 Punkte): Klasse
+  geladen, CF7-Block registriert, Hook, Enqueue (Quelle, Abhängigkeiten,
+  Version, Footer, Übersetzungen), Script-Datei (Blockname, Filter, alle
+  neun Platzierungsklassen, Text-Domain an jedem Text) und kein Enqueue ohne
+  registrierten Block (Registry wird wiederhergestellt).
+- `tests/verify-editor-js.mjs` prüft das Editor-Script unter Node (28
+  Punkte): die `wp.*`-Pakete sind Stubs, `createElement` liefert einfache
+  Objekte; geprüft werden Filter-Registrierung, Gruppen und Klassen,
+  `splitClasses()`, `currentValue()`, `withGroupValue()` (ersetzen,
+  anhängen, entfernen, Duplikate, fremde Klassen), die Higher-Order-Component
+  (fremder Block, CF7-Block ohne und mit Formular), das Panel (Titel, vier
+  Felder, Werte aus `htmlClass`, Hinweistext) und `setAttributes()` nach
+  einer Auswahl. `node --check` läuft davor.
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
@@ -695,8 +773,11 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   Release von Hand in Firefox und Edge auf Silentium (Playwright steht auf
   Bodhran ohne Browser nicht zur Verfügung): Ruhezustand, Fokus per Klick
   und per Tab, Eingabe, Autofill, Fehlerfall (Pflichtfeld leer abschicken →
-  Label und Rahmen rot, Tip unter dem Feld), Versand mit `skip_mail: on` →
-  Labels sinken zurück, Einstellungsseite speichern und Hilfe-Reiter öffnen.
+  Label rot oben, Tip im Feld, Senden-Button rot mit Fehlertext), Versand
+  mit `skip_mail: on` → Labels sinken zurück, Einstellungsseite speichern
+  und Hilfe-Reiter öffnen, Block-Editor: CF7-Block markieren, Panel
+  „Floating Labels“ unter „Block“, Auswahl ändern, Feld „Class“ unter „Form
+  attributes“ zeigt die Klasse, Seite speichern und Frontend prüfen.
 - Assets: `python3 docs/assets-erzeugen.py` (Pillow, Noto Sans) zeichnet das
   Motiv „Feld bekommt Fokus, Label floatet auf die Rahmenlinie, Text wird
   getippt, Schleife“ mit den Default-Farben aus 8 und schreibt `icon.svg`
@@ -712,9 +793,9 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   Pflichtfeld; die Datei liegt kurz im Webroot, weil Schriften per CORS nur
   von derselben Herkunft laden), schneidet auf 780 px Breite zu und entfernt
   Seiten und Formular wieder. Icons und Banner haben einen dünnen schwarzen
-  Rand mit gerundeten Ecken, außerhalb transparent. Screenshot 5
-  (Einstellungsseite mit Hilfe-Reiter) entsteht von Hand im eingeloggten
-  Browser.
+  Rand mit gerundeten Ecken, außerhalb transparent. Die Screenshots 5
+  (Einstellungsseite mit Hilfe-Reiter) und 6 (Panel im CF7-Block) entstehen
+  von Hand im eingeloggten Browser.
 - Ohne `ext-dom` (per `wp eval` mit Klassen-Stub nicht simulierbar; Codepfad
   per PHPStan und Lesen prüfen): Hinweis im Admin, Formular unverändert.
 - Gegenprobe auf der Hostsharing-Testsite `<hs-testsite>`
@@ -734,7 +815,7 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   harmlos: keine `.htaccess`, Permalinks `/index.php/…`.
 - Testeinstellungen und Testformulare nach der Prüfung entfernen.
 
-## 13. Reihenfolge der Umsetzung
+## 14. Reihenfolge der Umsetzung
 
 1. Gerüst (Header, Konstanten, Bootstrap, Settings-Klasse, Hinweis ohne
    CF7), `stubs/cf7.php`, `composer install`, Commit. Erledigt am
@@ -756,11 +837,11 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 5. Release-Vorbereitung, Stand 22.10.2026:
    1. `readme.txt` (Commit f39cea5), Plugin Check ohne Befund. Erledigt.
    2. Kontexthilfe (Commit 61cf91b), `verify-admin.php` 39 Prüfungen. Erledigt.
-   3. `.pot` (Commit cf0d9cc), 74 Texte, seit dem Fehlerfall 78. Erledigt;
-      vor jedem Release neu erzeugen.
+   3. `.pot` (Commit cf0d9cc), 74 Texte, seit dem Fehlerfall 78, seit
+      Modul 5 88. Erledigt; vor jedem Release neu erzeugen.
    4. Assets (Commit dfd3c79): animiertes Icon, animierte Banner,
-      Screenshots 1–4 per Script. Offen: Screenshot 5 (Einstellungsseite,
-      Nutzer im Browser).
+      Screenshots 1–4 per Script. Offen: Screenshots 5 (Einstellungsseite)
+      und 6 (Panel im CF7-Block), Nutzer im Browser.
    5. `build.sh` und Plugin Check auf dem ZIP ohne Befund,
       Hostsharing-Gegenprobe bestanden. Fehlerfall am 22.10.2026 ergänzt
       (Commit ba9a53c: Tip im Feld, Label floatet, Senden-Button mit
@@ -773,8 +854,13 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
       öffentlich stellen, Release 1.0.0 (Git-Tag, GitHub-Release, SVN nach
       README des Repos), Einreichung bei WordPress.org; danach GlotPress
       (de/default, de/formal).
+6. Modul 5 Block-Seitenleiste (10), vorgezogen aus 1.1. Erledigt am
+   22.10.2026 (Commit a820fd7): 15 und 28 Prüfungen PASS, `composer check`
+   ohne Befund, Plugin Check auf dem ZIP ohne Befund. Offen: Sichtprüfung im
+   Block-Editor und Screenshot 6 (Nutzer), Hostsharing erneut mit `dateien`
+   nachziehen und lesend prüfen.
 
-## 14. Offen
+## 15. Offen
 
 - Feldtypen `date` (Chrome zeigt eine Formatmaske, Label müsste dauerhaft
   oben stehen) und `select` mit `include_blank` (Leerzustand nur über
@@ -792,13 +878,11 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   Default abweichenden Properties per `wp_add_inline_style( 'jgor-flcf7',
   … )` am vorhandenen Handle. Kostet die strikte CSP-Tauglichkeit für Styles
   ohne `'unsafe-inline'`; darum abschaltbar („Design-Werte ausgeben“).
-- Komfort-Oberflächen für die Steuerung je Formular und Platzierung
-  (Erweiterung 1.1): eigener Tab im CF7-Editor (`wpcf7_editor_panels`,
-  Speichern auf `wpcf7_save_contact_form`) statt Additional Settings, und
-  eigene Felder in der Seitenleiste des CF7-Blocks (Editor-JS ohne
-  Build-Schritt über `blocks.registerBlockType` und `editor.BlockEdit`,
-  serverseitig schreibt `render_block_data` den Wert in `htmlClass`). Beides
-  nur Oberfläche, der Mechanismus aus 7.4 bleibt.
+- Komfort-Oberfläche für die Steuerung je Formular (Erweiterung 1.1):
+  eigener Tab im CF7-Editor (`wpcf7_editor_panels`, Speichern auf
+  `wpcf7_save_contact_form`) statt Additional Settings. Nur Oberfläche, der
+  Mechanismus aus 7.4 bleibt; die Seitenleiste des CF7-Blocks ist seit
+  Modul 5 (10) abgedeckt.
 - Umstieg von DOMDocument auf `WP_HTML_Processor`, sobald der Core das
   Einfügen von Elementen unterstützt.
 
@@ -816,3 +900,4 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 | 1.7 | 22.10.2026 | Release-Vorbereitung nachgezogen: `readme.txt`, Kontexthilfe (§9), `.pot`, Asset-Scripte `docs/assets-erzeugen.py` und `docs/screenshots-erzeugen.sh` mit `assets/` (§3, §12), Build und Plugin Check auf dem ZIP, Hostsharing-Gegenprobe mit `dateien` und `datenbank` (§12), §13 Schritt 5 in Teilschritte mit Stand; `verify-admin.php` 39 Prüfungen |
 | 1.8 | 22.10.2026 | Fehlerfall (Commit ba9a53c): CF7-Hinweis im Feld auf der Textzeile (links bei leerem, rechts bei gefülltem Feld), Label floatet bei Fehler in allen Varianten, Senden-Button bei `form.invalid` in Fehlerfarbe mit Fehlertext über Hülle `jgor-flcf7-submit` (Modul 2) und Grid-Overlay (8); Einstellung `submit_error_text` mit Textfeld (6, 9), Filter `jgor_flcf7_submit_error_text` (7.4), Properties `--jgor-flcf7-submit-error-background` und `-color`; Assets mit Rand und gerundeten Ecken, Beispieltexte John Doe; Prüfungen 62/40, `.pot` 78 Texte; `use-floating-validation-tip` aus §14 erledigt |
 | 1.9 | 22.10.2026 | Hostsharing-Gegenprobe nach dem Fehlerfall (§12, §13 5.5): Dateien und Formular-HTML identisch, Plugin Check ohne Befund; `datenbank` nur bei geänderten Seiten oder Formularen nötig |
+| 2.0 | 22.10.2026 | Modul 5 Block-Seitenleiste (Commit a820fd7), vorgezogen aus 1.1: neuer Abschnitt 10, die bisherigen Abschnitte 10–14 werden 11–15 (Verweise angepasst); §3 Dateien, §4 „Kein JavaScript im Frontend“, §5 Block-Panels, §6 Bootstrap, §7.4 Panel als Weg für Schicht 3, §13 Prüfscripte `verify-editor.php` (15) und `verify-editor-js.mjs` (28), Option-Sicherung in `verify-markup.php` und `verify-admin.php`, Browser-Matrix um Fehlerfall und Block-Editor ergänzt, ZIP 12 Dateien; readme Screenshot 6; `.pot` 88 Texte |
