@@ -3,8 +3,9 @@
  * Bootstrap: checks the requirements and wires the modules to WordPress.
  *
  * Every module is a class of its own in includes/. This class decides which
- * of them run and hands them the settings. Modules are added here as they
- * are implemented; a module whose class is missing is skipped.
+ * of them run and hands them the settings: the markup rebuild (module 2) and
+ * the stylesheet (module 3) on every request, the settings screen (module 4)
+ * in the admin only.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -85,7 +86,10 @@ final class JGOR_FLCF7_Plugin {
 		// Module 3: stylesheet, enqueued from wpcf7_enqueue_styles.
 		( new JGOR_FLCF7_Assets( $settings ) )->init();
 
-		// Module 4 (settings screen) is started here once it is implemented.
+		// Module 4: settings screen and plugin action link, admin only.
+		if ( is_admin() ) {
+			( new JGOR_FLCF7_Admin( $settings ) )->init();
+		}
 	}
 
 	/**

@@ -25,7 +25,8 @@
 
 ( defined( 'WP_CLI' ) && WP_CLI ) || exit;
 
-$jgor_flcf7_failed = 0;
+// eval-file runs this file inside a function scope: the counter lives in $GLOBALS.
+$GLOBALS['jgor_flcf7_failed'] = 0;
 
 /**
  * Records one check.
@@ -295,7 +296,7 @@ if ( getenv( 'FLCF7_DUMP' ) ) {
 	WP_CLI::log( "\n----- A -----\n" . $jgor_flcf7_a . "\n----- C -----\n" . $jgor_flcf7_c );
 }
 
-if ( $jgor_flcf7_failed > 0 ) {
-	WP_CLI::error( $jgor_flcf7_failed . ' check(s) failed.' );
+if ( $GLOBALS['jgor_flcf7_failed'] > 0 ) {
+	WP_CLI::error( $GLOBALS['jgor_flcf7_failed'] . ' check(s) failed.' );
 }
 WP_CLI::success( 'All checks passed.' );
