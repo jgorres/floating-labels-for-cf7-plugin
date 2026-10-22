@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 1.8 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–4 umgesetzt, Release-Vorbereitung läuft)
+Version: 1.9 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–4 umgesetzt, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -726,9 +726,12 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   /home/pacs/<hs-paket>/bin/wp --path=…/<webroot>` (`plugin list`, `plugin
   check`) und per Abruf der Kontaktseite; das Formular-HTML wird nach
   Normalisierung von URL und Unit-Tag mit der lokalen Seite verglichen.
-  22.10.2026: identisch, Plugin Check ohne Befund. Die Warnung des Scripts
-  zu `rewrite flush` ist harmlos: keine `.htaccess`, Permalinks
-  `/index.php/…`.
+  22.10.2026, nach dem Fehlerfall erneut mit `dateien`: alle zehn
+  Plugin-Dateien md5-identisch, fünf Formulare identisch (Senden-Hülle und
+  Fehlertext vorhanden), Plugin Check ohne Befund. `datenbank` ist nur
+  nötig, wenn sich Seiten oder Formulare ändern; neue Optionsschlüssel
+  kommen über die Defaults. Die Warnung des Scripts zu `rewrite flush` ist
+  harmlos: keine `.htaccess`, Permalinks `/index.php/…`.
 - Testeinstellungen und Testformulare nach der Prüfung entfernen.
 
 ## 13. Reihenfolge der Umsetzung
@@ -762,9 +765,10 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
       Hostsharing-Gegenprobe bestanden. Fehlerfall am 22.10.2026 ergänzt
       (Commit ba9a53c: Tip im Feld, Label floatet, Senden-Button mit
       Fehlertext; 62 und 40 Prüfungen, Plugin Check ohne Befund);
-      Hostsharing danach erneut nachziehen. Offen: Browser-Matrix in
-      Firefox und Edge auf Silentium (Nutzer), dabei auch den Fehlerfall
-      live prüfen.
+      Hostsharing danach am 22.10.2026 erneut nachgezogen und geprüft
+      (Dateien und Formular-HTML identisch, Plugin Check ohne Befund).
+      Offen: Browser-Matrix in Firefox und Edge auf Silentium (Nutzer),
+      dabei auch den Fehlerfall live prüfen.
    6. Veröffentlichung: Testformulare und Testseiten entfernen, Repo
       öffentlich stellen, Release 1.0.0 (Git-Tag, GitHub-Release, SVN nach
       README des Repos), Einreichung bei WordPress.org; danach GlotPress
@@ -811,3 +815,4 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 | 1.6 | 22.10.2026 | Modul 4 umgesetzt (Commit 2082122): §9 an den Code angeglichen (Elternslug-Ermittlung mit Fallback, fünf Sektionen, Textarea-Snippet aus `CSS_PROPERTIES`, Sperren mit Notice, „Settings saved“-Meldung, „Settings“-Link), §3 und §12 um `tests/verify-admin.php` (33 Prüfungen) und den `$GLOBALS`-Zähler der Prüfscripte, §6 Bootstrap, §13 Schritt 4 erledigt |
 | 1.7 | 22.10.2026 | Release-Vorbereitung nachgezogen: `readme.txt`, Kontexthilfe (§9), `.pot`, Asset-Scripte `docs/assets-erzeugen.py` und `docs/screenshots-erzeugen.sh` mit `assets/` (§3, §12), Build und Plugin Check auf dem ZIP, Hostsharing-Gegenprobe mit `dateien` und `datenbank` (§12), §13 Schritt 5 in Teilschritte mit Stand; `verify-admin.php` 39 Prüfungen |
 | 1.8 | 22.10.2026 | Fehlerfall (Commit ba9a53c): CF7-Hinweis im Feld auf der Textzeile (links bei leerem, rechts bei gefülltem Feld), Label floatet bei Fehler in allen Varianten, Senden-Button bei `form.invalid` in Fehlerfarbe mit Fehlertext über Hülle `jgor-flcf7-submit` (Modul 2) und Grid-Overlay (8); Einstellung `submit_error_text` mit Textfeld (6, 9), Filter `jgor_flcf7_submit_error_text` (7.4), Properties `--jgor-flcf7-submit-error-background` und `-color`; Assets mit Rand und gerundeten Ecken, Beispieltexte John Doe; Prüfungen 62/40, `.pot` 78 Texte; `use-floating-validation-tip` aus §14 erledigt |
+| 1.9 | 22.10.2026 | Hostsharing-Gegenprobe nach dem Fehlerfall (§12, §13 5.5): Dateien und Formular-HTML identisch, Plugin Check ohne Befund; `datenbank` nur bei geänderten Seiten oder Formularen nötig |
