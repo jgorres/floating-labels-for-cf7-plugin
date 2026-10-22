@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<ruleset name="Floating Labels for CF7"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/PHPCSStandards/PHP_CodeSniffer/master/phpcs.xsd">
+
+	<description>WordPress Coding Standards for the Floating Labels for CF7 plugin (prefix jgor_flcf7_).</description>
+
+	<!-- Directories to check -->
+	<file>plugin</file>
+
+	<!-- Exclusions -->
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/languages/*</exclude-pattern>
+	<exclude-pattern>*/stubs/*</exclude-pattern>
+
+	<!-- Runtime options: PHP only, show sniff codes, progress, colors, parallel, cache -->
+	<arg name="extensions" value="php"/>
+	<arg value="sp"/>
+	<arg name="colors"/>
+	<arg name="parallel" value="8"/>
+	<arg name="cache" value=".phpcs.cache"/>
+
+	<!-- Target versions from the plugin header: PHP 8.1, WordPress 6.5 -->
+	<config name="testVersion" value="8.1-"/>
+	<config name="minimum_supported_wp_version" value="6.5"/>
+
+	<!-- Full WordPress standard (Core, Docs, Extra) -->
+	<rule ref="WordPress"/>
+
+	<!-- PHP compatibility from testVersion upwards -->
+	<rule ref="PHPCompatibilityWP"/>
+
+	<!-- Prefix check: every global function, class, constant, hook, option and
+	     transient must start with jgor (in this plugin: jgor_flcf7_, JGOR_FLCF7_, jgor-flcf7-). -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="jgor"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Text domain check: plugin slug -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="floating-labels-for-cf7"/>
+			</property>
+		</properties>
+	</rule>
+
+</ruleset>

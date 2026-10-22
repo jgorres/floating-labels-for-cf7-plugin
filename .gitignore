@@ -1,0 +1,21 @@
+# Abhängigkeiten
+/vendor/
+
+# Build-Ergebnisse: Release-ZIPs
+/dist/
+
+# SVN-Checkout (eigene Arbeitskopie, nicht Teil dieses Repos)
+/svn/
+
+# Zugangsdaten
+.env
+
+# Caches und lokale Einstellungen
+.phpcs.cache
+.claude/settings.local.json
+.playwright-mcp/
+*.log
+
+# Betriebssystem
+.DS_Store
+Thumbs.db

@@ -1,0 +1,39 @@
+# ==================================================
+# PHPStan configuration for the Floating Labels for CF7 project
+# Author: Jörn Gorres
+# Level 6, WordPress stubs via szepeviktor/phpstan-wordpress.
+# Analysed against PHP 8.1 (minimum version from the plugin header).
+# ==================================================
+
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: 6
+	phpVersion: 80100
+
+	paths:
+		- plugin
+
+	# Optional paths marked with (?) because they do not always exist
+	excludePaths:
+		- plugin/languages (?)
+
+	# Additional stubs: Contact Form 7 classes and functions (stubs/cf7.php)
+	scanDirectories:
+		- stubs
+
+	# Constants the plugin defines at runtime
+	bootstrapFiles:
+		- phpstan-bootstrap.php
+
+	# Avoids false positives with WordPress return types
+	treatPhpDocTypesAsCertain: false
+
+	# Ignored patterns may stay without a match
+	reportUnmatchedIgnoredErrors: false
+
+	ignoreErrors:
+		# Tolerate arrays without value type on level 6 (typical for WordPress)
+		- identifier: missingType.iterableValue
+		# Add project specific exceptions with a reason here.
