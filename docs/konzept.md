@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.1 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
+Version: 2.2 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -78,11 +78,13 @@ floating-labels-for-cf7/
 │   │   └── class-jgor-flcf7-editor.php    Modul 5: Block-Seitenleiste (Editor-Script laden)
 │   ├── assets/css/floating-labels.css     Frontend (eine Datei, alle Varianten)
 │   ├── assets/js/block-editor.js          Panel „Floating Labels“ im CF7-Block, ohne Build-Schritt
+│   ├── assets/js/admin.js                 Farbwähler auf der Einstellungsseite
 │   └── languages/floating-labels-for-cf7.pot  Übersetzungsvorlage (wp i18n make-pot)
 ├── tests/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
 │   ├── verify-markup.php             62 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
-│   ├── verify-admin.php              40 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
+│   ├── verify-admin.php              50 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
+│   ├── verify-design.php             26 PASS/FAIL-Prüfungen für die Design-Einstellungen (wp eval-file)
 │   ├── verify-editor.php             16 PASS/FAIL-Prüfungen für Modul 5, Enqueue (wp eval-file)
 │   └── verify-editor-js.mjs          47 PASS/FAIL-Prüfungen für das Editor-Script (node)
 ├── docs/
@@ -113,10 +115,11 @@ WordPress (Abschnitt 13).
 - **Kein JavaScript im Frontend:** Zustände über `:focus`, `:placeholder-shown`,
   `:autofill`, `.wpcf7-not-valid` / `[aria-invalid="true"]`,
   `[aria-required]` und die Formularklasse `invalid`. CF7 setzt nach dem
-  Versand `form.reset()`, dadurch sinken die Labels von selbst zurück. Das
-  CSS enthält keine Inline-Anteile, das Plugin ist CSP-tauglich. Das
-  einzige Script ist das Editor-Script von Modul 5 (10), nur im
-  Block-Editor.
+  Versand `form.reset()`, dadurch sinken die Labels von selbst zurück.
+  Inline-CSS gibt es nur für geänderte Design-Werte (9.2), sonst ist das
+  Plugin ohne Inline-Anteile CSP-tauglich. Scripts laufen nur im Admin:
+  das Editor-Script von Modul 5 (10) und der Farbwähler der
+  Einstellungsseite (9.2).
 - **Fehlerfall ohne Springen:** Bei Validierungsfehlern floatet das Label
   des Feldes in der Fehlerfarbe nach oben, der CF7-Hinweis sitzt im Feld auf
   der Textzeile, und der Senden-Button wechselt Farbe und Text (8). Der
@@ -132,8 +135,9 @@ WordPress (Abschnitt 13).
   eine Form-Tag-Option (`nofloat`); Rangfolge in 7.4. Das CSS folgt der
   Ladepolitik von CF7 über die Action `wpcf7_enqueue_styles`.
 - **Theme-freundlich:** Farben, Maße und Dauer als Custom Properties
-  `--jgor-flcf7-*`, gesetzt auf `.wpcf7`. Das Steuerelement erbt die Schrift
-  des Themes (`font: inherit`). Die Variante „Minimal“ liefert nur
+  `--jgor-flcf7-*`, gesetzt auf `.wpcf7`; dieselben Werte sind Felder der
+  Einstellungsseite (9.2). Das Steuerelement erbt die Schrift des Themes
+  (`font: inherit`, Größe über `--jgor-flcf7-font-size`). Die Variante „Minimal“ liefert nur
   Positionierung, Zustände und Label-Farben, die Optik des Feldes kommt dann
   aus dem Theme.
 - **Entwickler-Filter:** `jgor_flcf7_settings` (Konfiguration aus Code),
@@ -237,6 +241,7 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
 | `load_css` | bool | true | Plugin-CSS einbinden |
 | `required_marker` | bool | false | Stern hinter dem Label bei `aria-required` (Klasse `jgor-flcf7-marker` am Wrap) |
 | `submit_error_text` | string | `Please check the highlighted fields` | Text auf dem Senden-Button bei Validierungsfehlern; leer = nur Farbwechsel. Konstante `DEFAULT_SUBMIT_ERROR_TEXT`, unübersetzt gespeichert und beim Rendern übersetzt, solange der Wert dem Default entspricht; `sanitize_text_field()`, höchstens 200 Zeichen |
+| `design` | array | leer | Design-Werte Property → Wert ohne Prefix (9.2); nur gültige, nicht leere Werte, fehlender Eintrag = Default |
 
 - Filter `jgor_flcf7_field_types`: Liste der wählbaren Basistypen (Ausgang
   `BASE_TYPES`, Ergebnis per `sanitize_key()` bereinigt, ungültiges Ergebnis
@@ -465,6 +470,7 @@ oder Inline-CSS bräuchte.
 | --- | --- | --- |
 | `--jgor-flcf7-padding-x` | `0.75em` | horizontales Padding des Steuerelements, Ausgangspunkt des Labels |
 | `--jgor-flcf7-padding-y` | `0.75em` | vertikales Padding des Steuerelements |
+| `--jgor-flcf7-font-size` | `1em` | Schriftgröße des Wraps, damit Feld, Label, Tip und Paddings gemeinsam skalieren; `1em` = umgebender Text |
 | `--jgor-flcf7-label-color` | `#5f6368` | Label in Ruhe |
 | `--jgor-flcf7-label-color-active` | `#1a73e8` | Label bei Fokus |
 | `--jgor-flcf7-label-color-error` | `#dc3232` | Label bei Fehler |
@@ -482,13 +488,17 @@ oder Inline-CSS bräuchte.
 | `--jgor-flcf7-submit-error-color` | `#fff` | Fehlertext auf dem Senden-Button |
 
   Gegenüber 1.2 neu: `padding-y`, `border-width`, `background-filled`,
-  `label-scale`; `--jgor-flcf7-label-size-floated` entfällt, weil das Label
+  `label-scale`, seit 2.2 `font-size`; `--jgor-flcf7-label-size-floated` entfällt, weil das Label
   beim Floaten nicht die Schriftgröße wechselt, sondern per `transform:
   scale()` schrumpft (die em-basierten Abstände bleiben so stabil, und der
   Übergang läuft ohne Layout-Neuberechnung).
+- **Design-Werte aus der Option (9.2):** Modul 3 hängt per
+  `wp_add_inline_style( 'jgor-flcf7', … )` eine Regel `.wpcf7 { … }` mit
+  nur den vom Default abweichenden Properties hinter das Stylesheet
+  (`inline_css()`); nichts bei Defaults, nichts bei `load_css` aus.
 - **Gemeinsame Regeln:** `.jgor-flcf7-field { display: block }` (Ersatz für
   das umschließende Label); `.jgor-flcf7-wrap { display: block; position:
-  relative }`; Steuerelement `display: block; box-sizing: border-box; width:
+  relative; font-size: var(--jgor-flcf7-font-size) }`; Steuerelement `display: block; box-sizing: border-box; width:
   100%; max-width: 100%; margin: 0; padding: var(--jgor-flcf7-padding-y)
   var(--jgor-flcf7-padding-x); font: inherit` (Label und Eingabe teilen so
   Schrift und Zeilenhöhe). Label `position: absolute; pointer-events: none`,
@@ -570,22 +580,10 @@ oder Inline-CSS bräuchte.
   Schlüssel; alle abgewählt = Floating Labels aus), „Appearance“ (Radio für
   die Variante mit Kurzbeschreibung, Checkbox Stylesheet laden, Checkbox
   Pflichtstern, Textfeld „Submit button on errors“ für
-  `submit_error_text`), „Per form, per placement, per field“ (Hinweistext zu
-  den Steuerwegen aus 7.4 mit Codebeispielen für Additional Settings,
-  `html_class`-Klassen und `nofloat` vor den Werten in Anführungszeichen,
-  dazu die Filter) und „Design: CSS custom properties“ (unten).
-- Abschnitt „Design“: keine Eingabefelder für Farben und Maße. Stattdessen
-  eine schreibgeschützte Textarea (`large-text code`) mit dem CSS-Snippet aus
-  8 (Selektor `.wpcf7`, alle Custom Properties mit ihren Defaults) zum
-  Kopieren in Customizer → Zusätzliches CSS, Child-Theme, GeneratePress
-  Element oder `theme.json`, plus Hinweis, wie ein einzelnes Formular über
-  seinen Wrapper (`[id^="wpcf7-f123-"]`) oder eine `html_class`-Klasse
-  gestylt wird. Properties und Defaults stehen in der Konstante
-  `JGOR_FLCF7_Admin::CSS_PROPERTIES`, die den `.wpcf7`-Block der CSS
-  spiegelt; `tests/verify-admin.php` prüft den Gleichstand. So bleiben
-  Theme-Werte an einer Stelle, das Plugin gibt kein Inline-CSS aus und
-  braucht keine weiteren Optionswerte. Eingabefelder sind für 1.1 vorgemerkt
-  (15).
+  `submit_error_text`), „Design“ (9.2) und „Per form, per placement, per
+  field“ (Hinweistext zu den Steuerwegen aus 7.4 mit Codebeispielen für
+  Additional Settings, `html_class`-Klassen und `nofloat` vor den Werten in
+  Anführungszeichen, dazu die Filter).
 - Aus Code gesperrte Werte (`is_locked()` / `locked_keys()` der
   Settings-Klasse) erscheinen `disabled` ohne `name`-Attribut, mit Hinweis
   unter dem Feld und einer Info-Notice oben; sie werden nicht übertragen,
@@ -601,8 +599,9 @@ oder Inline-CSS bräuchte.
   `load-{hook}`) mit „Overview“, „Per form and placement“ und „Design“
   sowie einer Seitenleiste mit Links zur Plugin-Seite und zur CF7-Doku.
   Die Codebeispiele kommen für Seite und Hilfe aus denselben Methoden.
-- Kein eigenes Admin-CSS/JS; die Seite nutzt die WordPress-Klassen
-  `form-table`, `description`, `large-text code`, `notice`.
+- Kein eigenes Admin-CSS; die Seite nutzt die WordPress-Klassen
+  `form-table`, `description`, `large-text code`, `notice`. Das einzige
+  Admin-Script ist der Farbwähler der Design-Felder (9.2).
 
 ### 9.1 Konfiguration aus Code (`jgor_flcf7_settings`)
 
@@ -626,6 +625,46 @@ Sanitize vom gespeicherten Wert abweicht. Folgen:
 - Ein ungültiger Filterwert (Tippfehler in `style`, unbekannter Typ) wird
   wie eine Formulareingabe bereinigt und fällt auf den gespeicherten Wert
   zurück; der Schlüssel bleibt frei.
+
+### 9.2 Design-Einstellungen
+
+Vorgezogen aus 1.1 am 22.10.2026 (Commit b21db52): Farben, Maße und
+Animation sollen ohne CSS einstellbar sein.
+
+- Option-Schlüssel `design` (6): Array Property → Wert ohne Prefix, nur
+  gültige, nicht leere Werte; fehlender Eintrag = Default. Konstanten in der
+  Settings-Klasse: `DESIGN_DEFAULTS` (18 Properties in der Reihenfolge des
+  `.wpcf7`-Blocks; `css_defaults()` liefert sie mit Prefix,
+  `verify-admin.php` prüft den Gleichstand mit der CSS) und `DESIGN_TYPES`.
+  Sanitize je Typ in `sanitize_design_value()`: `color` = `#` mit drei oder
+  sechs Hexziffern, kleingeschrieben (zehn Properties); `length` = Zahl mit
+  `px`, `em`, `rem`, `%` oder `0` (sechs); `number` = 0,5 bis 1 mit
+  höchstens zwei Nachkommastellen (`label-scale`); `time` = Zahl mit `s`
+  oder `ms` (`duration`). Ungültiges wird zu „Default“. `design()` liefert
+  die wirksamen Werte (Defaults plus Option plus Filter),
+  `design_overrides()` nur die abweichenden. Der Filter
+  `jgor_flcf7_settings` sperrt den Schlüssel als Ganzes (9.1).
+- Einstellungsseite: Sektion „Design“ mit drei Feldzeilen „Colours“ (zehn
+  Felder mit dem WordPress-Farbwähler: Script `jgor-flcf7-admin`,
+  `assets/js/admin.js`, Abhängigkeit `wp-color-picker`, nur auf dem Hook der
+  Seite geladen; `data-default-color` bei Hex-Defaults, das Filled-Default
+  `rgba(0, 0, 0, 0.06)` nur als Hinweis), „Sizes“ (sechs Textfelder mit dem
+  Default als Placeholder, darunter die Feld-Schriftgröße) und „Floated
+  label and animation“ (Zahlenfeld 0,5–1 in 0,01-Schritten, Textfeld für
+  die Dauer), dazu die Zeile „CSS for themes“ mit der schreibgeschützten
+  Textarea der wirksamen Werte (`css_snippet()`). Leere Felder = Default;
+  gesperrt (`is_locked( 'design' )`) sind alle 18 Felder `disabled` ohne
+  `name`.
+- Ausgabe (Modul 3, 8): `inline_css()` baut `.wpcf7 { --jgor-flcf7-…: …; }`
+  nur aus `design_overrides()` und hängt die Regel per
+  `wp_add_inline_style( 'jgor-flcf7', … )` hinter das Stylesheet; nichts
+  bei Defaults, nichts bei `load_css` aus. Das ist das einzige Inline-CSS
+  des Plugins; eine strikte CSP braucht dafür `'unsafe-inline'` oder eine
+  Nonce in `style-src`, was WordPress für seine eigenen Inline-Styles
+  ohnehin voraussetzt.
+- Neue Property `--jgor-flcf7-font-size` (Default `1em`) auf dem Wrap:
+  Steuerelement, Label, Tip und Paddings sind em-basiert und skalieren
+  gemeinsam; `1em` behält die Schriftgröße des umgebenden Textes.
 
 ## 10. Modul 5: Block-Seitenleiste (`class-jgor-flcf7-editor.php`, `assets/js/block-editor.js`)
 
@@ -705,8 +744,8 @@ Tabellen, keine Dateien.
   `dist/floating-labels-for-cf7-<version>.zip`; das ZIP in einen frischen
   Ordner entpacken und `wp plugin check <Ordner> --path=<Site>` laufen
   lassen (`Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens
-  150 Zeichen). Stand 22.10.2026: 12 Dateien, 40 KB (mit Modul 5), ohne
-  Befund; ebenso
+  150 Zeichen). Stand 22.10.2026: 13 Dateien, 48 KB (mit Modul 5 und
+  Design-Einstellungen), ohne Befund; ebenso
   ohne Befund auf dem Symlink-Ordner der Testsite und auf der
   Hostsharing-Site.
 - Testsite `floating-labels-for-cf7.gorres.local` (CF7, Plugin Check, Query
@@ -726,6 +765,7 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-markup.php
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-admin.php
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-editor.php
+wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-design.php
 node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 ```
 
@@ -747,15 +787,18 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Filter `jgor_flcf7_submit_error_text`, leerer Text ohne Fehler-Span,
   Option wird bereinigt).
   `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
-- `tests/verify-admin.php` prüft Modul 4 ohne Browser (40 Punkte): Menü
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (50 Punkte): Menü
   unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
   Kontexthilfe (Hook, drei Reiter, escapete Beispiele, Snippet,
-  Seitenleiste), fünf Sektionen und sieben Felder, das gerenderte Formular
-  (Ziel `options.php`, Nonce, Defaults, `for`/`id`, escapete Codebeispiele,
-  Snippet in der Textarea), gesperrte Werte (disabled, ohne `name`,
-  Hinweise, Notice), Capability (`wp_die()` ohne `manage_options`),
-  „Settings“-Link und den Gleichstand von `CSS_PROPERTIES` mit dem
-  `.wpcf7`-Block der CSS. Das
+  Seitenleiste), Farbwähler-Assets nur auf dem Seiten-Hook, fünf Sektionen
+  und elf Feldzeilen (Design-Gruppen decken jede Property genau einmal ab),
+  das gerenderte Formular (Ziel `options.php`, Nonce, Defaults, `for`/`id`,
+  escapete Codebeispiele, Snippet in der Textarea, Design-Felder: Farbfelder
+  mit Picker-Klasse und Hex-Defaults, Größenfelder mit Placeholder,
+  Zahlenfeld, Labels), gesperrte Werte (disabled, ohne `name`, Hinweise,
+  Notice, Design-Felder, Snippet mit wirksamem Wert), Capability (`wp_die()`
+  ohne `manage_options`), „Settings“-Link und den Gleichstand von
+  `css_defaults()` mit dem `.wpcf7`-Block der CSS. Das
   Script lädt `wp-admin/includes/plugin.php` und `template.php` und
   simuliert das CF7-Menü über `$admin_page_hooks` / `$_parent_pages`.
   Die PHP-Prüfscripte zählen Fehler in `$GLOBALS`, weil `wp eval-file` die
@@ -764,6 +807,12 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   gespeicherte Option, prüfen mit den Defaults und stellen die Option danach
   wieder her (seit 22.10.2026; vorher setzten sie die Defaults zurück, was
   eine im Browser gemachte Einstellung wie den Pflichtstern verwarf).
+- `tests/verify-design.php` prüft die Design-Einstellungen ohne Browser
+  (26 Punkte): Property-Listen, Sanitize je Typ (gültig und ungültig),
+  Sanitize-Callback der Option, `design()` und `design_overrides()`,
+  `inline_css()` und der Inline-Style hinter dem Stylesheet (leer bei
+  Defaults, nur Abweichungen, ungültige Optionswerte verworfen, nichts bei
+  `load_css` aus), Sperre per Filter und die `font-size`-Regel in der CSS.
 - `tests/verify-editor.php` prüft Modul 5 ohne Browser (16 Punkte): Klasse
   geladen, CF7-Block registriert, Hook, Enqueue (Quelle, Abhängigkeiten,
   Version, Footer, Übersetzungen), Script-Datei (CF7-Block, Shortcode-Block,
@@ -793,7 +842,8 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   „Floating Labels“ unter „Block“, Auswahl ändern, Feld „Class“ unter „Form
   attributes“ zeigt die Klasse; Shortcode-Block mit `[contact-form-7 …]`
   markieren, Auswahl ändern, `html_class` erscheint im Shortcode-Text; Seite
-  speichern und Frontend prüfen.
+  speichern und Frontend prüfen; Design: Farbe wählen, Größe eintragen,
+  speichern, Frontend und Inline-Style im Quelltext prüfen.
 - Assets: `python3 docs/assets-erzeugen.py` (Pillow, Noto Sans) zeichnet das
   Motiv „Feld bekommt Fokus, Label floatet auf die Rahmenlinie, Text wird
   getippt, Schleife“ mit den Default-Farben aus 8 und schreibt `icon.svg`
@@ -854,7 +904,8 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    1. `readme.txt` (Commit f39cea5), Plugin Check ohne Befund. Erledigt.
    2. Kontexthilfe (Commit 61cf91b), `verify-admin.php` 39 Prüfungen. Erledigt.
    3. `.pot` (Commit cf0d9cc), 74 Texte, seit dem Fehlerfall 78, seit
-      Modul 5 89. Erledigt; vor jedem Release neu erzeugen.
+      Modul 5 89, seit den Design-Einstellungen 115. Erledigt; vor jedem
+      Release neu erzeugen.
    4. Assets (Commit dfd3c79): animiertes Icon, animierte Banner,
       Screenshots 1–4 per Script. Offen: Screenshots 5 (Einstellungsseite)
       und 6 (Panel im CF7-Block), Nutzer im Browser.
@@ -875,6 +926,11 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    Prüfungen PASS, `composer check` ohne Befund, Plugin Check auf dem ZIP
    ohne Befund. Offen: Sichtprüfung im Block-Editor und Screenshot 6
    (Nutzer), Hostsharing erneut mit `dateien` nachziehen und lesend prüfen.
+7. Design-Einstellungen (9.2), vorgezogen aus 1.1. Erledigt am 22.10.2026
+   (Commit b21db52): 26 und 50 Prüfungen PASS, `composer check` ohne
+   Befund, Plugin Check auf dem ZIP ohne Befund. Offen: Sichtprüfung der
+   Felder und des Farbwählers auf Silentium (Nutzer, Screenshot 5 zeigt sie
+   dann), Hostsharing mit `dateien` nachziehen.
 
 ## 15. Offen
 
@@ -888,12 +944,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   ein Filter für HTML-Inhalt kommt nur bei Bedarf.
 - `jgor-flcf7-textarea` ohne eigene CSS-Regel (8); bleibt als Haken für
   Themes und eine spätere Textarea-Optik.
-- Design-Einstellungen in der Oberfläche (Erweiterung 1.1): Abschnitt
-  „Design“ mit Feldern für Farben (`sanitize_hex_color()`) und Maße (Zahl
-  plus Einheiten-Whitelist `px`, `em`, `rem`, `%`, `s`), Ausgabe nur der vom
-  Default abweichenden Properties per `wp_add_inline_style( 'jgor-flcf7',
-  … )` am vorhandenen Handle. Kostet die strikte CSP-Tauglichkeit für Styles
-  ohne `'unsafe-inline'`; darum abschaltbar („Design-Werte ausgeben“).
+- Design-Felder nehmen nur Hex-Farben an (der WordPress-Farbwähler kennt
+  keine Transparenz); `rgba()`-Werte wie das Filled-Default bleiben dem CSS
+  vorbehalten (9.2).
 - Komfort-Oberfläche für die Steuerung je Formular (Erweiterung 1.1):
   eigener Tab im CF7-Editor (`wpcf7_editor_panels`, Speichern auf
   `wpcf7_save_contact_form`) statt Additional Settings. Nur Oberfläche, der
@@ -918,3 +971,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 1.9 | 22.10.2026 | Hostsharing-Gegenprobe nach dem Fehlerfall (§12, §13 5.5): Dateien und Formular-HTML identisch, Plugin Check ohne Befund; `datenbank` nur bei geänderten Seiten oder Formularen nötig |
 | 2.0 | 22.10.2026 | Modul 5 Block-Seitenleiste (Commit a820fd7), vorgezogen aus 1.1: neuer Abschnitt 10, die bisherigen Abschnitte 10–14 werden 11–15 (Verweise angepasst); §3 Dateien, §4 „Kein JavaScript im Frontend“, §5 Block-Panels, §6 Bootstrap, §7.4 Panel als Weg für Schicht 3, §13 Prüfscripte `verify-editor.php` (15) und `verify-editor-js.mjs` (28), Option-Sicherung in `verify-markup.php` und `verify-admin.php`, Browser-Matrix um Fehlerfall und Block-Editor ergänzt, ZIP 12 Dateien; readme Screenshot 6; `.pot` 88 Texte |
 | 2.1 | 22.10.2026 | Modul 5 auch für den Shortcode-Block `core/shortcode` mit `[contact-form-7 …]`: Panel liest und schreibt `html_class` im Shortcode-Text (`storeFor()`, `shortcodeHtmlClass()`, `withShortcodeHtmlClass()`); §5, §10, §13 (Prüfungen 16/47, Browser-Matrix), §14; readme und Kontexthilfe; `.pot` 89 Texte |
+| 2.2 | 22.10.2026 | Design-Einstellungen (Commit b21db52), vorgezogen aus 1.1: neuer Abschnitt 9.2 (Option `design`, Sanitize je Typ, Felder mit Farbwähler, Inline-Style nur für Abweichungen, Property `--jgor-flcf7-font-size`); §3 Dateien, §4, §6 Optionstabelle, §8 Property und Ausgabe, §9 Sektionen, §13 `verify-design.php` (26) und `verify-admin.php` (50), ZIP 13 Dateien, §14 Schritt 7, §15 Design-Punkt ersetzt; readme, Kontexthilfe; `.pot` 115 Texte |
