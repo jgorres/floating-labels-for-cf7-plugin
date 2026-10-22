@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 1.6 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–4 umgesetzt, Release-Vorbereitung folgt)
+Version: 1.7 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–4 umgesetzt, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -67,7 +67,7 @@ Aufbau nach `~/dev/jgorres-im-WP-Repository/README.md` (1.5), ohne
 floating-labels-for-cf7/
 ├── plugin/
 │   ├── floating-labels-for-cf7.php   Header, Konstanten, Laden der Module
-│   ├── readme.txt
+│   ├── readme.txt                    WP.org-Readme: Stable tag, Tested up to, FAQ, Changelog
 │   ├── uninstall.php                 löscht die Option
 │   ├── includes/
 │   │   ├── class-jgor-flcf7-plugin.php    Bootstrap: CF7 vorhanden?, Hooks, Hinweis
@@ -76,12 +76,18 @@ floating-labels-for-cf7/
 │   │   ├── class-jgor-flcf7-assets.php    Modul 3: CSS einbinden
 │   │   └── class-jgor-flcf7-admin.php     Modul 4: Einstellungsseite
 │   ├── assets/css/floating-labels.css     Frontend (eine Datei, alle Varianten)
-│   └── languages/floating-labels-for-cf7.pot
+│   └── languages/floating-labels-for-cf7.pot  Übersetzungsvorlage (wp i18n make-pot)
 ├── tests/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
 │   ├── verify-markup.php             58 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
-│   └── verify-admin.php              33 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
-├── docs/  assets/  glotpress/
+│   └── verify-admin.php              39 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
+├── docs/
+│   ├── konzept.md                    dieses Dokument
+│   ├── assets-erzeugen.py            Icon (SVG und APNG) und Banner (APNG), Pillow
+│   └── screenshots-erzeugen.sh       Screenshots 1–4 auf der lokalen Testsite, Chromium headless
+├── assets/                           WP.org-Assets: icon.svg, icon-128x128.png, icon-256x256.png,
+│                                     banner-772x250.png, banner-1544x500.png, screenshot-1..5.png
+├── glotpress/
 ├── composer.json, phpcs.xml.dist, phpstan.neon.dist, phpstan-bootstrap.php, stubs/
 └── build.sh, .distignore, .gitignore, LICENSE
 ```
@@ -533,6 +539,10 @@ oder Inline-CSS bräuchte.
   außer wenn das Fallback-Elternmenü `options-general.php` aktiv ist.
 - „Settings“-Link in der Pluginliste (`plugin_action_links_…`, nur mit
   `manage_options`), URL über `menu_page_url()`.
+- Kontexthilfe: der Reiter „Hilfe“ der Seite (`add_help_tab()` auf
+  `load-{hook}`) mit „Overview“, „Per form and placement“ und „Design“
+  sowie einer Seitenleiste mit Links zur Plugin-Seite und zur CF7-Doku.
+  Die Codebeispiele kommen für Seite und Hilfe aus denselben Methoden.
 - Kein eigenes Admin-CSS/JS; die Seite nutzt die WordPress-Klassen
   `form-table`, `description`, `large-text code`, `notice`.
 
@@ -575,8 +585,15 @@ Tabellen, keine Dateien.
 
 - `composer check` (PHPCS/WPCS, PHPStan Level 6 mit `stubs/cf7.php`) vor
   jedem Commit.
-- `wp plugin check` auf dem gebauten ZIP (keine externen URLs im Code,
-  `Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens 150 Zeichen).
+- `wp plugin check` auf dem gebauten ZIP: `TERM=xterm ./build.sh` prüft die
+  Version in Header, Konstante, `Stable tag` und Changelog und packt
+  `plugin/` ohne die `.distignore`-Einträge nach
+  `dist/floating-labels-for-cf7-<version>.zip`; das ZIP in einen frischen
+  Ordner entpacken und `wp plugin check <Ordner> --path=<Site>` laufen
+  lassen (`Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens
+  150 Zeichen). Stand 22.10.2026: 10 Dateien, 32 KB, ohne Befund; ebenso
+  ohne Befund auf dem Symlink-Ordner der Testsite und auf der
+  Hostsharing-Site.
 - Testsite `floating-labels-for-cf7.gorres.local` (CF7, Plugin Check, Query
   Monitor, Symlink auf `plugin/`, Abschnitt 2). Testformulare legt
   `tests/create-test-forms.php` an (idempotent über den Titel) und setzt sie
@@ -612,13 +629,15 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   `enabled` false, ungültige Werte).
   Das Script ändert die Option vorübergehend und stellt die Defaults danach
   wieder her. `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
-- `tests/verify-admin.php` prüft Modul 4 ohne Browser (33 Punkte): Menü
-  unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL, fünf
-  Sektionen und sechs Felder, das gerenderte Formular (Ziel `options.php`,
-  Nonce, Defaults, `for`/`id`, escapete Codebeispiele, Snippet in der
-  Textarea), gesperrte Werte (disabled, ohne `name`, Hinweise, Notice),
-  Capability (`wp_die()` ohne `manage_options`), „Settings“-Link und den
-  Gleichstand von `CSS_PROPERTIES` mit dem `.wpcf7`-Block der CSS. Das
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (39 Punkte): Menü
+  unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
+  Kontexthilfe (Hook, drei Reiter, escapete Beispiele, Snippet,
+  Seitenleiste), fünf Sektionen und sechs Felder, das gerenderte Formular
+  (Ziel `options.php`, Nonce, Defaults, `for`/`id`, escapete Codebeispiele,
+  Snippet in der Textarea), gesperrte Werte (disabled, ohne `name`,
+  Hinweise, Notice), Capability (`wp_die()` ohne `manage_options`),
+  „Settings“-Link und den Gleichstand von `CSS_PROPERTIES` mit dem
+  `.wpcf7`-Block der CSS. Das
   Script lädt `wp-admin/includes/plugin.php` und `template.php` und
   simuliert das CF7-Menü über `$admin_page_hooks` / `$_parent_pages`.
   Beide Prüfscripte zählen Fehler in `$GLOBALS`, weil `wp eval-file` die
@@ -627,16 +646,41 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
-  `wp-admin/admin.php?page=wpcf7-floating-labels`); vor dem Release in
-  Chromium, Firefox und Edge per Playwright:
-  Ruhezustand, Fokus, Eingabe, Autofill, Fehlerfall (Pflichtfeld leer
-  abschicken → Label und Rahmen rot, Tip unter dem Feld), Versand mit
-  `skip_mail: on` → Labels sinken zurück; Screenshots für `assets/`.
+  `wp-admin/admin.php?page=wpcf7-floating-labels`). Browser-Matrix vor dem
+  Release von Hand in Firefox und Edge auf Silentium (Playwright steht auf
+  Bodhran ohne Browser nicht zur Verfügung): Ruhezustand, Fokus per Klick
+  und per Tab, Eingabe, Autofill, Fehlerfall (Pflichtfeld leer abschicken →
+  Label und Rahmen rot, Tip unter dem Feld), Versand mit `skip_mail: on` →
+  Labels sinken zurück, Einstellungsseite speichern und Hilfe-Reiter öffnen.
+- Assets: `python3 docs/assets-erzeugen.py` (Pillow, Noto Sans) zeichnet das
+  Motiv „Feld bekommt Fokus, Label floatet auf die Rahmenlinie, Text wird
+  getippt, Schleife“ mit den Default-Farben aus 8 und schreibt `icon.svg`
+  (CSS-Keyframes, bei `prefers-reduced-motion` still), `icon-128x128.png`
+  und `icon-256x256.png` sowie `banner-772x250.png` und
+  `banner-1544x500.png` als APNG (wie Block Inserter Filter; WP.org liefert
+  PNGs unverändert aus). `docs/screenshots-erzeugen.sh` legt das Formular
+  „FL Screenshot“ und drei Seiten `flcf7-shot-*` an, fotografiert Outlined,
+  Filled und Minimal headless (1280 px, Twenty Twenty-Five, Senden-Button
+  mit `class:wp-element-button`), baut den Fehlerfall aus dem gerenderten
+  HTML nach (CF7-Fehlerklassen und Tip; die Datei liegt kurz im Webroot,
+  weil Schriften per CORS nur von derselben Herkunft laden), schneidet auf
+  780 px Breite zu und entfernt Seiten und Formular wieder. Screenshot 5
+  (Einstellungsseite mit Hilfe-Reiter) entsteht von Hand im eingeloggten
+  Browser.
 - Ohne `ext-dom` (per `wp eval` mit Klassen-Stub nicht simulierbar; Codepfad
   per PHPStan und Lesen prüfen): Hinweis im Admin, Formular unverändert.
 - Gegenprobe auf der Hostsharing-Testsite `<hs-testsite>`
-  (PHP 8.4, Produktiv-Stack) vor jedem Release; Stand mit
-  `local-sites-hostsharing.sh dateien … --ueberschreiben` nachziehen.
+  (PHP 8.4, Produktiv-Stack) vor jedem Release. Stand nachziehen mit
+  `local-sites-hostsharing.sh dateien … --ueberschreiben` und `datenbank …
+  --ueberschreiben` (beides startet der Nutzer; `datenbank` bringt Seite
+  „Contact“ und Testformulare mit, das Script sichert den Remote-Stand
+  vorher). Prüfung nur lesend: per `ssh <hs-admin>` mit `php8.4
+  /home/pacs/<hs-paket>/bin/wp --path=…/<webroot>` (`plugin list`, `plugin
+  check`) und per Abruf der Kontaktseite; das Formular-HTML wird nach
+  Normalisierung von URL und Unit-Tag mit der lokalen Seite verglichen.
+  22.10.2026: identisch, Plugin Check ohne Befund. Die Warnung des Scripts
+  zu `rewrite flush` ist harmlos: keine `.htaccess`, Permalinks
+  `/index.php/…`.
 - Testeinstellungen und Testformulare nach der Prüfung entfernen.
 
 ## 13. Reihenfolge der Umsetzung
@@ -658,9 +702,21 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 4. Modul 4 Einstellungsseite mit Sperren aus Code (9, 9.1). Erledigt am
    22.10.2026 (Commit 2082122): 33 Prüfungen PASS, `composer check` ohne
    Befund; Sichtprüfung der Seite im Browser steht aus.
-5. `readme.txt`, Kontexthilfe, `.pot`, Assets (Icon, Banner, Screenshots),
-   Plugin Check, Repo öffentlich stellen, Release 1.0.0, Einreichung;
-   danach GlotPress (de/default, de/formal).
+5. Release-Vorbereitung, Stand 22.10.2026:
+   1. `readme.txt` (Commit f39cea5), Plugin Check ohne Befund. Erledigt.
+   2. Kontexthilfe (Commit 61cf91b), `verify-admin.php` 39 Prüfungen. Erledigt.
+   3. `.pot` (Commit cf0d9cc), 74 Texte. Erledigt; vor jedem Release neu
+      erzeugen.
+   4. Assets (Commit dfd3c79): animiertes Icon, animierte Banner,
+      Screenshots 1–4 per Script. Offen: Screenshot 5 (Einstellungsseite,
+      Nutzer im Browser).
+   5. `build.sh` und Plugin Check auf dem ZIP ohne Befund,
+      Hostsharing-Gegenprobe bestanden. Offen: Browser-Matrix in Firefox
+      und Edge auf Silentium (Nutzer).
+   6. Veröffentlichung: Testformulare und Testseiten entfernen, Repo
+      öffentlich stellen, Release 1.0.0 (Git-Tag, GitHub-Release, SVN nach
+      README des Repos), Einreichung bei WordPress.org; danach GlotPress
+      (de/default, de/formal).
 
 ## 14. Offen
 
@@ -703,3 +759,4 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 | 1.4 | 22.10.2026 | Entscheidung Design-Werte: 1.0 ohne Eingabefelder, die Einstellungsseite zeigt das CSS-Snippet mit allen Custom Properties (9); Eingabefelder mit `wp_add_inline_style()` als Erweiterung 1.1 vorgemerkt (14) |
 | 1.5 | 22.10.2026 | Steuerung je Formular (Additional Settings `floating_labels_style`, `floating_labels_marker`, `floating_labels_types`), je Platzierung (`html_class`-Klassen `jgor-flcf7-off`, `-on`, `-mode-*`, `-style-*`, `-marker-on`, `-marker-off`) und Filter `jgor_flcf7_form_settings` mit Rangfolge (7.4); Modul 2 entsprechend erweitert, 58 Prüfungen; §9 Elternslug `wpcf7-dashboard`; §14 Editor-Tab und Block-Seitenleiste für 1.1 |
 | 1.6 | 22.10.2026 | Modul 4 umgesetzt (Commit 2082122): §9 an den Code angeglichen (Elternslug-Ermittlung mit Fallback, fünf Sektionen, Textarea-Snippet aus `CSS_PROPERTIES`, Sperren mit Notice, „Settings saved“-Meldung, „Settings“-Link), §3 und §12 um `tests/verify-admin.php` (33 Prüfungen) und den `$GLOBALS`-Zähler der Prüfscripte, §6 Bootstrap, §13 Schritt 4 erledigt |
+| 1.7 | 22.10.2026 | Release-Vorbereitung nachgezogen: `readme.txt`, Kontexthilfe (§9), `.pot`, Asset-Scripte `docs/assets-erzeugen.py` und `docs/screenshots-erzeugen.sh` mit `assets/` (§3, §12), Build und Plugin Check auf dem ZIP, Hostsharing-Gegenprobe mit `dateien` und `datenbank` (§12), §13 Schritt 5 in Teilschritte mit Stand; `verify-admin.php` 39 Prüfungen |
