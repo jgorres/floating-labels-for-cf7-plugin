@@ -47,6 +47,7 @@ function jgor_flcf7_includes() {
 		'class-jgor-flcf7-assets.php',
 		'class-jgor-flcf7-admin.php',
 		'class-jgor-flcf7-editor.php',
+		'class-jgor-flcf7-placement-design.php',
 		'class-jgor-flcf7-plugin.php',
 	);
 

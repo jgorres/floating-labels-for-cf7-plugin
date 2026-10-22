@@ -15,7 +15,10 @@
  * and jgor_flcf7_label_text.
  *
  * Form C is rendered a second time to cover the id option Contact Form 7
- * prints only once per request (same form twice on a page).
+ * prints only once per request (same form twice on a page). The design
+ * values per placement (shortcode attribute jgor_flcf7_design, block
+ * attribute jgorFlcf7Design, style on the wrapper) are rendered through
+ * do_shortcode() and render_block().
  *
  * Set FLCF7_DUMP=1 in the environment to print the rendered HTML of forms A
  * and C after the checks.
@@ -333,6 +336,43 @@ JGOR_FLCF7_Settings::instance()->reset_cache();
 $jgor_flcf7_u_form = WPCF7_ContactForm::get_instance( $jgor_flcf7_id_b );
 $jgor_flcf7_u_form->set_properties( array( 'form' => '[text* name placeholder "Straße & Ort – Prüfung"]' ) );
 jgor_flcf7_check( 'UTF-8 and entities in label text', str_contains( $jgor_flcf7_u_form->form_html(), '>Straße &amp; Ort – Prüfung</label>' ) );
+
+// Design values per placement (concept 10.1): helpers.
+jgor_flcf7_check( 'placement design: parse() keeps known valid values in stylesheet order, normalised', array( 'label-scale' => '0.8', 'duration' => '200ms' ) === JGOR_FLCF7_Placement_Design::parse( 'duration: 200MS ; label-scale:0.80;bogus:1px;radius:round;font-size:' ) );
+jgor_flcf7_check( 'placement design: parse() of non-strings and junk -> empty', array() === JGOR_FLCF7_Placement_Design::parse( null ) && array() === JGOR_FLCF7_Placement_Design::parse( 'no pairs here' ) );
+jgor_flcf7_check( 'placement design: serialize() and style()', 'label-scale:0.8;duration:200ms' === JGOR_FLCF7_Placement_Design::serialize( array( 'label-scale' => '0.8', 'duration' => '200ms' ) ) && '--jgor-flcf7-label-scale: 0.8; --jgor-flcf7-duration: 200ms;' === JGOR_FLCF7_Placement_Design::style( array( 'label-scale' => '0.8', 'duration' => '200ms' ) ) );
+
+// Shortcode attribute -> style on the wrapper div.wpcf7.
+$jgor_flcf7_pd = do_shortcode( '[contact-form-7 id="' . $jgor_flcf7_id_c . '" jgor_flcf7_design="label-color:#ABCDEF; font-size:1.2em;radius:round;bogus:1px;padding-x:"]' );
+jgor_flcf7_check( 'placement design: valid values as custom properties on div.wpcf7, invalid and unknown dropped', str_contains( $jgor_flcf7_pd, '<div class="wpcf7 no-js" style="--jgor-flcf7-font-size: 1.2em; --jgor-flcf7-label-color: #abcdef;" id="wpcf7-f' . $jgor_flcf7_id_c . '-' ), substr( $jgor_flcf7_pd, 0, 200 ) );
+jgor_flcf7_check( 'placement design: form still rebuilt', 4 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_pd ) && 1 === preg_match_all( '# style="#', $jgor_flcf7_pd ) );
+$jgor_flcf7_pd = do_shortcode( '[contact-form-7 id="' . $jgor_flcf7_id_c . '" jgor_flcf7_design="radius:round"]' );
+jgor_flcf7_check( 'placement design: only invalid values -> no style attribute', ! str_contains( $jgor_flcf7_pd, ' style="' ) && str_contains( $jgor_flcf7_pd, '<div class="wpcf7 no-js" id="' ) );
+$jgor_flcf7_pd = do_shortcode( '[contact-form-7 id="' . $jgor_flcf7_id_c . '"]' );
+jgor_flcf7_check( 'placement design: without the attribute -> no style attribute', ! str_contains( $jgor_flcf7_pd, ' style="' ) );
+
+// Block attribute -> shortcode attribute at render time -> style on the wrapper.
+$jgor_flcf7_block = '<!-- wp:contact-form-7/contact-form-selector {"id":' . $jgor_flcf7_id_c . ',"title":"FL Test C Mixed","jgorFlcf7Design":{"border-color":"#00FF00","padding-x":"2em","bogus":"1px","radius":"round"}} --><div class="wp-block-contact-form-7-contact-form-selector">[contact-form-7 id="' . $jgor_flcf7_id_c . '" title="FL Test C Mixed"]</div><!-- /wp:contact-form-7/contact-form-selector -->';
+$jgor_flcf7_rendered = render_block( parse_blocks( $jgor_flcf7_block )[0] );
+jgor_flcf7_check( 'placement design: block attribute carried into the shortcode text at render time', str_contains( $jgor_flcf7_rendered, '[contact-form-7 jgor_flcf7_design="padding-x:2em;border-color:#00ff00" id="' . $jgor_flcf7_id_c . '" title="FL Test C Mixed"]' ), $jgor_flcf7_rendered );
+$jgor_flcf7_pd = do_shortcode( $jgor_flcf7_rendered );
+jgor_flcf7_check( 'placement design: block -> style on the wrapper', str_contains( $jgor_flcf7_pd, '<div class="wpcf7 no-js" style="--jgor-flcf7-padding-x: 2em; --jgor-flcf7-border-color: #00ff00;"' ) );
+$jgor_flcf7_rendered = render_block( parse_blocks( str_replace( ',"jgorFlcf7Design":{"border-color":"#00FF00","padding-x":"2em","bogus":"1px","radius":"round"}', '', $jgor_flcf7_block ) )[0] );
+jgor_flcf7_check( 'placement design: block without the attribute -> content untouched', ! str_contains( $jgor_flcf7_rendered, 'jgor_flcf7_design' ) && str_contains( $jgor_flcf7_rendered, '[contact-form-7 id="' . $jgor_flcf7_id_c . '" title="FL Test C Mixed"]' ) );
+$jgor_flcf7_rendered = render_block( parse_blocks( str_replace( '[contact-form-7 id=', '[contact-form-7 jgor_flcf7_design="radius:9px" id=', $jgor_flcf7_block ) )[0] );
+jgor_flcf7_check( 'placement design: shortcode attribute already present -> kept, block attribute not added', 1 === preg_match_all( '#jgor_flcf7_design=#', $jgor_flcf7_rendered ) && str_contains( $jgor_flcf7_rendered, 'jgor_flcf7_design="radius:9px"' ) );
+$jgor_flcf7_rendered = render_block( parse_blocks( str_replace( '{"border-color":"#00FF00","padding-x":"2em","bogus":"1px","radius":"round"}', '{"radius":"round"}', $jgor_flcf7_block ) )[0] );
+jgor_flcf7_check( 'placement design: block attribute with invalid values only -> content untouched', ! str_contains( $jgor_flcf7_rendered, 'jgor_flcf7_design' ) );
+
+// Nothing without the stylesheet.
+$jgor_flcf7_option             = get_option( 'jgor_flcf7_settings' );
+$jgor_flcf7_option['load_css'] = false;
+update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
+JGOR_FLCF7_Settings::instance()->reset_cache();
+$jgor_flcf7_pd = do_shortcode( '[contact-form-7 id="' . $jgor_flcf7_id_c . '" jgor_flcf7_design="label-color:#abcdef"]' );
+jgor_flcf7_check( 'placement design: nothing with load_css off', ! str_contains( $jgor_flcf7_pd, ' style="' ) );
+update_option( 'jgor_flcf7_settings', JGOR_FLCF7_Settings::instance()->defaults() );
+JGOR_FLCF7_Settings::instance()->reset_cache();
 
 // Restore the option as it was before the run.
 if ( false === $jgor_flcf7_saved_option ) {

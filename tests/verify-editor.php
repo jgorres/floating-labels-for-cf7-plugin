@@ -9,10 +9,13 @@
  *   wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-editor.php
  *
  * Checks: the action hook, the enqueued script (source, dependencies,
- * version, footer, translations), the script file itself (block name,
- * filter, every placement class of the concept) and that nothing is
+ * version, footer, translations, inline data with the design properties),
+ * the script file itself (block name, filter, every placement class of the
+ * concept, design attributes), the block attribute jgorFlcf7Design declared
+ * on the Contact Form 7 block and exposed to the editor, and that nothing is
  * enqueued while the Contact Form 7 block is not registered. The JavaScript
- * logic is covered by tests/verify-editor-js.mjs (Node).
+ * logic is covered by tests/verify-editor-js.mjs (Node), the server side of
+ * the design values by tests/verify-markup.php.
  *
  * Nothing is saved; the block registry is restored afterwards.
  *
@@ -48,7 +51,7 @@ $jgor_flcf7_block  = JGOR_FLCF7_Editor::BLOCK_NAME;
 jgor_flcf7_check( 'class JGOR_FLCF7_Editor loaded by the main file', class_exists( 'JGOR_FLCF7_Editor' ) );
 jgor_flcf7_check( 'Contact Form 7 block registered on this site', WP_Block_Type_Registry::get_instance()->is_registered( $jgor_flcf7_block ) );
 
-$jgor_flcf7_editor = new JGOR_FLCF7_Editor();
+$jgor_flcf7_editor = new JGOR_FLCF7_Editor( JGOR_FLCF7_Settings::instance() );
 $jgor_flcf7_editor->init();
 jgor_flcf7_check( 'hook: enqueue() on enqueue_block_editor_assets', false !== has_action( 'enqueue_block_editor_assets', array( $jgor_flcf7_editor, 'enqueue' ) ) );
 
@@ -62,6 +65,31 @@ jgor_flcf7_check( 'script: dependencies', $jgor_flcf7_reg instanceof _WP_Depende
 jgor_flcf7_check( 'script: version is the plugin version', $jgor_flcf7_reg instanceof _WP_Dependency && JGOR_FLCF7_VERSION === $jgor_flcf7_reg->ver );
 jgor_flcf7_check( 'script: printed in the footer', 1 === (int) $jgor_flcf7_scripts->get_data( $jgor_flcf7_handle, 'group' ) );
 jgor_flcf7_check( 'script: translations set for the text domain', $jgor_flcf7_reg instanceof _WP_Dependency && 'floating-labels-for-cf7' === $jgor_flcf7_reg->textdomain && JGOR_FLCF7_PATH . 'languages' === $jgor_flcf7_reg->translations_path );
+
+// Inline data: the design properties for the panels, printed before the script.
+$jgor_flcf7_before = $jgor_flcf7_scripts->get_data( $jgor_flcf7_handle, 'before' );
+$jgor_flcf7_before = is_array( $jgor_flcf7_before ) ? implode( "\n", array_filter( $jgor_flcf7_before, 'is_string' ) ) : '';
+$jgor_flcf7_data   = null;
+if ( preg_match( '#window\.jgorFlcf7EditorData = (\{.*\});#s', $jgor_flcf7_before, $jgor_flcf7_m ) ) {
+	$jgor_flcf7_data = json_decode( $jgor_flcf7_m[1], true );
+}
+jgor_flcf7_check( 'data: window.jgorFlcf7EditorData printed before the script as JSON', is_array( $jgor_flcf7_data ) && isset( $jgor_flcf7_data['design'] ) && is_array( $jgor_flcf7_data['design'] ) );
+$jgor_flcf7_design = is_array( $jgor_flcf7_data ) && isset( $jgor_flcf7_data['design'] ) && is_array( $jgor_flcf7_data['design'] ) ? $jgor_flcf7_data['design'] : array();
+$jgor_flcf7_keys   = array_column( $jgor_flcf7_design, 'key' );
+sort( $jgor_flcf7_keys );
+$jgor_flcf7_all = array_keys( JGOR_FLCF7_Settings::DESIGN_TYPES );
+sort( $jgor_flcf7_all );
+jgor_flcf7_check( 'data: every design property exactly once', $jgor_flcf7_keys === $jgor_flcf7_all, implode( ',', $jgor_flcf7_keys ) );
+$jgor_flcf7_groups = array_count_values( array_column( $jgor_flcf7_design, 'group' ) );
+jgor_flcf7_check( 'data: groups colors (10), sizes (6), motion (2) in the order of the settings screen', 10 === ( $jgor_flcf7_groups['colors'] ?? 0 ) && 6 === ( $jgor_flcf7_groups['sizes'] ?? 0 ) && 2 === ( $jgor_flcf7_groups['motion'] ?? 0 ) && 'label-color' === ( $jgor_flcf7_design[0]['key'] ?? '' ) && 'duration' === ( $jgor_flcf7_design[17]['key'] ?? '' ) );
+$jgor_flcf7_first = $jgor_flcf7_design[0] ?? array();
+jgor_flcf7_check( 'data: type, translated label and the value in effect as placeholder', 'color' === ( $jgor_flcf7_first['type'] ?? '' ) && 'Label' === ( $jgor_flcf7_first['label'] ?? '' ) && JGOR_FLCF7_Settings::instance()->design()['label-color'] === ( $jgor_flcf7_first['placeholder'] ?? '' ) );
+
+// Block attribute of the design values, declared on the server and exposed to the editor.
+$jgor_flcf7_type = WP_Block_Type_Registry::get_instance()->get_registered( $jgor_flcf7_block );
+jgor_flcf7_check( 'attribute: jgorFlcf7Design (object) declared on the Contact Form 7 block', $jgor_flcf7_type instanceof WP_Block_Type && is_array( $jgor_flcf7_type->attributes ) && array( 'type' => 'object' ) === ( $jgor_flcf7_type->attributes[ JGOR_FLCF7_Placement_Design::BLOCK_ATTRIBUTE ] ?? null ) );
+$jgor_flcf7_server = get_block_editor_server_block_settings();
+jgor_flcf7_check( 'attribute: part of the server block settings the editor bootstraps', isset( $jgor_flcf7_server[ $jgor_flcf7_block ]['attributes'][ JGOR_FLCF7_Placement_Design::BLOCK_ATTRIBUTE ] ) && isset( $jgor_flcf7_server[ $jgor_flcf7_block ]['attributes']['htmlClass'] ) );
 
 // The script file.
 $jgor_flcf7_file = JGOR_FLCF7_PATH . 'assets/js/block-editor.js';
@@ -80,6 +108,7 @@ foreach ( $jgor_flcf7_classes as $jgor_flcf7_class ) {
 	}
 }
 jgor_flcf7_check( 'file: every placement class of the concept (9) is offered', empty( $jgor_flcf7_missing ), implode( ', ', $jgor_flcf7_missing ) );
+jgor_flcf7_check( 'file: design attributes, data global and colour panel used', str_contains( $jgor_flcf7_js, "'" . JGOR_FLCF7_Placement_Design::BLOCK_ATTRIBUTE . "'" ) && str_contains( $jgor_flcf7_js, "'" . JGOR_FLCF7_Placement_Design::SHORTCODE_ATTRIBUTE . "'" ) && str_contains( $jgor_flcf7_js, 'window.' . JGOR_FLCF7_Editor::DATA_GLOBAL ) && str_contains( $jgor_flcf7_js, 'PanelColorSettings' ) );
 jgor_flcf7_check( 'file: every text carries the text domain', 0 === preg_match( '/__\(\s*\'(?:[^\'\\\\]|\\\\.)*\'\s*\)/', $jgor_flcf7_js ) && preg_match_all( '/__\(/', $jgor_flcf7_js ) === preg_match_all( "/, 'floating-labels-for-cf7' \)/", $jgor_flcf7_js ) );
 
 // Without the block: nothing is enqueued.

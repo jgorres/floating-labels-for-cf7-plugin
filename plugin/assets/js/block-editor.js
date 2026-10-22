@@ -1,17 +1,28 @@
 /**
  * Floating Labels for CF7 – block editor script.
  *
- * Adds the panel "Floating Labels" to the sidebar of the Contact Form 7 block
+ * Adds panels to the sidebar of the Contact Form 7 block
  * (contact-form-7/contact-form-selector) and of a Shortcode block
- * (core/shortcode) whose text holds a [contact-form-7 ...] shortcode. Each
- * select of the panel stands for one group of placement classes of the
- * plugin (on/off, label source, variant, required marker).
+ * (core/shortcode) whose text holds a [contact-form-7 ...] shortcode:
  *
- * The chosen class is stored where Contact Form 7 reads it anyway: in the
- * block attribute htmlClass of the Contact Form 7 block (shown as "Class" in
- * its panel "Form attributes"), or in the html_class attribute of the
- * shortcode text of a Shortcode block. Classes the panel does not know are
- * kept untouched.
+ * - "Floating Labels": one select per group of placement classes of the
+ *   plugin (on/off, label source, variant, required marker). The chosen
+ *   class is stored where Contact Form 7 reads it anyway: in the block
+ *   attribute htmlClass of the Contact Form 7 block (shown as "Class" in its
+ *   panel "Form attributes"), or in the html_class attribute of the
+ *   shortcode text of a Shortcode block. Classes the panel does not know are
+ *   kept untouched.
+ * - "Floating labels: colours", "Floating labels: sizes" and "Floating
+ *   labels: animation": design values for this placement only, one control
+ *   per CSS custom property of the stylesheet; an empty control keeps the
+ *   value of the settings screen. Stored in the block attribute
+ *   jgorFlcf7Design (declared by the plugin on the server, the saved
+ *   shortcode stays untouched) or in the jgor_flcf7_design attribute of the
+ *   shortcode text ("label-color:#123456;font-size:1.1em"). The server
+ *   prints them as custom properties on the wrapper of that form. The list
+ *   of properties (key, group, type, label, placeholder) comes from the
+ *   server in window.jgorFlcf7EditorData; without it only the first panel
+ *   is shown.
  *
  * No build step: the script uses the global "wp" packages and
  * wp.element.createElement instead of JSX. The helpers are exposed on
@@ -50,6 +61,21 @@
 	var FILTER_NAMESPACE = 'jgor-flcf7/block-editor';
 
 	/**
+	 * Block attribute of the Contact Form 7 block that holds the design
+	 * values (object property => value).
+	 *
+	 * @type {string}
+	 */
+	var DESIGN_BLOCK_ATTRIBUTE = 'jgorFlcf7Design';
+
+	/**
+	 * Shortcode attribute that holds the design values ("key:value;...").
+	 *
+	 * @type {string}
+	 */
+	var DESIGN_SHORTCODE_ATTRIBUTE = 'jgor_flcf7_design';
+
+	/**
 	 * Matches the first [contact-form-7 ...] shortcode in a text.
 	 *
 	 * @type {RegExp}
@@ -57,12 +83,74 @@
 	var SHORTCODE_PATTERN = /\[contact-form-7\b[^\]]*\]/;
 
 	/**
-	 * Matches the html_class attribute inside a shortcode: double quotes,
-	 * single quotes or no quotes, as WordPress parses them.
+	 * Builds the pattern that matches one attribute inside a shortcode:
+	 * double quotes, single quotes or no quotes, as WordPress parses them.
+	 *
+	 * @param {string} name Attribute name.
+	 * @return {RegExp} Pattern with the value in group 1, 2 or 3.
+	 */
+	function attributePattern( name ) {
+		return new RegExp( '\\s+' + name + '=(?:"([^"]*)"|\'([^\']*)\'|([^\\s\\]]+))' );
+	}
+
+	/**
+	 * Matches the html_class attribute inside a shortcode.
 	 *
 	 * @type {RegExp}
 	 */
-	var HTML_CLASS_ATTR_PATTERN = /\s+html_class=(?:"([^"]*)"|'([^']*)'|([^\s\]]+))/;
+	var HTML_CLASS_ATTR_PATTERN = attributePattern( 'html_class' );
+
+	/**
+	 * Matches the jgor_flcf7_design attribute inside a shortcode.
+	 *
+	 * @type {RegExp}
+	 */
+	var DESIGN_ATTR_PATTERN = attributePattern( DESIGN_SHORTCODE_ATTRIBUTE );
+
+	/**
+	 * Whether an entry of the server data describes a design property.
+	 *
+	 * @param {*} property Entry to check.
+	 * @return {boolean} True for {key, group, type, label} strings.
+	 */
+	function isDesignProperty( property ) {
+		return !! property && typeof property.key === 'string' && property.key !== '' && typeof property.group === 'string' && typeof property.type === 'string' && typeof property.label === 'string';
+	}
+
+	/**
+	 * Design properties handed over by the server (JGOR_FLCF7_Editor):
+	 * {key, group, type, label, placeholder} in the order of the settings
+	 * screen; the placeholder is the value in effect there. Empty without
+	 * the data.
+	 *
+	 * @type {Array<{key: string, group: string, type: string, label: string, placeholder: string}>}
+	 */
+	var DESIGN = ( window.jgorFlcf7EditorData && Array.isArray( window.jgorFlcf7EditorData.design ) ) ? window.jgorFlcf7EditorData.design.filter( isDesignProperty ) : [];
+
+	/**
+	 * Panels of the design values, one per group of the settings screen.
+	 * The colours panel carries the storage note of the block, the others
+	 * the format of their values.
+	 *
+	 * @type {Array<{group: string, title: string, help: string}>}
+	 */
+	var DESIGN_PANELS = [
+		{
+			group: 'colors',
+			title: __( 'Floating labels: colours', 'floating-labels-for-cf7' ),
+			help: ''
+		},
+		{
+			group: 'sizes',
+			title: __( 'Floating labels: sizes', 'floating-labels-for-cf7' ),
+			help: __( 'A number with px, em, rem or %, for example 0.9em. The font size of the field also scales the label and the padding; 1em keeps the size of the surrounding text.', 'floating-labels-for-cf7' )
+		},
+		{
+			group: 'motion',
+			title: __( 'Floating labels: animation', 'floating-labels-for-cf7' ),
+			help: __( 'Scale of the floated label between 0.5 and 1; duration of the transitions with s or ms.', 'floating-labels-for-cf7' )
+		}
+	];
 
 	/**
 	 * Groups of placement classes, one select each (concept, section 7.4).
@@ -198,6 +286,92 @@
 	}
 
 	/**
+	 * Keeps only known design properties with non-empty string values, in
+	 * the order of the server list.
+	 *
+	 * Characters that would break a shortcode attribute (quotes, brackets,
+	 * semicolons) are removed; the server validates the values themselves.
+	 *
+	 * @param {*} design Object property => value.
+	 * @return {Object} Clean copy.
+	 */
+	function cleanDesign( design ) {
+		var clean = {};
+
+		if ( ! design || typeof design !== 'object' ) {
+			return clean;
+		}
+
+		DESIGN.forEach( function ( property ) {
+			var value = design[ property.key ];
+			if ( typeof value !== 'string' ) {
+				return;
+			}
+
+			value = value.replace( /["'[\];]/g, '' ).trim();
+			if ( value !== '' ) {
+				clean[ property.key ] = value;
+			}
+		} );
+
+		return clean;
+	}
+
+	/**
+	 * Parses the value of the shortcode attribute ("key:value;key:value").
+	 *
+	 * @param {*} text Attribute value.
+	 * @return {Object} Clean design values.
+	 */
+	function parseDesign( text ) {
+		var design = {};
+
+		if ( typeof text !== 'string' ) {
+			return design;
+		}
+
+		text.split( ';' ).forEach( function ( pair ) {
+			var at = pair.indexOf( ':' );
+			if ( at !== -1 ) {
+				design[ pair.slice( 0, at ).trim() ] = pair.slice( at + 1 ).trim();
+			}
+		} );
+
+		return cleanDesign( design );
+	}
+
+	/**
+	 * Serialises design values for the shortcode attribute.
+	 *
+	 * @param {*} design Object property => value.
+	 * @return {string} "key:value;key:value", or '' when nothing is set.
+	 */
+	function serializeDesign( design ) {
+		var clean = cleanDesign( design );
+
+		return Object.keys( clean ).map( function ( key ) {
+			return key + ':' + clean[ key ];
+		} ).join( ';' );
+	}
+
+	/**
+	 * Normalises a colour from the colour picker: hex colours only, in
+	 * lower case, as the server accepts them; anything else means "unset".
+	 *
+	 * @param {*} value Colour string, or undefined when cleared.
+	 * @return {string} "#rgb" / "#rrggbb" or ''.
+	 */
+	function colorValue( value ) {
+		if ( typeof value !== 'string' ) {
+			return '';
+		}
+
+		value = value.trim().toLowerCase();
+
+		return /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test( value ) ? value : '';
+	}
+
+	/**
 	 * Finds the first Contact Form 7 shortcode in a text.
 	 *
 	 * @param {*} text Text of a Shortcode block.
@@ -212,19 +386,20 @@
 	}
 
 	/**
-	 * Returns the html_class attribute of the first Contact Form 7 shortcode
-	 * in a text, or ''.
+	 * Returns one attribute of the first Contact Form 7 shortcode in a text,
+	 * or ''.
 	 *
-	 * @param {*} text Text of a Shortcode block.
+	 * @param {*}      text    Text of a Shortcode block.
+	 * @param {RegExp} pattern Pattern from attributePattern().
 	 * @return {string} Attribute value, or '' when absent.
 	 */
-	function shortcodeHtmlClass( text ) {
+	function shortcodeAttribute( text, pattern ) {
 		var shortcode = findShortcode( text );
 		if ( ! shortcode ) {
 			return '';
 		}
 
-		var attr = shortcode[ 0 ].match( HTML_CLASS_ATTR_PATTERN );
+		var attr = shortcode[ 0 ].match( pattern );
 		if ( ! attr ) {
 			return '';
 		}
@@ -237,19 +412,21 @@
 	}
 
 	/**
-	 * Returns the text with the html_class attribute of the first Contact
-	 * Form 7 shortcode set, replaced or removed.
+	 * Returns the text with one attribute of the first Contact Form 7
+	 * shortcode set, replaced or removed.
 	 *
 	 * An existing attribute keeps its position and is rewritten with double
 	 * quotes; a missing one is appended before the closing bracket; an empty
 	 * value removes the attribute. Text without the shortcode comes back
 	 * unchanged.
 	 *
-	 * @param {*}      text  Text of a Shortcode block.
-	 * @param {string} value New attribute value, or '' for none.
+	 * @param {*}      text    Text of a Shortcode block.
+	 * @param {string} name    Attribute name.
+	 * @param {RegExp} pattern Pattern from attributePattern() for that name.
+	 * @param {string} value   New attribute value, or '' for none.
 	 * @return {*} New text.
 	 */
-	function withShortcodeHtmlClass( text, value ) {
+	function withShortcodeAttribute( text, name, pattern, value ) {
 		var shortcode = findShortcode( text );
 		if ( ! shortcode ) {
 			return text;
@@ -258,10 +435,10 @@
 		var tag = shortcode[ 0 ];
 		var updated;
 
-		if ( HTML_CLASS_ATTR_PATTERN.test( tag ) ) {
-			updated = tag.replace( HTML_CLASS_ATTR_PATTERN, value === '' ? '' : ' html_class="' + value + '"' );
+		if ( pattern.test( tag ) ) {
+			updated = tag.replace( pattern, value === '' ? '' : ' ' + name + '="' + value + '"' );
 		} else if ( value !== '' ) {
-			updated = tag.replace( /\s*(\/?)\]$/, ' html_class="' + value + '"$1]' );
+			updated = tag.replace( /\s*(\/?)\]$/, ' ' + name + '="' + value + '"$1]' );
 		} else {
 			updated = tag;
 		}
@@ -270,14 +447,61 @@
 	}
 
 	/**
-	 * Describes where the classes of a block live, or null for other blocks.
+	 * Returns the html_class attribute of the first Contact Form 7 shortcode
+	 * in a text, or ''.
 	 *
-	 * Contact Form 7 block: the attribute htmlClass, once a form is selected
-	 * (like the panels of the block itself). Shortcode block: the html_class
-	 * attribute of the first [contact-form-7] shortcode in its text.
+	 * @param {*} text Text of a Shortcode block.
+	 * @return {string} Attribute value, or '' when absent.
+	 */
+	function shortcodeHtmlClass( text ) {
+		return shortcodeAttribute( text, HTML_CLASS_ATTR_PATTERN );
+	}
+
+	/**
+	 * Returns the text with the html_class attribute of the first Contact
+	 * Form 7 shortcode set, replaced or removed.
+	 *
+	 * @param {*}      text  Text of a Shortcode block.
+	 * @param {string} value New attribute value, or '' for none.
+	 * @return {*} New text.
+	 */
+	function withShortcodeHtmlClass( text, value ) {
+		return withShortcodeAttribute( text, 'html_class', HTML_CLASS_ATTR_PATTERN, value );
+	}
+
+	/**
+	 * Returns the design values of the first Contact Form 7 shortcode in a
+	 * text (attribute jgor_flcf7_design).
+	 *
+	 * @param {*} text Text of a Shortcode block.
+	 * @return {Object} Clean design values, empty when absent.
+	 */
+	function shortcodeDesign( text ) {
+		return parseDesign( shortcodeAttribute( text, DESIGN_ATTR_PATTERN ) );
+	}
+
+	/**
+	 * Returns the text with the design values of the first Contact Form 7
+	 * shortcode set or removed (attribute jgor_flcf7_design).
+	 *
+	 * @param {*} text   Text of a Shortcode block.
+	 * @param {*} design Object property => value; empty removes the attribute.
+	 * @return {*} New text.
+	 */
+	function withShortcodeDesign( text, design ) {
+		return withShortcodeAttribute( text, DESIGN_SHORTCODE_ATTRIBUTE, DESIGN_ATTR_PATTERN, serializeDesign( design ) );
+	}
+
+	/**
+	 * Describes where the values of a block live, or null for other blocks.
+	 *
+	 * Contact Form 7 block: the attributes htmlClass and jgorFlcf7Design,
+	 * once a form is selected (like the panels of the block itself).
+	 * Shortcode block: the attributes html_class and jgor_flcf7_design of
+	 * the first [contact-form-7] shortcode in its text.
 	 *
 	 * @param {Object} props Block edit props (name, attributes, setAttributes).
-	 * @return {Object|null} {active, read, write, help} or null.
+	 * @return {Object|null} {active, read, write, help, readDesign, writeDesign, designHelp} or null.
 	 */
 	function storeFor( props ) {
 		var attributes = props.attributes || {};
@@ -291,7 +515,19 @@
 				write: function ( value ) {
 					props.setAttributes( { htmlClass: value } );
 				},
-				help: __( '"Default" keeps the settings of the site and of the form. The choices are stored as classes in the "Class" field of the panel "Form attributes".', 'floating-labels-for-cf7' )
+				help: __( '"Default" keeps the settings of the site and of the form. The choices are stored as classes in the "Class" field of the panel "Form attributes".', 'floating-labels-for-cf7' ),
+				readDesign: function () {
+					return cleanDesign( attributes[ DESIGN_BLOCK_ATTRIBUTE ] );
+				},
+				writeDesign: function ( design ) {
+					var clean = cleanDesign( design );
+					var update = {};
+
+					// Without values the attribute leaves the saved block.
+					update[ DESIGN_BLOCK_ATTRIBUTE ] = Object.keys( clean ).length > 0 ? clean : undefined;
+					props.setAttributes( update );
+				},
+				designHelp: __( 'Empty keeps the values of the settings screen. The values are stored with the block and apply to this placement only.', 'floating-labels-for-cf7' )
 			};
 		}
 
@@ -304,7 +540,14 @@
 				write: function ( value ) {
 					props.setAttributes( { text: withShortcodeHtmlClass( attributes.text, value ) } );
 				},
-				help: __( '"Default" keeps the settings of the site and of the form. The choices are stored in the html_class attribute of the shortcode.', 'floating-labels-for-cf7' )
+				help: __( '"Default" keeps the settings of the site and of the form. The choices are stored in the html_class attribute of the shortcode.', 'floating-labels-for-cf7' ),
+				readDesign: function () {
+					return shortcodeDesign( attributes.text );
+				},
+				writeDesign: function ( design ) {
+					props.setAttributes( { text: withShortcodeDesign( attributes.text, design ) } );
+				},
+				designHelp: __( 'Empty keeps the values of the settings screen. The values are stored in the jgor_flcf7_design attribute of the shortcode and apply to this placement only.', 'floating-labels-for-cf7' )
 			};
 		}
 
@@ -312,7 +555,129 @@
 	}
 
 	/**
-	 * Builds the panel for one block instance.
+	 * Builds the help paragraph of a panel.
+	 *
+	 * @param {string} text Help text.
+	 * @return {Object|null} Element, or null for an empty text.
+	 */
+	function helpElement( text ) {
+		if ( ! text ) {
+			return null;
+		}
+
+		return el( 'p', { key: 'help', className: 'components-base-control__help' }, text );
+	}
+
+	/**
+	 * Builds the text control of one size or animation property.
+	 *
+	 * The scale (type "number") gets a number input within the range the
+	 * server accepts; every other value is typed with its unit.
+	 *
+	 * @param {Object}   property Entry of DESIGN.
+	 * @param {string}   value    Current value, '' when unset.
+	 * @param {Function} change   Callback (key, value).
+	 * @return {Object} Element (TextControl).
+	 */
+	function designControl( property, value, change ) {
+		var controlProps = {
+			key: property.key,
+			label: property.label,
+			value: value,
+			placeholder: typeof property.placeholder === 'string' ? property.placeholder : '',
+			onChange: function ( next ) {
+				change( property.key, next );
+			},
+			__nextHasNoMarginBottom: true,
+			__next40pxDefaultSize: true
+		};
+
+		if ( property.type === 'number' ) {
+			controlProps.type = 'number';
+			controlProps.min = 0.5;
+			controlProps.max = 1;
+			controlProps.step = 0.01;
+		}
+
+		return el( wp.components.TextControl, controlProps );
+	}
+
+	/**
+	 * Builds the design panels for one block instance; none without the
+	 * property list from the server.
+	 *
+	 * @param {Object} store Result of storeFor().
+	 * @return {Object[]} Elements (PanelColorSettings, PanelBody).
+	 */
+	function designPanels( store ) {
+		if ( DESIGN.length === 0 ) {
+			return [];
+		}
+
+		var design = store.readDesign();
+
+		var change = function ( key, value ) {
+			var next = Object.assign( {}, design );
+
+			if ( typeof value === 'string' && value.trim() !== '' ) {
+				next[ key ] = value;
+			} else {
+				delete next[ key ];
+			}
+
+			store.writeDesign( next );
+		};
+
+		return DESIGN_PANELS.map( function ( spec ) {
+			var properties = DESIGN.filter( function ( property ) {
+				return property.group === spec.group;
+			} );
+
+			if ( properties.length === 0 ) {
+				return null;
+			}
+
+			if ( spec.group === 'colors' ) {
+				return el(
+					wp.blockEditor.PanelColorSettings,
+					{
+						key: spec.group,
+						title: spec.title,
+						initialOpen: false,
+						enableAlpha: false,
+						__experimentalIsRenderedInSidebar: true,
+						colorSettings: properties.map( function ( property ) {
+							return {
+								value: design[ property.key ],
+								label: property.label,
+								onChange: function ( value ) {
+									change( property.key, colorValue( value ) );
+								}
+							};
+						} )
+					},
+					helpElement( store.designHelp )
+				);
+			}
+
+			var controls = properties.map( function ( property ) {
+				return designControl( property, design[ property.key ] || '', change );
+			} );
+			var help = helpElement( spec.help );
+			if ( help ) {
+				controls.push( help );
+			}
+
+			return el(
+				wp.components.PanelBody,
+				{ key: spec.group, title: spec.title, initialOpen: false },
+				el( wp.components.Flex, { direction: 'column', gap: 4, align: 'stretch' }, controls )
+			);
+		} ).filter( Boolean );
+	}
+
+	/**
+	 * Builds the panels for one block instance.
 	 *
 	 * @param {Object} store Result of storeFor().
 	 * @return {Object} Element tree (InspectorControls).
@@ -334,22 +699,22 @@
 			} );
 		} );
 
-		controls.push( el( 'p', { key: 'help', className: 'components-base-control__help' }, store.help ) );
+		controls.push( helpElement( store.help ) );
 
-		return el(
-			wp.blockEditor.InspectorControls,
-			null,
+		var panels = [
 			el(
 				wp.components.PanelBody,
-				{ title: __( 'Floating Labels', 'floating-labels-for-cf7' ), initialOpen: true },
+				{ key: 'main', title: __( 'Floating Labels', 'floating-labels-for-cf7' ), initialOpen: true },
 				el( wp.components.Flex, { direction: 'column', gap: 4, align: 'stretch' }, controls )
 			)
-		);
+		].concat( designPanels( store ) );
+
+		return el( wp.blockEditor.InspectorControls, null, panels );
 	}
 
 	/**
 	 * Wraps the edit component of every block; only the Contact Form 7 block
-	 * and a Shortcode block with a Contact Form 7 shortcode get the panel.
+	 * and a Shortcode block with a Contact Form 7 shortcode get the panels.
 	 */
 	var withFloatingLabelsPanel = wp.compose.createHigherOrderComponent( function ( BlockEdit ) {
 		return function ( props ) {
@@ -373,12 +738,21 @@
 	window.jgorFlcf7BlockEditor = {
 		BLOCK_NAME: BLOCK_NAME,
 		SHORTCODE_BLOCK_NAME: SHORTCODE_BLOCK_NAME,
+		DESIGN_BLOCK_ATTRIBUTE: DESIGN_BLOCK_ATTRIBUTE,
+		DESIGN_SHORTCODE_ATTRIBUTE: DESIGN_SHORTCODE_ATTRIBUTE,
 		GROUPS: GROUPS,
+		DESIGN: DESIGN,
 		splitClasses: splitClasses,
 		currentValue: currentValue,
 		withGroupValue: withGroupValue,
+		cleanDesign: cleanDesign,
+		parseDesign: parseDesign,
+		serializeDesign: serializeDesign,
+		colorValue: colorValue,
 		shortcodeHtmlClass: shortcodeHtmlClass,
 		withShortcodeHtmlClass: withShortcodeHtmlClass,
+		shortcodeDesign: shortcodeDesign,
+		withShortcodeDesign: withShortcodeDesign,
 		withFloatingLabelsPanel: withFloatingLabelsPanel
 	};
 } )( window.wp );

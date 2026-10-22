@@ -86,11 +86,16 @@ final class JGOR_FLCF7_Plugin {
 		// Module 3: stylesheet, enqueued from wpcf7_enqueue_styles.
 		( new JGOR_FLCF7_Assets( $settings ) )->init();
 
+		// Module 5, server side: declares the block attribute of the design
+		// values per placement and prints them on the rendered form. Runs
+		// everywhere, like module 2.
+		( new JGOR_FLCF7_Placement_Design( $settings ) )->init();
+
 		// Module 4: settings screen and plugin action link; module 5: the
-		// panel in the sidebar of the Contact Form 7 block. Admin only.
+		// panels in the sidebar of the Contact Form 7 block. Admin only.
 		if ( is_admin() ) {
 			( new JGOR_FLCF7_Admin( $settings ) )->init();
-			( new JGOR_FLCF7_Editor() )->init();
+			( new JGOR_FLCF7_Editor( $settings ) )->init();
 		}
 	}
 

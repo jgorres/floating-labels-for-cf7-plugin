@@ -21,12 +21,12 @@ Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server
 
 * Works with existing forms: labels of the form template and placeholder options become floating labels automatically.
 * Three variants: Outlined (label floats onto the border), Filled (tinted box) and Minimal (your theme styles the field, the label floats above it).
-* Pure CSS on the front end: focus, filled, autofill and error states come from CSS pseudo-classes. No JavaScript on your pages; the only inline style is the short list of design values you change.
+* Pure CSS on the front end: focus, filled, autofill and error states come from CSS pseudo-classes. No JavaScript on your pages; the only inline styles are the design values you change (one short rule after the stylesheet, and a style attribute on forms with their own design values).
 * Accessible: every rebuilt field gets a real `<label for>` with a matching `id`; the placeholder is replaced so screen readers do not hear two names. Contact Form 7's `aria-*` attributes stay untouched.
 * Clear error state: the label of an invalid field floats up in the error colour, Contact Form 7's message appears inside the field (no layout jump), and the submit button turns red with a text of your choice until the next attempt.
 * Control at every level: for the whole site, per form, per placement (page) and per field.
-* Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get a "Floating Labels" panel in the sidebar for the placement settings; no classes to type.
-* Design settings: colours with the WordPress colour picker, font size, padding, border, corner radius and the animation on the settings screen; every value is also a CSS custom property, so themes can set them too.
+* Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get "Floating Labels" panels in the sidebar: the placement settings, and colours, sizes and animation for that placement only; no classes to type.
+* Design settings: colours with the WordPress colour picker, font size, padding, border, corner radius and the animation on the settings screen, or per placement in the block editor; every value is also a CSS custom property, so themes can set them too.
 * Lightweight: one option, one stylesheet, no database tables, no cron, no external requests, no tracking.
 
 = Field types =
@@ -59,6 +59,10 @@ jgor-flcf7-marker-on  jgor-flcf7-marker-off
 
 Example: `[contact-form-7 id="123" html_class="jgor-flcf7-style-filled"]`
 
+The panels "Floating labels: colours", "Floating labels: sizes" and "Floating labels: animation" below it set colours, sizes and the animation for this placement only. Leave a control empty to keep the value of the settings screen. The values are stored with the block, or in the `jgor_flcf7_design` attribute of the shortcode, which you can also write by hand (property names as on the settings screen, without the prefix):
+
+`[contact-form-7 id="123" jgor_flcf7_design="border-color:#0a7d3e;font-size:1.1em"]`
+
 = Per field =
 
 Add the option `nofloat` to a form-tag, before any quoted value:
@@ -67,7 +71,7 @@ Add the option `nofloat` to a form-tag, before any quoted value:
 
 = Colours and sizes =
 
-Open Contact > Floating Labels, section Design: colours for the label, the border, the field background and the submit button on errors (WordPress colour picker), the font size of the field and of the label, padding, border width, corner radius, the scale of the floated label and the duration of the animation. Leave a field empty to keep the default. Only the values you change are printed, as CSS custom properties on the `.wpcf7` wrapper, right after the stylesheet.
+Open Contact > Floating Labels, section Design: colours for the label, the border, the field background and the submit button on errors (WordPress colour picker), the font size of the field and of the label, padding, border width, corner radius, the scale of the floated label and the duration of the animation. Leave a field empty to keep the default. Only the values you change are printed, as CSS custom properties on the `.wpcf7` wrapper, right after the stylesheet. For one placement only, use the panels in the block editor (see "Per placement"); those values are printed as a style attribute on the wrapper of that form.
 
 Themes can set the same properties in CSS, for example in Appearance > Customize > Additional CSS or a child theme:
 
@@ -117,11 +121,11 @@ Yes. Add `jgor-flcf7-style-filled`, `jgor-flcf7-style-outlined` or `jgor-flcf7-s
 
 = How do I change the colours? =
 
-On the settings screen under Design: pick the colours with the colour picker, enter sizes with their unit (for example 0.9em or 12px) and leave a field empty to keep the default. Themes can set the same CSS custom properties; the snippet on the screen shows the values in effect.
+On the settings screen under Design: pick the colours with the colour picker, enter sizes with their unit (for example 0.9em or 12px) and leave a field empty to keep the default. For one page only, select the block and use the panels "Floating labels: colours", "Floating labels: sizes" and "Floating labels: animation" in the block sidebar. Themes can set the same CSS custom properties; the snippet on the screen shows the values in effect.
 
 = Does it work with the block editor? =
 
-Yes. The Contact Form 7 block, and a Shortcode block that holds the `[contact-form-7]` shortcode, get a panel "Floating Labels" in the sidebar. The choices are stored as classes in the block's "Class" field (panel "Form attributes") or in the `html_class` attribute of the shortcode, so the content stays valid without the plugin.
+Yes. The Contact Form 7 block, and a Shortcode block that holds the `[contact-form-7]` shortcode, get the panel "Floating Labels" (placement settings) and the panels "Floating labels: colours", "Floating labels: sizes" and "Floating labels: animation" (design values for this placement) in the sidebar. The choices are stored as classes in the block's "Class" field (panel "Form attributes") or in the `html_class` attribute of the shortcode, the design values with the block or in the `jgor_flcf7_design` attribute of the shortcode, so the content stays valid without the plugin.
 
 = Does the plugin load JavaScript? =
 
@@ -150,7 +154,7 @@ Every rebuilt field keeps or gets an `id` and a real `<label for>` pointing at i
 3. Minimal variant with the theme's own field styling.
 4. Validation error: label and border in the error colour, message below the field.
 5. Settings screen under Contact > Floating Labels.
-6. The panel "Floating Labels" in the sidebar of the Contact Form 7 block (also shown for a Shortcode block with the shortcode).
+6. The panels "Floating Labels" in the sidebar of the Contact Form 7 block (also shown for a Shortcode block with the shortcode).
 
 == Changelog ==
 

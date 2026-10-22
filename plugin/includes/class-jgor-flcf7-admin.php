@@ -218,7 +218,7 @@ final class JGOR_FLCF7_Admin {
 		return '<p>' . esc_html__( 'The settings of this screen apply to every form. Override them per form, per placement or per field; later layers win.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p><strong>' . esc_html__( 'Per form', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add lines to the "Additional Settings" tab of the form:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_additional_settings() ) . '</code></pre>'
-			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages:', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages. The panels "Floating labels: colours", "Floating labels: sizes" and "Floating labels: animation" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_html_classes() ) . '</code></pre>'
 			. '<p><strong>' . esc_html__( 'Per field', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add the option nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_nofloat() ) . '</code></pre>';
@@ -258,12 +258,13 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
-	 * Example classes for the html_class attribute of a placement (concept 7.4).
+	 * Example classes for the html_class attribute and example design values
+	 * for the jgor_flcf7_design attribute of a placement (concept 7.4, 10.1).
 	 *
 	 * @return string Plain text.
 	 */
 	private function example_html_classes(): string {
-		return "jgor-flcf7-off  jgor-flcf7-on\njgor-flcf7-mode-placeholder  jgor-flcf7-mode-label\njgor-flcf7-style-outlined  jgor-flcf7-style-filled  jgor-flcf7-style-minimal\njgor-flcf7-marker-on  jgor-flcf7-marker-off\n\n[contact-form-7 id=\"123\" html_class=\"jgor-flcf7-style-filled\"]";
+		return "jgor-flcf7-off  jgor-flcf7-on\njgor-flcf7-mode-placeholder  jgor-flcf7-mode-label\njgor-flcf7-style-outlined  jgor-flcf7-style-filled  jgor-flcf7-style-minimal\njgor-flcf7-marker-on  jgor-flcf7-marker-off\n\n[contact-form-7 id=\"123\" html_class=\"jgor-flcf7-style-filled\"]\n[contact-form-7 id=\"123\" jgor_flcf7_design=\"border-color:#0a7d3e;font-size:1.1em\"]";
 	}
 
 	/**
@@ -659,7 +660,7 @@ final class JGOR_FLCF7_Admin {
 				$type    = JGOR_FLCF7_Settings::DESIGN_TYPES[ $key ];
 				?>
 				<p>
-					<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $this->design_label( $key ) ); ?></label><br>
+					<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( self::design_label( $key ) ); ?></label><br>
 					<?php if ( 'color' === $type ) : ?>
 						<input type="text" class="jgor-flcf7-color" id="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>"
 							<?php if ( str_starts_with( $default, '#' ) ) : ?>
@@ -725,7 +726,7 @@ final class JGOR_FLCF7_Admin {
 		<pre><code><?php echo esc_html( $this->example_additional_settings() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per placement', 'floating-labels-for-cf7' ); ?></strong><br>
-		<?php esc_html_e( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages:', 'floating-labels-for-cf7' ); ?></p>
+		<?php esc_html_e( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages. The panels "Floating labels: colours", "Floating labels: sizes" and "Floating labels: animation" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:', 'floating-labels-for-cf7' ); ?></p>
 		<pre><code><?php echo esc_html( $this->example_html_classes() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per field', 'floating-labels-for-cf7' ); ?></strong><br>
@@ -776,10 +777,12 @@ final class JGOR_FLCF7_Admin {
 	/**
 	 * Returns the human-readable label of a design property.
 	 *
+	 * Also used by module 5 for the panels of the block editor.
+	 *
 	 * @param string $key Property name without prefix.
 	 * @return string
 	 */
-	private function design_label( string $key ): string {
+	public static function design_label( string $key ): string {
 		$labels = array(
 			'label-color'             => __( 'Label', 'floating-labels-for-cf7' ),
 			'label-color-active'      => __( 'Label of the focused field', 'floating-labels-for-cf7' ),
