@@ -8,6 +8,12 @@
  * come from :focus, :placeholder-shown (the placeholder is a single space),
  * :autofill and the class .wpcf7-not-valid that Contact Form 7 sets.
  *
+ * Errors: the label floats as on focus, the validation tip of Contact Form 7
+ * sits inside the field on the text line (so the page does not reflow), and
+ * the submit button, wrapped in span.jgor-flcf7-submit by the plugin, turns
+ * into the error colour and shows the error text while the form carries the
+ * class "invalid".
+ *
  * Geometry: the control inherits the font of the form and gets the padding
  * from the custom properties; the label at rest sits on the first text line
  * of the control (same top offset, same line height), independent of the
@@ -36,6 +42,8 @@
 	--jgor-flcf7-background: #fff;
 	--jgor-flcf7-background-filled: rgba(0, 0, 0, 0.06);
 	--jgor-flcf7-duration: 0.15s;
+	--jgor-flcf7-submit-error-background: #dc3232;
+	--jgor-flcf7-submit-error-color: #fff;
 }
 
 /* ------------------------------------------------------------------
@@ -89,9 +97,33 @@
 	transform-origin: 100% 50%;
 }
 
-/* Contact Form 7 renders the validation tip behind the label; give it air. */
+/* The validation tip lives inside the field, on the text line of the
+ * control, so the page does not reflow: at the inline start while the field
+ * is empty (where the label rested), at the inline end once it holds a value. */
 .wpcf7 .jgor-flcf7-wrap .wpcf7-not-valid-tip {
-	margin-block-start: 0.25em;
+	position: absolute;
+	top: calc(var(--jgor-flcf7-padding-y) + var(--jgor-flcf7-border-width));
+	inset-inline-start: var(--jgor-flcf7-padding-x);
+	max-width: calc(100% - 2 * var(--jgor-flcf7-padding-x));
+	margin: 0;
+	padding: 0;
+	border: 0;
+	overflow: hidden;
+	font-size: var(--jgor-flcf7-label-size);
+	font-weight: inherit;
+	line-height: inherit;
+	color: var(--jgor-flcf7-label-color-error);
+	background: none;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	pointer-events: none;
+}
+
+.wpcf7 .jgor-flcf7-wrap .jgor-flcf7-control:not(:placeholder-shown) ~ .wpcf7-not-valid-tip {
+	inset-inline-start: auto;
+	inset-inline-end: var(--jgor-flcf7-padding-x);
+	max-width: 50%;
+	text-align: end;
 }
 
 /* ------------------------------------------------------------------
@@ -133,7 +165,9 @@
 }
 
 .wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control:focus + .jgor-flcf7-label,
-.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label {
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control.wpcf7-not-valid + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-outlined .jgor-flcf7-control[aria-invalid="true"] + .jgor-flcf7-label {
 	top: 0;
 	background-color: var(--jgor-flcf7-background);
 	transform: translateY(-50%) scale(var(--jgor-flcf7-label-scale));
@@ -169,12 +203,15 @@
 	border-color: var(--jgor-flcf7-border-color-error);
 }
 
-.wpcf7 .jgor-flcf7-filled .jgor-flcf7-label {
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-filled .wpcf7-not-valid-tip {
 	top: calc(var(--jgor-flcf7-padding-y) + 0.6em);
 }
 
 .wpcf7 .jgor-flcf7-filled .jgor-flcf7-control:focus + .jgor-flcf7-label,
-.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label {
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control.wpcf7-not-valid + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-filled .jgor-flcf7-control[aria-invalid="true"] + .jgor-flcf7-label {
 	top: 0.1em;
 	transform: scale(var(--jgor-flcf7-label-scale));
 }
@@ -193,8 +230,12 @@
 	padding-block-start: calc(var(--jgor-flcf7-label-size) * var(--jgor-flcf7-label-scale) * 1.6);
 }
 
-.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-label {
+.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-minimal .wpcf7-not-valid-tip {
 	top: calc(var(--jgor-flcf7-label-size) * var(--jgor-flcf7-label-scale) * 1.6 + var(--jgor-flcf7-padding-y) + var(--jgor-flcf7-border-width));
+}
+
+.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-label {
 	transform-origin: 0 0;
 }
 
@@ -203,7 +244,9 @@
 }
 
 .wpcf7 .jgor-flcf7-minimal .jgor-flcf7-control:focus + .jgor-flcf7-label,
-.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label {
+.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-control.wpcf7-not-valid + .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-minimal .jgor-flcf7-control[aria-invalid="true"] + .jgor-flcf7-label {
 	top: 0;
 	inset-inline-start: 0;
 	transform: scale(var(--jgor-flcf7-label-scale));
@@ -213,6 +256,64 @@
 	top: 0;
 	inset-inline-start: 0;
 	transform: scale(var(--jgor-flcf7-label-scale));
+}
+
+/* ------------------------------------------------------------------
+ * Submit button on validation errors
+ *
+ * The plugin wraps the submit input in span.jgor-flcf7-submit and adds
+ * span.jgor-flcf7-submit-error with the text from the settings. Contact
+ * Form 7 puts the class "invalid" on the form when validation fails and
+ * replaces it on the next attempt ("submitting", "sent", ...).
+ * ---------------------------------------------------------------- */
+
+/* Button and error text share one grid cell: the cell takes the wider of
+ * the two, so the button grows to fit the error text instead of clipping it. */
+.wpcf7 .jgor-flcf7-submit {
+	position: relative;
+	display: inline-grid;
+	grid-template-columns: minmax(0, auto);
+	max-width: 100%;
+}
+
+.wpcf7 .jgor-flcf7-submit > .wpcf7-submit,
+.wpcf7 .jgor-flcf7-submit > .jgor-flcf7-submit-error {
+	grid-area: 1 / 1;
+}
+
+/* Keep the spinner of Contact Form 7 out of the wrapper's box, so the
+ * error text is centred over the button alone. */
+.wpcf7 .jgor-flcf7-submit .wpcf7-spinner {
+	position: absolute;
+	top: 50%;
+	inset-inline-start: 100%;
+	margin: 0 0 0 24px;
+	transform: translateY(-50%);
+}
+
+.wpcf7 .jgor-flcf7-submit-error {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	padding: 0 1em;
+	font: inherit;
+	color: var(--jgor-flcf7-submit-error-color);
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.wpcf7 form.invalid .jgor-flcf7-submit > .wpcf7-submit {
+	width: 100%;
+	border-color: var(--jgor-flcf7-submit-error-background);
+	background-color: var(--jgor-flcf7-submit-error-background);
+	background-image: none;
+	color: transparent;
+	text-shadow: none;
+}
+
+.wpcf7 form.invalid .jgor-flcf7-submit .jgor-flcf7-submit-error {
+	display: flex;
 }
 
 /* ------------------------------------------------------------------

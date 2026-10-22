@@ -170,6 +170,7 @@ jgor_flcf7_check( 'A: textarea wrap marked', 1 === preg_match_all( '#jgor-flcf7-
 jgor_flcf7_check( 'A: ids from unit tag', (bool) preg_match( '#id="wpcf7-f' . $jgor_flcf7_id_a . '-o\d+-fl-your-name"#', $jgor_flcf7_a ) );
 jgor_flcf7_labels_match( $jgor_flcf7_a );
 jgor_flcf7_check( 'A: submit untouched', str_contains( $jgor_flcf7_a, '<input class="wpcf7-form-control wpcf7-submit has-spinner" type="submit" value="Submit">' ) );
+jgor_flcf7_check( 'A: submit wrapped with the default error text', (bool) preg_match( '#<span class="jgor-flcf7-submit"><input class="wpcf7-form-control wpcf7-submit has-spinner" type="submit" value="Submit"><span class="jgor-flcf7-submit-error" aria-hidden="true">Please check the highlighted fields</span></span>#', $jgor_flcf7_a ) );
 jgor_flcf7_check( 'A: aria attributes kept', str_contains( $jgor_flcf7_a, 'aria-required="true" aria-invalid="false"' ) );
 jgor_flcf7_check( 'A with floating_labels: placeholder -> untouched (no placeholders)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_a, true, 'floating_labels: placeholder' ), 'jgor-flcf7' ) );
 jgor_flcf7_check( 'A with filter jgor_flcf7_enabled=false -> untouched', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_a, false ), 'jgor-flcf7' ) );
@@ -260,6 +261,30 @@ add_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_f5 );
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b );
 jgor_flcf7_check( 'filter jgor_flcf7_form_settings with invalid values -> ignored', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-outlined#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-marker"' ) );
 remove_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_f5 );
+
+// Submit error text: filter, form settings filter and empty setting (colour only).
+$jgor_flcf7_f6 = function ( $text ) {
+	return 'Oops: ' . $text;
+};
+add_filter( 'jgor_flcf7_submit_error_text', $jgor_flcf7_f6 );
+jgor_flcf7_check( 'filter jgor_flcf7_submit_error_text applied', str_contains( jgor_flcf7_render( $jgor_flcf7_id_b ), '<span class="jgor-flcf7-submit-error" aria-hidden="true">Oops: Please check the highlighted fields</span>' ) );
+remove_filter( 'jgor_flcf7_submit_error_text', $jgor_flcf7_f6 );
+$jgor_flcf7_f7 = function ( $settings ) {
+	$settings['submit_error_text'] = '';
+	return $settings;
+};
+add_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_f7 );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b );
+jgor_flcf7_check( 'empty submit error text -> wrapper without error span', (bool) preg_match( '#<span class="jgor-flcf7-submit"><input[^>]*type="submit"[^>]*></span>#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-submit-error' ) );
+remove_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_f7 );
+$jgor_flcf7_option                      = get_option( 'jgor_flcf7_settings' );
+$jgor_flcf7_option['submit_error_text'] = '  <b>Check</b> again  ';
+update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
+JGOR_FLCF7_Settings::instance()->reset_cache();
+jgor_flcf7_check( 'submit error text from the option is sanitized', str_contains( jgor_flcf7_render( $jgor_flcf7_id_b ), '>Check again</span>' ) );
+delete_option( 'jgor_flcf7_settings' );
+JGOR_FLCF7_Settings::instance()->ensure_option();
+JGOR_FLCF7_Settings::instance()->reset_cache();
 
 // Filter jgor_flcf7_label_text.
 $jgor_flcf7_f1 = function ( $text, $name ) {

@@ -147,7 +147,7 @@ foreach ( $jgor_flcf7_fields as $jgor_flcf7_section_fields ) {
 sort( $jgor_flcf7_field_ids );
 jgor_flcf7_check(
 	'fields: one field per setting key',
-	array( 'jgor_flcf7_load_css', 'jgor_flcf7_mode_label', 'jgor_flcf7_mode_placeholder', 'jgor_flcf7_required_marker', 'jgor_flcf7_style', 'jgor_flcf7_types' ) === $jgor_flcf7_field_ids,
+	array( 'jgor_flcf7_load_css', 'jgor_flcf7_mode_label', 'jgor_flcf7_mode_placeholder', 'jgor_flcf7_required_marker', 'jgor_flcf7_style', 'jgor_flcf7_submit_error_text', 'jgor_flcf7_types' ) === $jgor_flcf7_field_ids,
 	implode( ', ', $jgor_flcf7_field_ids )
 );
 
@@ -160,12 +160,13 @@ jgor_flcf7_check( 'page: both mode checkboxes checked by default', (bool) preg_m
 jgor_flcf7_check( 'page: 6 type checkboxes, all checked', 6 === preg_match_all( '#name="jgor_flcf7_settings\[types\]\[\]"[^>]*checked#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: textarea type label', str_contains( $jgor_flcf7_html, 'Text area (textarea)' ) );
 jgor_flcf7_check( 'page: outlined radio checked, 3 radios', 3 === preg_match_all( '#type="radio"[^>]*name="jgor_flcf7_settings\[style\]"#s', $jgor_flcf7_html ) && (bool) preg_match( '#value="outlined"[^>]*name="jgor_flcf7_settings\[style\]"[^>]*checked#s', $jgor_flcf7_html ) );
+jgor_flcf7_check( 'page: submit error text input with the default', (bool) preg_match( '#<input type="text" class="regular-text" id="jgor-flcf7-submit-error-text" value="Please check the highlighted fields"\s+name="jgor_flcf7_settings\[submit_error_text\]"#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: load_css checked, required_marker unchecked', (bool) preg_match( '#name="jgor_flcf7_settings\[load_css\]"[^>]*checked#s', $jgor_flcf7_html ) && ! preg_match( '#name="jgor_flcf7_settings\[required_marker\]"[^>]*checked#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: no disabled controls and no locked notice by default', ! str_contains( $jgor_flcf7_html, 'disabled=' ) && ! str_contains( $jgor_flcf7_html, 'fixed in code' ) );
 jgor_flcf7_check( 'page: label ids match for attributes', (bool) preg_match( '#<label for="jgor-flcf7-mode-label">\s*<input type="checkbox" id="jgor-flcf7-mode-label"#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: control examples escaped', str_contains( $jgor_flcf7_html, 'nofloat placeholder &quot;Your name&quot;]' ) && str_contains( $jgor_flcf7_html, 'html_class=&quot;jgor-flcf7-style-filled&quot;' ) && str_contains( $jgor_flcf7_html, 'floating_labels_types: text email textarea' ) );
 jgor_flcf7_check( 'page: description with <label> escaped', str_contains( $jgor_flcf7_html, 'The &lt;label&gt; that encloses the field' ) );
-jgor_flcf7_check( 'page: css snippet in a readonly textarea', (bool) preg_match( '#<textarea id="jgor-flcf7-css-snippet"[^>]*readonly>\.wpcf7 \{\n\t--jgor-flcf7-padding-x: 0\.75em;\n#s', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, "\t--jgor-flcf7-duration: 0.15s;\n}</textarea>" ) );
+jgor_flcf7_check( 'page: css snippet in a readonly textarea', (bool) preg_match( '#<textarea id="jgor-flcf7-css-snippet"[^>]*readonly>\.wpcf7 \{\n\t--jgor-flcf7-padding-x: 0\.75em;\n#s', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, "\t--jgor-flcf7-submit-error-color: #fff;\n}</textarea>" ) );
 jgor_flcf7_check( 'page: no settings-saved notice without the flag', ! str_contains( $jgor_flcf7_html, 'Settings saved.' ) );
 
 // Settings fixed in code: disabled controls without name attributes.

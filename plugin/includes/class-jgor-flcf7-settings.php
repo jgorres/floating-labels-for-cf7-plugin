@@ -50,6 +50,19 @@ final class JGOR_FLCF7_Settings {
 	public const STYLES = array( 'outlined', 'filled', 'minimal' );
 
 	/**
+	 * Default text shown on the submit button while the form has errors.
+	 *
+	 * Stored untranslated; the markup module translates it at render time as
+	 * long as the stored value still equals this default.
+	 */
+	public const DEFAULT_SUBMIT_ERROR_TEXT = 'Please check the highlighted fields';
+
+	/**
+	 * Maximum length of the submit error text.
+	 */
+	private const SUBMIT_ERROR_TEXT_MAX = 200;
+
+	/**
 	 * Single instance.
 	 *
 	 * @var JGOR_FLCF7_Settings|null
@@ -137,12 +150,13 @@ final class JGOR_FLCF7_Settings {
 	 */
 	public function defaults(): array {
 		return array(
-			'mode_placeholder' => true,
-			'mode_label'       => true,
-			'types'            => array_values( array_intersect( self::BASE_TYPES, $this->field_types() ) ),
-			'style'            => 'outlined',
-			'load_css'         => true,
-			'required_marker'  => false,
+			'mode_placeholder'  => true,
+			'mode_label'        => true,
+			'types'             => array_values( array_intersect( self::BASE_TYPES, $this->field_types() ) ),
+			'style'             => 'outlined',
+			'load_css'          => true,
+			'required_marker'   => false,
+			'submit_error_text' => self::DEFAULT_SUBMIT_ERROR_TEXT,
 		);
 	}
 
@@ -317,6 +331,9 @@ final class JGOR_FLCF7_Settings {
 
 			case 'style':
 				return $this->sanitize_choice( $raw, self::STYLES, $fallback );
+
+			case 'submit_error_text':
+				return $this->sanitize_text( $raw );
 		}
 
 		if ( is_bool( $fallback ) ) {
@@ -358,6 +375,23 @@ final class JGOR_FLCF7_Settings {
 		$raw = is_string( $raw ) ? sanitize_key( $raw ) : '';
 
 		return in_array( $raw, $allowed, true ) ? $raw : (string) $fallback;
+	}
+
+	/**
+	 * Sanitizes a free text setting: plain text, trimmed, limited in length.
+	 *
+	 * An empty string is a valid choice (the submit button only changes
+	 * colour on errors).
+	 *
+	 * @param mixed $raw Raw value.
+	 * @return string
+	 */
+	private function sanitize_text( $raw ): string {
+		if ( ! is_string( $raw ) ) {
+			return '';
+		}
+
+		return mb_substr( sanitize_text_field( $raw ), 0, self::SUBMIT_ERROR_TEXT_MAX );
 	}
 
 	/**

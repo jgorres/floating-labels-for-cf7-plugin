@@ -55,21 +55,23 @@ final class JGOR_FLCF7_Admin {
 	 * @var array<string, string>
 	 */
 	public const CSS_PROPERTIES = array(
-		'--jgor-flcf7-padding-x'           => '0.75em',
-		'--jgor-flcf7-padding-y'           => '0.75em',
-		'--jgor-flcf7-label-color'         => '#5f6368',
-		'--jgor-flcf7-label-color-active'  => '#1a73e8',
-		'--jgor-flcf7-label-color-error'   => '#dc3232',
-		'--jgor-flcf7-label-size'          => '1em',
-		'--jgor-flcf7-label-scale'         => '0.75',
-		'--jgor-flcf7-border-width'        => '1px',
-		'--jgor-flcf7-border-color'        => '#80868b',
-		'--jgor-flcf7-border-color-active' => '#1a73e8',
-		'--jgor-flcf7-border-color-error'  => '#dc3232',
-		'--jgor-flcf7-radius'              => '4px',
-		'--jgor-flcf7-background'          => '#fff',
-		'--jgor-flcf7-background-filled'   => 'rgba(0, 0, 0, 0.06)',
-		'--jgor-flcf7-duration'            => '0.15s',
+		'--jgor-flcf7-padding-x'               => '0.75em',
+		'--jgor-flcf7-padding-y'               => '0.75em',
+		'--jgor-flcf7-label-color'             => '#5f6368',
+		'--jgor-flcf7-label-color-active'      => '#1a73e8',
+		'--jgor-flcf7-label-color-error'       => '#dc3232',
+		'--jgor-flcf7-label-size'              => '1em',
+		'--jgor-flcf7-label-scale'             => '0.75',
+		'--jgor-flcf7-border-width'            => '1px',
+		'--jgor-flcf7-border-color'            => '#80868b',
+		'--jgor-flcf7-border-color-active'     => '#1a73e8',
+		'--jgor-flcf7-border-color-error'      => '#dc3232',
+		'--jgor-flcf7-radius'                  => '4px',
+		'--jgor-flcf7-background'              => '#fff',
+		'--jgor-flcf7-background-filled'       => 'rgba(0, 0, 0, 0.06)',
+		'--jgor-flcf7-duration'                => '0.15s',
+		'--jgor-flcf7-submit-error-background' => '#dc3232',
+		'--jgor-flcf7-submit-error-color'      => '#fff',
 	);
 
 	/**
@@ -319,6 +321,7 @@ final class JGOR_FLCF7_Admin {
 		add_settings_field( 'jgor_flcf7_style', __( 'Variant', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', array( 'key' => 'style' ) );
 		add_settings_field( 'jgor_flcf7_load_css', __( 'Stylesheet', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', $this->field_args( 'load_css' ) );
 		add_settings_field( 'jgor_flcf7_required_marker', __( 'Required fields', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', $this->field_args( 'required_marker' ) );
+		add_settings_field( 'jgor_flcf7_submit_error_text', __( 'Submit button on errors', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', $this->field_args( 'submit_error_text' ) );
 
 		add_settings_section( 'jgor_flcf7_controls', __( 'Per form, per placement, per field', 'floating-labels-for-cf7' ), array( $this, 'render_controls' ), $page );
 		add_settings_section( 'jgor_flcf7_design', __( 'Design: CSS custom properties', 'floating-labels-for-cf7' ), array( $this, 'render_design' ), $page );
@@ -442,7 +445,35 @@ final class JGOR_FLCF7_Admin {
 					__( 'Shown through CSS behind the label of fields with aria-required="true".', 'floating-labels-for-cf7' )
 				);
 				break;
+
+			case 'submit_error_text':
+				$this->render_text(
+					$key,
+					__( 'Shown on the submit button, in the error colour, while the form has validation errors; the label of each invalid field floats up and the message appears inside the field. Leave empty to change only the colour of the button.', 'floating-labels-for-cf7' )
+				);
+				break;
 		}
+	}
+
+	/**
+	 * Renders a single-line text input for a string setting.
+	 *
+	 * @param string $key         Setting key.
+	 * @param string $description Description below the input.
+	 * @return void
+	 */
+	private function render_text( string $key, string $description ): void {
+		$locked = $this->settings->is_locked( $key );
+		$id     = $this->field_id( $key );
+		$value  = $this->settings->get( $key );
+		$value  = is_string( $value ) ? $value : '';
+		?>
+		<input type="text" class="regular-text" id="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>"
+			<?php $this->print_name( $this->field_name( $key ), $locked ); ?>
+			<?php disabled( $locked ); ?>>
+		<p class="description"><?php echo esc_html( $description ); ?></p>
+		<?php
+		$this->render_locked_note( $locked );
 	}
 
 	/**

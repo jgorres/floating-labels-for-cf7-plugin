@@ -12,7 +12,12 @@
  *
  * What applies to one rendering is decided in layers, see form_settings():
  * the plugin settings, the additional settings of the form, the classes in
- * the html_class attribute of the shortcode or block, and two filters.
+ * the html_class attribute of the shortcode or block, and filters.
+ *
+ * When at least one field was rebuilt, the submit button is wrapped in a
+ * span.jgor-flcf7-submit (the input itself stays untouched) so the
+ * stylesheet can colour it and lay an error text over it while the form
+ * carries the class "invalid" that Contact Form 7 sets on validation errors.
  *
  * Nothing else changes: fields the module does not recognise keep their
  * markup, and when the rebuild fails at any point the original HTML is
@@ -58,6 +63,16 @@ final class JGOR_FLCF7_Markup {
 	 * Class added to the wrap when the required marker is on.
 	 */
 	public const MARKER_CLASS = 'jgor-flcf7-marker';
+
+	/**
+	 * Class of the span that wraps the submit button.
+	 */
+	public const SUBMIT_CLASS = 'jgor-flcf7-submit';
+
+	/**
+	 * Class of the span with the error text laid over the submit button.
+	 */
+	public const SUBMIT_ERROR_CLASS = 'jgor-flcf7-submit-error';
 
 	/**
 	 * Prefix of the html_class classes that pick a variant for one placement
@@ -161,24 +176,31 @@ final class JGOR_FLCF7_Markup {
 	 * floating_labels_types); the classes in the html_class attribute of the
 	 * shortcode or block (jgor-flcf7-off, jgor-flcf7-on, jgor-flcf7-mode-*,
 	 * jgor-flcf7-style-*, jgor-flcf7-marker-on, jgor-flcf7-marker-off); the
-	 * filter jgor_flcf7_form_settings; the filter jgor_flcf7_enabled. Returns
-	 * null when the form is skipped: disabled, no mode active or no field
-	 * type allowed.
+	 * filter jgor_flcf7_form_settings; the filters jgor_flcf7_enabled and
+	 * jgor_flcf7_submit_error_text. Returns null when the form is skipped:
+	 * disabled, no mode active or no field type allowed.
 	 *
 	 * @param WPCF7_ContactForm $form The contact form being rendered.
-	 * @return array{placeholder: bool, label: bool, types: string[], style: string, marker: bool}|null
+	 * @return array{placeholder: bool, label: bool, types: string[], style: string, marker: bool, submit_error: string}|null
 	 */
 	private function form_settings( WPCF7_ContactForm $form ): ?array {
 		$known = $this->settings->field_types();
 		$types = $this->settings->get( 'types' );
 
+		$submit_error = $this->settings->get( 'submit_error_text' );
+		$submit_error = is_string( $submit_error ) ? $submit_error : '';
+		if ( JGOR_FLCF7_Settings::DEFAULT_SUBMIT_ERROR_TEXT === $submit_error ) {
+			$submit_error = __( 'Please check the highlighted fields', 'floating-labels-for-cf7' );
+		}
+
 		$current = array(
-			'enabled'          => true,
-			'mode_placeholder' => (bool) $this->settings->get( 'mode_placeholder' ),
-			'mode_label'       => (bool) $this->settings->get( 'mode_label' ),
-			'types'            => is_array( $types ) ? array_values( array_intersect( $known, $types ) ) : array(),
-			'style'            => (string) $this->settings->get( 'style' ),
-			'required_marker'  => (bool) $this->settings->get( 'required_marker' ),
+			'enabled'           => true,
+			'mode_placeholder'  => (bool) $this->settings->get( 'mode_placeholder' ),
+			'mode_label'        => (bool) $this->settings->get( 'mode_label' ),
+			'types'             => is_array( $types ) ? array_values( array_intersect( $known, $types ) ) : array(),
+			'style'             => (string) $this->settings->get( 'style' ),
+			'required_marker'   => (bool) $this->settings->get( 'required_marker' ),
+			'submit_error_text' => $submit_error,
 		);
 
 		$current = $this->apply_additional_settings( $form, $current, $known );
@@ -191,7 +213,8 @@ final class JGOR_FLCF7_Markup {
 		 * the shortcode or block have been read. Keys: enabled (bool),
 		 * mode_placeholder (bool), mode_label (bool), types (string[] of
 		 * Contact Form 7 base types), style ("outlined", "filled" or
-		 * "minimal") and required_marker (bool). Invalid values are ignored.
+		 * "minimal"), required_marker (bool) and submit_error_text (string,
+		 * empty for colour only). Invalid values are ignored.
 		 *
 		 * @param array<string, mixed> $settings     Effective settings for this rendering.
 		 * @param WPCF7_ContactForm    $contact_form The contact form being rendered.
@@ -217,12 +240,24 @@ final class JGOR_FLCF7_Markup {
 			return null;
 		}
 
+		/**
+		 * Filters the text shown on the submit button while the form has
+		 * validation errors.
+		 *
+		 * Return an empty string to change only the colour of the button.
+		 *
+		 * @param string            $text         Text from the settings, translated while it is the default.
+		 * @param WPCF7_ContactForm $contact_form The contact form being rendered.
+		 */
+		$submit_error = apply_filters( 'jgor_flcf7_submit_error_text', $current['submit_error_text'], $form );
+
 		return array(
-			'placeholder' => $current['mode_placeholder'],
-			'label'       => $current['mode_label'],
-			'types'       => $current['types'],
-			'style'       => $current['style'],
-			'marker'      => $current['required_marker'],
+			'placeholder'  => $current['mode_placeholder'],
+			'label'        => $current['mode_label'],
+			'types'        => $current['types'],
+			'style'        => $current['style'],
+			'marker'       => $current['required_marker'],
+			'submit_error' => is_string( $submit_error ) ? sanitize_text_field( $submit_error ) : '',
 		);
 	}
 
@@ -396,6 +431,10 @@ final class JGOR_FLCF7_Markup {
 			$current['types'] = array_values( array_intersect( $known, $wanted ) );
 		}
 
+		if ( isset( $filtered['submit_error_text'] ) && is_string( $filtered['submit_error_text'] ) ) {
+			$current['submit_error_text'] = sanitize_text_field( $filtered['submit_error_text'] );
+		}
+
 		return $current;
 	}
 
@@ -516,7 +555,7 @@ final class JGOR_FLCF7_Markup {
 	 * @param array<string, mixed>  $config Settings for this rendering, see form_settings().
 	 * @return string|null Rebuilt HTML, or null when nothing changed or parsing failed.
 	 *
-	 * @phpstan-param array{placeholder: bool, label: bool, types: string[], style: string, marker: bool} $config
+	 * @phpstan-param array{placeholder: bool, label: bool, types: string[], style: string, marker: bool, submit_error: string} $config
 	 */
 	private function rebuild( string $html, WPCF7_ContactForm $form, array $fields, array $config ): ?string {
 		$loaded = $this->load( $html );
@@ -615,7 +654,57 @@ final class JGOR_FLCF7_Markup {
 			return null;
 		}
 
+		$this->wrap_submit( $dom, $xpath, $root, $config['submit_error'] );
+
 		return $this->save( $dom, $root );
+	}
+
+	/**
+	 * Wraps the submit button(s) so the stylesheet can mark them on errors.
+	 *
+	 * The input itself stays untouched. It moves into a span.jgor-flcf7-submit;
+	 * when a text is set, a span.jgor-flcf7-submit-error with that text follows
+	 * it, and the stylesheet lays the text over the button while the form
+	 * carries the class "invalid" that Contact Form 7 sets on validation
+	 * errors (by its script and, without Ajax, on the server).
+	 *
+	 * @param DOMDocument $dom   Document.
+	 * @param DOMXPath    $xpath XPath on the document.
+	 * @param DOMElement  $root  Wrapper element of the fragment.
+	 * @param string      $text  Error text; empty changes only the colour.
+	 * @return void
+	 */
+	private function wrap_submit( DOMDocument $dom, DOMXPath $xpath, DOMElement $root, string $text ): void {
+		$submits = $xpath->query( './/input[@type="submit"][contains(concat(" ", normalize-space(@class), " "), " wpcf7-submit ")]', $root );
+		if ( false === $submits ) {
+			return;
+		}
+
+		foreach ( iterator_to_array( $submits ) as $submit ) {
+			if ( ! $submit instanceof DOMElement ) {
+				continue;
+			}
+
+			$parent = $submit->parentNode;
+			if ( ! $parent instanceof DOMElement || $this->has_class( $parent, self::SUBMIT_CLASS ) ) {
+				continue;
+			}
+
+			$wrap = $dom->createElement( 'span' );
+			$wrap->setAttribute( 'class', self::SUBMIT_CLASS );
+			$parent->insertBefore( $wrap, $submit );
+			$wrap->appendChild( $submit );
+
+			if ( '' === $text ) {
+				continue;
+			}
+
+			$error = $dom->createElement( 'span' );
+			$error->setAttribute( 'class', self::SUBMIT_ERROR_CLASS );
+			$error->setAttribute( 'aria-hidden', 'true' );
+			$error->appendChild( $dom->createTextNode( $text ) );
+			$wrap->appendChild( $error );
+		}
 	}
 
 	/**

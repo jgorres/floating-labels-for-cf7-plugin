@@ -23,6 +23,7 @@ Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server
 * Three variants: Outlined (label floats onto the border), Filled (tinted box) and Minimal (your theme styles the field, the label floats above it).
 * Pure CSS: focus, filled, autofill and error states come from CSS pseudo-classes. No JavaScript, no inline styles, Content Security Policy friendly.
 * Accessible: every rebuilt field gets a real `<label for>` with a matching `id`; the placeholder is replaced so screen readers do not hear two names. Contact Form 7's `aria-*` attributes stay untouched.
+* Clear error state: the label of an invalid field floats up in the error colour, Contact Form 7's message appears inside the field (no layout jump), and the submit button turns red with a text of your choice until the next attempt.
 * Control at every level: for the whole site, per form, per placement (page) and per field.
 * Theme friendly: colours, sizes and timing are CSS custom properties; the settings screen gives you the snippet to copy.
 * Lightweight: one option, one stylesheet, no database tables, no cron, no external requests, no tracking.
@@ -95,7 +96,7 @@ Contact Form 7 is a trademark of Rock Lobster, Inc. This plugin is an independen
 1. Install and activate Contact Form 7.
 2. Upload the plugin folder to `wp-content/plugins/` or install the ZIP via Plugins > Add New > Upload Plugin.
 3. Activate the plugin under Plugins.
-4. Open Contact > Floating Labels to choose the variant and the field types. The defaults work out of the box: every text-like field of every form gets a floating label.
+4. Open Contact > Floating Labels to choose the variant, the field types and the text of the submit button on errors. The defaults work out of the box: every text-like field of every form gets a floating label.
 
 == Frequently Asked Questions ==
 
@@ -125,7 +126,7 @@ No. All states are CSS. The plugin adds one stylesheet, loaded after the Contact
 
 = What happens on validation errors? =
 
-Contact Form 7 marks the field; the label and the border turn red and the validation message appears below the field as usual.
+Contact Form 7 marks the field; the label floats up and turns red together with the border, and the validation message appears inside the field, where the label rested, so the page does not jump. The submit button turns red and shows the text from the settings ("Please check the highlighted fields" by default; leave it empty to change only the colour) until the form is sent again.
 
 = Why does the label of a textarea sit on the first line? =
 
