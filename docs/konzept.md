@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 1.3 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–3 umgesetzt, Modul 4 folgt)
+Version: 1.4 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–3 umgesetzt, Modul 4 folgt)
 
 ## 1. Zweck
 
@@ -452,6 +452,13 @@ oder Inline-CSS bräuchte.
   Pflichtfeld-Stern. Kurzer Hinweistext mit den drei Steuerwegen (`nofloat`
   vor den Werten in Anführungszeichen, `floating_labels: off`, Custom
   Properties) und den Filtern.
+- Abschnitt „Design“: keine Eingabefelder für Farben und Maße. Stattdessen
+  ein schreibgeschützter Codeblock mit dem CSS-Snippet aus 8 (Selektor
+  `.wpcf7`, alle Custom Properties mit ihren Defaults) zum Kopieren in
+  Customizer → Zusätzliches CSS, Child-Theme, GeneratePress Element oder
+  `theme.json`. So bleiben Theme-Werte an einer Stelle, das Plugin gibt kein
+  Inline-CSS aus und braucht keine weiteren Optionswerte. Eingabefelder sind
+  für 1.1 vorgemerkt (14).
 - Aus Code gesperrte Werte (`is_locked()` / `locked_keys()` der
   Settings-Klasse) erscheinen `disabled` ohne `name`-Attribut und mit
   Hinweis; sie werden nicht übertragen, `sanitize()` setzt für sie den
@@ -574,6 +581,12 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   ein Filter für HTML-Inhalt kommt nur bei Bedarf.
 - `jgor-flcf7-textarea` ohne eigene CSS-Regel (8); bleibt als Haken für
   Themes und eine spätere Textarea-Optik.
+- Design-Einstellungen in der Oberfläche (Erweiterung 1.1): Abschnitt
+  „Design“ mit Feldern für Farben (`sanitize_hex_color()`) und Maße (Zahl
+  plus Einheiten-Whitelist `px`, `em`, `rem`, `%`, `s`), Ausgabe nur der vom
+  Default abweichenden Properties per `wp_add_inline_style( 'jgor-flcf7',
+  … )` am vorhandenen Handle. Kostet die strikte CSP-Tauglichkeit für Styles
+  ohne `'unsafe-inline'`; darum abschaltbar („Design-Werte ausgeben“).
 - CF7-Formularklasse `use-floating-validation-tip` (absolut positionierte
   Fehlertips) mit dem Wrap abstimmen, sobald ein Fall auftaucht.
 - Umstieg von DOMDocument auf `WP_HTML_Processor`, sobald der Core das
@@ -587,3 +600,4 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 | 1.1 | 22.10.2026 | Testumgebung: GitHub-Repo (privat), lokale Site `floating-labels-for-cf7.gorres.local`, Hostsharing-Site `<hs-testsite>` (<hs-admin>, DB `<hs-db>`, PHP 8.4); CF7 6.2.3 verlangt WordPress 7.1 und PHP 8.3 |
 | 1.2 | 22.10.2026 | Gerüst umgesetzt (Commit 4a1c2c2): Hauptdatei, Bootstrap, Settings mit Filtern `jgor_flcf7_settings` und `jgor_flcf7_field_types`, Uninstall, CF7-Stubs; Entscheidung: `Requires at least` 6.5 und `Requires PHP` 8.1 bleiben |
 | 1.3 | 22.10.2026 | Module 2 und 3 umgesetzt (Commits 124beaa, aac696a, 756f4c1), Konzept an den Code angeglichen: Form-Tag-Syntax (`nofloat` vor Werten in Anführungszeichen), Werte von `floating_labels`, Prüfregeln je Wrap, ID-Eindeutigkeit, Wrap-Klassen `jgor-flcf7-textarea` und `jgor-flcf7-marker`, CSS-Geometrie (Label auf der ersten Textzeile, Floaten per `scale()`, Properties `--jgor-flcf7-padding-y`, `-border-width`, `-background-filled`, `-label-scale` statt `-label-size-floated`), Sperr-Definition des Filters `jgor_flcf7_settings` (9.1), Prüfscripte in `tests/`, Verzeichnisbaum |
+| 1.4 | 22.10.2026 | Entscheidung Design-Werte: 1.0 ohne Eingabefelder, die Einstellungsseite zeigt das CSS-Snippet mit allen Custom Properties (9); Eingabefelder mit `wp_add_inline_style()` als Erweiterung 1.1 vorgemerkt (14) |
