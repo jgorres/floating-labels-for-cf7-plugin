@@ -40,6 +40,30 @@
 		</properties>
 	</rule>
 
+	<!-- Properties of the PHP DOM extension (DOMDocument, DOMNode, DOMElement)
+	     are camelCase by PHP's design; module 2 works with them. -->
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<properties>
+			<property name="allowed_custom_properties" type="array">
+				<element value="childNodes"/>
+				<element value="documentElement"/>
+				<element value="firstChild"/>
+				<element value="formatOutput"/>
+				<element value="lastChild"/>
+				<element value="nextSibling"/>
+				<element value="nodeName"/>
+				<element value="nodeType"/>
+				<element value="nodeValue"/>
+				<element value="ownerDocument"/>
+				<element value="parentNode"/>
+				<element value="preserveWhiteSpace"/>
+				<element value="previousSibling"/>
+				<element value="tagName"/>
+				<element value="textContent"/>
+			</property>
+		</properties>
+	</rule>
+
 	<!-- Text domain check: plugin slug -->
 	<rule ref="WordPress.WP.I18n">
 		<properties>

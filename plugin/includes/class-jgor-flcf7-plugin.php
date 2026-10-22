@@ -76,8 +76,14 @@ final class JGOR_FLCF7_Plugin {
 			return;
 		}
 
-		// Modules 2 (markup), 3 (CSS) and 4 (settings screen) are started
-		// here as they are implemented; each receives JGOR_FLCF7_Settings.
+		$settings = JGOR_FLCF7_Settings::instance();
+
+		// Module 2: markup rebuild. Runs on the front end and in the admin
+		// alike, because Contact Form 7 renders previews in the admin too.
+		( new JGOR_FLCF7_Markup( $settings ) )->init();
+
+		// Modules 3 (CSS) and 4 (settings screen) are started here as they
+		// are implemented; each receives $settings.
 	}
 
 	/**
