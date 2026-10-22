@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 1.7 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–4 umgesetzt, Release-Vorbereitung läuft)
+Version: 1.8 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–4 umgesetzt, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -79,8 +79,8 @@ floating-labels-for-cf7/
 │   └── languages/floating-labels-for-cf7.pot  Übersetzungsvorlage (wp i18n make-pot)
 ├── tests/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
-│   ├── verify-markup.php             58 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
-│   └── verify-admin.php              39 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
+│   ├── verify-markup.php             62 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
+│   └── verify-admin.php              40 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
 ├── docs/
 │   ├── konzept.md                    dieses Dokument
 │   ├── assets-erzeugen.py            Icon (SVG und APNG) und Banner (APNG), Pillow
@@ -106,10 +106,14 @@ und kommt nicht ins Release-ZIP; die Scripte laufen nur unter WP-CLI
   rendert. Schlägt der Umbau fehl oder ändert er kein Feld, geht das
   Original-HTML unverändert raus.
 - **Kein JavaScript:** Zustände über `:focus`, `:placeholder-shown`,
-  `:autofill`, `.wpcf7-not-valid` / `[aria-invalid="true"]` und
-  `[aria-required]`. CF7 setzt nach dem Versand `form.reset()`, dadurch
-  sinken die Labels von selbst zurück. Das CSS enthält keine Inline-Anteile,
-  das Plugin ist CSP-tauglich.
+  `:autofill`, `.wpcf7-not-valid` / `[aria-invalid="true"]`,
+  `[aria-required]` und die Formularklasse `invalid`. CF7 setzt nach dem
+  Versand `form.reset()`, dadurch sinken die Labels von selbst zurück. Das
+  CSS enthält keine Inline-Anteile, das Plugin ist CSP-tauglich.
+- **Fehlerfall ohne Springen:** Bei Validierungsfehlern floatet das Label
+  des Feldes in der Fehlerfarbe nach oben, der CF7-Hinweis sitzt im Feld auf
+  der Textzeile, und der Senden-Button wechselt Farbe und Text (8). Der
+  Seitenfluss bleibt unverändert.
 - **Zugänglichkeit:** Jedes umgebaute Feld bekommt ein echtes `<label for>`
   mit passender `id`. Der Placeholder wird zu einem Leerzeichen, damit
   Screenreader nicht zwei Namen vorlesen. CF7-Attribute (`aria-required`,
@@ -218,6 +222,7 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
 | `style` | string | `outlined` | `outlined`, `filled`, `minimal` |
 | `load_css` | bool | true | Plugin-CSS einbinden |
 | `required_marker` | bool | false | Stern hinter dem Label bei `aria-required` (Klasse `jgor-flcf7-marker` am Wrap) |
+| `submit_error_text` | string | `Please check the highlighted fields` | Text auf dem Senden-Button bei Validierungsfehlern; leer = nur Farbwechsel. Konstante `DEFAULT_SUBMIT_ERROR_TEXT`, unübersetzt gespeichert und beim Rendern übersetzt, solange der Wert dem Default entspricht; `sanitize_text_field()`, höchstens 200 Zeichen |
 
 - Filter `jgor_flcf7_field_types`: Liste der wählbaren Basistypen (Ausgang
   `BASE_TYPES`, Ergebnis per `sanitize_key()` bereinigt, ungültiges Ergebnis
@@ -263,7 +268,13 @@ das Frontend begrenzt. Ablauf je Formular:
    einem Leerzeichen zusammengezogen und getrimmt.
 6. Umbau (7.6) mit der wirksamen Variante und dem wirksamen Pflichtstern.
    Wurde kein Feld geändert, geht das Original-HTML zurück (keine
-   Neu-Serialisierung); sonst zurück zu HTML.
+   Neu-Serialisierung). Sonst wird jeder Senden-Button
+   (`input[type="submit"].wpcf7-submit`) in `<span
+   class="jgor-flcf7-submit">` gehüllt, dahinter steht `<span
+   class="jgor-flcf7-submit-error" aria-hidden="true">` mit dem wirksamen
+   Fehlertext (entfällt bei leerem Text); das `input` selbst bleibt
+   unverändert, CF7s Spinner und Deaktivieren funktionieren weiter. Dann
+   zurück zu HTML.
 
 ### 7.1 Placeholder-Modus
 
@@ -349,10 +360,13 @@ Schicht übersteuert die frühere, ungültige Werte werden ignoriert:
    anwenden.
 4. **Filter `jgor_flcf7_form_settings`** (`$settings`, `$contact_form`):
    erhält das Array `enabled`, `mode_placeholder`, `mode_label`, `types`,
-   `style`, `required_marker` nach den Schichten 1–3 und gibt es zurück;
-   nur bekannte Schlüssel mit gültigen Werten werden übernommen.
+   `style`, `required_marker`, `submit_error_text` nach den Schichten 1–3
+   und gibt es zurück; nur bekannte Schlüssel mit gültigen Werten werden
+   übernommen.
 5. **Filter `jgor_flcf7_enabled`** (`$enabled`, `$contact_form`): läuft
-   zuletzt, schaltet in beide Richtungen.
+   danach, schaltet in beide Richtungen. **Filter
+   `jgor_flcf7_submit_error_text`** (`$text`, `$contact_form`): zuletzt,
+   für den Text des Senden-Buttons; leer = nur Farbwechsel.
 6. **Je Feld:** Form-Tag-Option `nofloat`, vor den Werten in
    Anführungszeichen (5): `[text* your-name nofloat placeholder "Your
    name"]`. Außerdem fallen heraus: Feldtypen außerhalb der wirksamen
@@ -399,6 +413,15 @@ kann der Umbau darauf wechseln (Abschnitt 14).
 </span>
 ```
 
+Der Senden-Button nach dem Umbau:
+
+```html
+<span class="jgor-flcf7-submit">
+  <input class="wpcf7-form-control wpcf7-submit has-spinner" type="submit" value="Send">
+  <span class="jgor-flcf7-submit-error" aria-hidden="true">Please check the highlighted fields</span>
+</span>
+```
+
 Das Label steht direkt hinter dem Steuerelement, damit reine
 Geschwister-Selektoren reichen (`.jgor-flcf7-control:focus + .jgor-flcf7-label`,
 `.jgor-flcf7-control:not(:placeholder-shown) + .jgor-flcf7-label`). Ein
@@ -440,6 +463,8 @@ oder Inline-CSS bräuchte.
 | `--jgor-flcf7-background` | `#fff` | Feldhintergrund bei Outlined und Hintergrund der Label-„Notch“ |
 | `--jgor-flcf7-background-filled` | `rgba(0, 0, 0, 0.06)` | Feldhintergrund bei Filled |
 | `--jgor-flcf7-duration` | `0.15s` | Dauer der Übergänge |
+| `--jgor-flcf7-submit-error-background` | `#dc3232` | Senden-Button bei Validierungsfehlern |
+| `--jgor-flcf7-submit-error-color` | `#fff` | Fehlertext auf dem Senden-Button |
 
   Gegenüber 1.2 neu: `padding-y`, `border-width`, `background-filled`,
   `label-scale`; `--jgor-flcf7-label-size-floated` entfällt, weil das Label
@@ -460,15 +485,32 @@ oder Inline-CSS bräuchte.
   0.25em` (Luft für die Notch), `max-width` auf die Innenbreite des Feldes,
   `white-space: nowrap; overflow: hidden; text-overflow: ellipsis`,
   `transform-origin: 0 50%` (RTL über `.wpcf7[dir="rtl"]`: `100% 50%`),
-  Transition auf `top`, `transform`, `color`, `background-color`. Fehler-Tip
-  im Wrap bekommt `margin-block-start: 0.25em`.
+  Transition auf `top`, `transform`, `color`, `background-color`.
 - **Zustände:** `:focus + label` (aktive Farbe), `:not(:placeholder-shown) +
   label` (gefloatet), `:autofill + label` als eigene Regel je Variante (ein
   Browser ohne `:autofill` verwirft sonst die ganze Selektorliste), Fehler
   über `.wpcf7-not-valid` oder `[aria-invalid="true"]` (Label- und
-  Rahmenfarbe), Pflichtstern `.jgor-flcf7-marker
-  .jgor-flcf7-control[aria-required="true"] + .jgor-flcf7-label::after {
-  content: " *" }`.
+  Rahmenfarbe, Label floatet wie bei Fokus), Pflichtstern
+  `.jgor-flcf7-marker .jgor-flcf7-control[aria-required="true"] +
+  .jgor-flcf7-label::after { content: " *" }`.
+- **Fehler-Tip im Feld:** `.wpcf7-not-valid-tip` liegt absolut im Wrap auf
+  der Textzeile des Steuerelements (gleiche `top`-Formel wie das ruhende
+  Label je Variante), `pointer-events: none`, Fehlerfarbe, einzeilig mit
+  Ellipse; solange das Feld leer ist, am Zeilenanfang (wo das Label ruhte),
+  bei vorhandenem Wert (`:not(:placeholder-shown) ~ .wpcf7-not-valid-tip`)
+  rechtsbündig mit `max-width: 50%`, damit der Eingabetext frei bleibt. Die
+  Seite springt dadurch nicht. CF7s eigene Tip-Regeln, auch die der
+  Formularklasse `use-floating-validation-tip`, werden durch die höhere
+  Spezifität überstimmt.
+- **Senden-Button bei Fehlern:** `.jgor-flcf7-submit` ist `inline-grid`,
+  Button und Fehlertext teilen sich eine Zelle, deren Breite der breitere
+  von beiden bestimmt; bei `form.invalid` (CF7 setzt die Klasse per JS und
+  beim Versand ohne JS) wird der Button `width: 100%`, Hintergrund und
+  Rahmen `--jgor-flcf7-submit-error-background`, eigener Text transparent,
+  und der Fehlertext (`display: flex`, zentriert, `font: inherit`, nicht
+  klickbar) liegt darüber. Der CF7-Spinner wird absolut neben die Hülle
+  gesetzt, damit er die Zellenbreite nicht verfälscht. Beim nächsten
+  Absenden (`submitting`) kehrt der Normalzustand zurück.
 - **Outlined:** Rahmen rundum (`border-width`, `border-color`), Radius,
   Hintergrund `--jgor-flcf7-background`; gefloatet `top: 0; transform:
   translateY(-50%) scale(var(--jgor-flcf7-label-scale))` mit demselben
@@ -512,8 +554,9 @@ oder Inline-CSS bräuchte.
   Form-Tag-Typ in Klammern, per Filter ergänzte Typen nur mit ihrem
   Schlüssel; alle abgewählt = Floating Labels aus), „Appearance“ (Radio für
   die Variante mit Kurzbeschreibung, Checkbox Stylesheet laden, Checkbox
-  Pflichtstern), „Per form, per placement, per field“ (Hinweistext zu den
-  Steuerwegen aus 7.4 mit Codebeispielen für Additional Settings,
+  Pflichtstern, Textfeld „Submit button on errors“ für
+  `submit_error_text`), „Per form, per placement, per field“ (Hinweistext zu
+  den Steuerwegen aus 7.4 mit Codebeispielen für Additional Settings,
   `html_class`-Klassen und `nofloat` vor den Werten in Anführungszeichen,
   dazu die Filter) und „Design: CSS custom properties“ (unten).
 - Abschnitt „Design“: keine Eingabefelder für Farben und Maße. Stattdessen
@@ -613,7 +656,7 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 ```
 
 - `tests/verify-markup.php` rendert die Formulare per `form_html()` und
-  prüft 58 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
+  prüft 62 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
   Placeholder-Modus, Ersatz des umschließenden Labels, Label-Text aus der
   Vorlage, Varianten- und Textarea-Klasse, IDs aus dem Unit-Tag, `for` =
   `id`, `placeholder=" "`, unberührte Felder (Submit, `nofloat`, Select,
@@ -626,13 +669,15 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   Liste, ungültiger Wert), je Platzierung (`html_class`-Klassen samt
   Rangfolge über das Formular und `jgor-flcf7-on` gegen `floating_labels:
   off`), Filter `jgor_flcf7_form_settings` (Vorrang vor `html_class`,
-  `enabled` false, ungültige Werte).
+  `enabled` false, ungültige Werte), Senden-Button (Hülle mit Fehlertext,
+  Filter `jgor_flcf7_submit_error_text`, leerer Text ohne Fehler-Span,
+  Option wird bereinigt).
   Das Script ändert die Option vorübergehend und stellt die Defaults danach
   wieder her. `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
-- `tests/verify-admin.php` prüft Modul 4 ohne Browser (39 Punkte): Menü
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (40 Punkte): Menü
   unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
   Kontexthilfe (Hook, drei Reiter, escapete Beispiele, Snippet,
-  Seitenleiste), fünf Sektionen und sechs Felder, das gerenderte Formular
+  Seitenleiste), fünf Sektionen und sieben Felder, das gerenderte Formular
   (Ziel `options.php`, Nonce, Defaults, `for`/`id`, escapete Codebeispiele,
   Snippet in der Textarea), gesperrte Werte (disabled, ohne `name`,
   Hinweise, Notice), Capability (`wp_die()` ohne `manage_options`),
@@ -659,12 +704,15 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   und `icon-256x256.png` sowie `banner-772x250.png` und
   `banner-1544x500.png` als APNG (wie Block Inserter Filter; WP.org liefert
   PNGs unverändert aus). `docs/screenshots-erzeugen.sh` legt das Formular
-  „FL Screenshot“ und drei Seiten `flcf7-shot-*` an, fotografiert Outlined,
+  „FL Screenshot“ (John Doe, john@example.com, leeres Pflichtfeld „Your
+  message“) und drei Seiten `flcf7-shot-*` an, fotografiert Outlined,
   Filled und Minimal headless (1280 px, Twenty Twenty-Five, Senden-Button
   mit `class:wp-element-button`), baut den Fehlerfall aus dem gerenderten
-  HTML nach (CF7-Fehlerklassen und Tip; die Datei liegt kurz im Webroot,
-  weil Schriften per CORS nur von derselben Herkunft laden), schneidet auf
-  780 px Breite zu und entfernt Seiten und Formular wieder. Screenshot 5
+  HTML nach (Formularklasse `invalid`, CF7-Fehlerklassen und Tip am
+  Pflichtfeld; die Datei liegt kurz im Webroot, weil Schriften per CORS nur
+  von derselben Herkunft laden), schneidet auf 780 px Breite zu und entfernt
+  Seiten und Formular wieder. Icons und Banner haben einen dünnen schwarzen
+  Rand mit gerundeten Ecken, außerhalb transparent. Screenshot 5
   (Einstellungsseite mit Hilfe-Reiter) entsteht von Hand im eingeloggten
   Browser.
 - Ohne `ext-dom` (per `wp eval` mit Klassen-Stub nicht simulierbar; Codepfad
@@ -705,14 +753,18 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 5. Release-Vorbereitung, Stand 22.10.2026:
    1. `readme.txt` (Commit f39cea5), Plugin Check ohne Befund. Erledigt.
    2. Kontexthilfe (Commit 61cf91b), `verify-admin.php` 39 Prüfungen. Erledigt.
-   3. `.pot` (Commit cf0d9cc), 74 Texte. Erledigt; vor jedem Release neu
-      erzeugen.
+   3. `.pot` (Commit cf0d9cc), 74 Texte, seit dem Fehlerfall 78. Erledigt;
+      vor jedem Release neu erzeugen.
    4. Assets (Commit dfd3c79): animiertes Icon, animierte Banner,
       Screenshots 1–4 per Script. Offen: Screenshot 5 (Einstellungsseite,
       Nutzer im Browser).
    5. `build.sh` und Plugin Check auf dem ZIP ohne Befund,
-      Hostsharing-Gegenprobe bestanden. Offen: Browser-Matrix in Firefox
-      und Edge auf Silentium (Nutzer).
+      Hostsharing-Gegenprobe bestanden. Fehlerfall am 22.10.2026 ergänzt
+      (Commit ba9a53c: Tip im Feld, Label floatet, Senden-Button mit
+      Fehlertext; 62 und 40 Prüfungen, Plugin Check ohne Befund);
+      Hostsharing danach erneut nachziehen. Offen: Browser-Matrix in
+      Firefox und Edge auf Silentium (Nutzer), dabei auch den Fehlerfall
+      live prüfen.
    6. Veröffentlichung: Testformulare und Testseiten entfernen, Repo
       öffentlich stellen, Release 1.0.0 (Git-Tag, GitHub-Release, SVN nach
       README des Repos), Einreichung bei WordPress.org; danach GlotPress
@@ -743,8 +795,6 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   Build-Schritt über `blocks.registerBlockType` und `editor.BlockEdit`,
   serverseitig schreibt `render_block_data` den Wert in `htmlClass`). Beides
   nur Oberfläche, der Mechanismus aus 7.4 bleibt.
-- CF7-Formularklasse `use-floating-validation-tip` (absolut positionierte
-  Fehlertips) mit dem Wrap abstimmen, sobald ein Fall auftaucht.
 - Umstieg von DOMDocument auf `WP_HTML_Processor`, sobald der Core das
   Einfügen von Elementen unterstützt.
 
@@ -760,3 +810,4 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 | 1.5 | 22.10.2026 | Steuerung je Formular (Additional Settings `floating_labels_style`, `floating_labels_marker`, `floating_labels_types`), je Platzierung (`html_class`-Klassen `jgor-flcf7-off`, `-on`, `-mode-*`, `-style-*`, `-marker-on`, `-marker-off`) und Filter `jgor_flcf7_form_settings` mit Rangfolge (7.4); Modul 2 entsprechend erweitert, 58 Prüfungen; §9 Elternslug `wpcf7-dashboard`; §14 Editor-Tab und Block-Seitenleiste für 1.1 |
 | 1.6 | 22.10.2026 | Modul 4 umgesetzt (Commit 2082122): §9 an den Code angeglichen (Elternslug-Ermittlung mit Fallback, fünf Sektionen, Textarea-Snippet aus `CSS_PROPERTIES`, Sperren mit Notice, „Settings saved“-Meldung, „Settings“-Link), §3 und §12 um `tests/verify-admin.php` (33 Prüfungen) und den `$GLOBALS`-Zähler der Prüfscripte, §6 Bootstrap, §13 Schritt 4 erledigt |
 | 1.7 | 22.10.2026 | Release-Vorbereitung nachgezogen: `readme.txt`, Kontexthilfe (§9), `.pot`, Asset-Scripte `docs/assets-erzeugen.py` und `docs/screenshots-erzeugen.sh` mit `assets/` (§3, §12), Build und Plugin Check auf dem ZIP, Hostsharing-Gegenprobe mit `dateien` und `datenbank` (§12), §13 Schritt 5 in Teilschritte mit Stand; `verify-admin.php` 39 Prüfungen |
+| 1.8 | 22.10.2026 | Fehlerfall (Commit ba9a53c): CF7-Hinweis im Feld auf der Textzeile (links bei leerem, rechts bei gefülltem Feld), Label floatet bei Fehler in allen Varianten, Senden-Button bei `form.invalid` in Fehlerfarbe mit Fehlertext über Hülle `jgor-flcf7-submit` (Modul 2) und Grid-Overlay (8); Einstellung `submit_error_text` mit Textfeld (6, 9), Filter `jgor_flcf7_submit_error_text` (7.4), Properties `--jgor-flcf7-submit-error-background` und `-color`; Assets mit Rand und gerundeten Ecken, Beispieltexte John Doe; Prüfungen 62/40, `.pot` 78 Texte; `use-floating-validation-tip` aus §14 erledigt |
