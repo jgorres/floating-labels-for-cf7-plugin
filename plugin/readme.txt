@@ -21,12 +21,12 @@ Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server
 
 * Works with existing forms: labels of the form template and placeholder options become floating labels automatically.
 * Three variants: Outlined (label floats onto the border), Filled (tinted box) and Minimal (your theme styles the field, the label floats above it).
-* Pure CSS on the front end: focus, filled, autofill and error states come from CSS pseudo-classes. No JavaScript on your pages, no inline styles, Content Security Policy friendly.
+* Pure CSS on the front end: focus, filled, autofill and error states come from CSS pseudo-classes. No JavaScript on your pages; the only inline style is the short list of design values you change.
 * Accessible: every rebuilt field gets a real `<label for>` with a matching `id`; the placeholder is replaced so screen readers do not hear two names. Contact Form 7's `aria-*` attributes stay untouched.
 * Clear error state: the label of an invalid field floats up in the error colour, Contact Form 7's message appears inside the field (no layout jump), and the submit button turns red with a text of your choice until the next attempt.
 * Control at every level: for the whole site, per form, per placement (page) and per field.
 * Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get a "Floating Labels" panel in the sidebar for the placement settings; no classes to type.
-* Theme friendly: colours, sizes and timing are CSS custom properties; the settings screen gives you the snippet to copy.
+* Design settings: colours with the WordPress colour picker, font size, padding, border, corner radius and the animation on the settings screen; every value is also a CSS custom property, so themes can set them too.
 * Lightweight: one option, one stylesheet, no database tables, no cron, no external requests, no tracking.
 
 = Field types =
@@ -67,7 +67,9 @@ Add the option `nofloat` to a form-tag, before any quoted value:
 
 = Colours and sizes =
 
-Colours, sizes and timing are CSS custom properties on the `.wpcf7` wrapper. Copy the snippet from the settings screen into Appearance > Customize > Additional CSS or into your child theme and change the values you need, for example:
+Open Contact > Floating Labels, section Design: colours for the label, the border, the field background and the submit button on errors (WordPress colour picker), the font size of the field and of the label, padding, border width, corner radius, the scale of the floated label and the duration of the animation. Leave a field empty to keep the default. Only the values you change are printed, as CSS custom properties on the `.wpcf7` wrapper, right after the stylesheet.
+
+Themes can set the same properties in CSS, for example in Appearance > Customize > Additional CSS or a child theme:
 
 `
 .wpcf7 {
@@ -76,7 +78,7 @@ Colours, sizes and timing are CSS custom properties on the `.wpcf7` wrapper. Cop
 }
 `
 
-To style one form only, replace `.wpcf7` with the id of its wrapper, for example `[id^="wpcf7-f123-"]`.
+To style one form only, replace `.wpcf7` with the id of its wrapper, for example `[id^="wpcf7-f123-"]`. The settings screen shows the full list of properties with the values in effect.
 
 = For developers =
 
@@ -97,7 +99,7 @@ Contact Form 7 is a trademark of Rock Lobster, Inc. This plugin is an independen
 1. Install and activate Contact Form 7.
 2. Upload the plugin folder to `wp-content/plugins/` or install the ZIP via Plugins > Add New > Upload Plugin.
 3. Activate the plugin under Plugins.
-4. Open Contact > Floating Labels to choose the variant, the field types and the text of the submit button on errors. The defaults work out of the box: every text-like field of every form gets a floating label.
+4. Open Contact > Floating Labels to choose the variant, the field types, the text of the submit button on errors and, under Design, colours and sizes. The defaults work out of the box: every text-like field of every form gets a floating label.
 
 == Frequently Asked Questions ==
 
@@ -115,7 +117,7 @@ Yes. Add `jgor-flcf7-style-filled`, `jgor-flcf7-style-outlined` or `jgor-flcf7-s
 
 = How do I change the colours? =
 
-Through CSS custom properties. The settings screen shows a snippet with every property and its default value; copy it into Appearance > Customize > Additional CSS or your child theme and change what you need.
+On the settings screen under Design: pick the colours with the colour picker, enter sizes with their unit (for example 0.9em or 12px) and leave a field empty to keep the default. Themes can set the same CSS custom properties; the snippet on the screen shows the values in effect.
 
 = Does it work with the block editor? =
 
@@ -123,7 +125,7 @@ Yes. The Contact Form 7 block, and a Shortcode block that holds the `[contact-fo
 
 = Does the plugin load JavaScript? =
 
-Not on your pages. All front-end states are CSS. The plugin adds one stylesheet, loaded after the Contact Form 7 stylesheet and following its loading policy (`WPCF7_LOAD_CSS`, filter `wpcf7_load_css`). The only script is a small one for the block editor, loaded in the admin only.
+Not on your pages. All front-end states are CSS. The plugin adds one stylesheet, loaded after the Contact Form 7 stylesheet and following its loading policy (`WPCF7_LOAD_CSS`, filter `wpcf7_load_css`). The only scripts are a small one for the block editor and the colour picker on the settings screen, both loaded in the admin only.
 
 = What happens on validation errors? =
 

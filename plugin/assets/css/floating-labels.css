@@ -23,12 +23,15 @@
  * right-to-left scripts.
  *
  * Themes adjust colours, sizes and timing through the custom properties
- * below; set them on .wpcf7 or any ancestor.
+ * below; set them on .wpcf7 or any ancestor. Values changed on the settings
+ * screen are printed by the plugin as an inline .wpcf7 rule right after
+ * this file (module 3), so they win over the defaults here.
  */
 
 .wpcf7 {
 	--jgor-flcf7-padding-x: 0.75em;
 	--jgor-flcf7-padding-y: 0.75em;
+	--jgor-flcf7-font-size: 1em;
 	--jgor-flcf7-label-color: #5f6368;
 	--jgor-flcf7-label-color-active: #1a73e8;
 	--jgor-flcf7-label-color-error: #dc3232;
@@ -55,9 +58,12 @@
 	display: block;
 }
 
+/* The font size applies to the wrap, so control, label and validation tip
+ * (all em-based) scale together; 1em keeps the size of the surrounding text. */
 .wpcf7 .jgor-flcf7-wrap {
 	display: block;
 	position: relative;
+	font-size: var(--jgor-flcf7-font-size);
 }
 
 .wpcf7 .jgor-flcf7-wrap .jgor-flcf7-control {

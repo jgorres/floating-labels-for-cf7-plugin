@@ -13,8 +13,8 @@
  * registered sections and fields, the rendered form (names, nonce, defaults,
  * escaping), settings fixed through the filter jgor_flcf7_settings, the
  * capability check, the "Settings" action link, the contextual help tabs,
- * and that the CSS snippet matches the custom properties in
- * assets/css/floating-labels.css.
+ * the design fields with the colour picker assets, and that the CSS snippet
+ * matches the custom properties in assets/css/floating-labels.css.
  *
  * The checks assume the default settings: the script saves the stored
  * option, runs on the defaults and restores the saved option afterwards.
@@ -137,6 +137,14 @@ $jgor_flcf7_tabs   = $jgor_flcf7_screen instanceof WP_Screen ? $jgor_flcf7_scree
 jgor_flcf7_check( 'help: three tabs', 3 === count( $jgor_flcf7_tabs ) && array( 'jgor-flcf7-help-overview', 'jgor-flcf7-help-controls', 'jgor-flcf7-help-design' ) === array_keys( $jgor_flcf7_tabs ), implode( ', ', array_keys( $jgor_flcf7_tabs ) ) );
 jgor_flcf7_check( 'help: controls tab carries the escaped examples', isset( $jgor_flcf7_tabs['jgor-flcf7-help-controls']['content'] ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-controls']['content'], 'nofloat placeholder &quot;Your name&quot;]' ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-controls']['content'], 'floating_labels_types: text email textarea' ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-controls']['content'], 'jgor-flcf7-style-minimal' ) );
 jgor_flcf7_check( 'help: design tab carries the css snippet', isset( $jgor_flcf7_tabs['jgor-flcf7-help-design']['content'] ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-design']['content'], '--jgor-flcf7-duration: 0.15s;' ) );
+
+// Colour picker assets: only on the hook of the page.
+$jgor_flcf7_admin->enqueue_assets( 'edit.php' );
+jgor_flcf7_check( 'assets: nothing enqueued on other admin pages', ! wp_script_is( JGOR_FLCF7_Admin::SCRIPT_HANDLE, 'enqueued' ) && ! wp_style_is( 'wp-color-picker', 'enqueued' ) );
+$jgor_flcf7_admin->enqueue_assets( $jgor_flcf7_hook );
+$jgor_flcf7_admin_script = wp_scripts()->registered[ JGOR_FLCF7_Admin::SCRIPT_HANDLE ] ?? null;
+jgor_flcf7_check( 'assets: colour picker style and screen script enqueued on the page', wp_style_is( 'wp-color-picker', 'enqueued' ) && wp_script_is( JGOR_FLCF7_Admin::SCRIPT_HANDLE, 'enqueued' ) && $jgor_flcf7_admin_script instanceof _WP_Dependency && array( 'wp-color-picker' ) === $jgor_flcf7_admin_script->deps && JGOR_FLCF7_VERSION === $jgor_flcf7_admin_script->ver && 1 === (int) wp_scripts()->get_data( JGOR_FLCF7_Admin::SCRIPT_HANDLE, 'group' ) );
+jgor_flcf7_check( 'assets: screen script file exists and calls wpColorPicker', file_exists( JGOR_FLCF7_PATH . 'assets/js/admin.js' ) && str_contains( (string) file_get_contents( JGOR_FLCF7_PATH . 'assets/js/admin.js' ), ".wpColorPicker()" ) );
 jgor_flcf7_check( 'help: overview tab escapes <label>', isset( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'] ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'], 'a &lt;label&gt; that encloses' ) );
 jgor_flcf7_check( 'help: sidebar links to the plugin page and the Contact Form 7 docs', $jgor_flcf7_screen instanceof WP_Screen && str_contains( $jgor_flcf7_screen->get_help_sidebar(), 'https://github.com/jgorres/floating-labels-for-cf7-plugin' ) && str_contains( $jgor_flcf7_screen->get_help_sidebar(), 'https://contactform7.com/additional-settings/' ) );
 
@@ -151,10 +159,15 @@ foreach ( $jgor_flcf7_fields as $jgor_flcf7_section_fields ) {
 }
 sort( $jgor_flcf7_field_ids );
 jgor_flcf7_check(
-	'fields: one field per setting key',
-	array( 'jgor_flcf7_load_css', 'jgor_flcf7_mode_label', 'jgor_flcf7_mode_placeholder', 'jgor_flcf7_required_marker', 'jgor_flcf7_style', 'jgor_flcf7_submit_error_text', 'jgor_flcf7_types' ) === $jgor_flcf7_field_ids,
+	'fields: one field per setting key plus the four design rows',
+	array( 'jgor_flcf7_design_colors', 'jgor_flcf7_design_motion', 'jgor_flcf7_design_sizes', 'jgor_flcf7_design_snippet', 'jgor_flcf7_load_css', 'jgor_flcf7_mode_label', 'jgor_flcf7_mode_placeholder', 'jgor_flcf7_required_marker', 'jgor_flcf7_style', 'jgor_flcf7_submit_error_text', 'jgor_flcf7_types' ) === $jgor_flcf7_field_ids,
 	implode( ', ', $jgor_flcf7_field_ids )
 );
+$jgor_flcf7_grouped = array_merge( ...array_values( JGOR_FLCF7_Admin::DESIGN_GROUPS ) );
+sort( $jgor_flcf7_grouped );
+$jgor_flcf7_all_keys = array_keys( JGOR_FLCF7_Settings::DESIGN_TYPES );
+sort( $jgor_flcf7_all_keys );
+jgor_flcf7_check( 'fields: the design groups cover every property exactly once', $jgor_flcf7_grouped === $jgor_flcf7_all_keys );
 
 // Rendered page with the default settings.
 $jgor_flcf7_html = jgor_flcf7_render_page( $jgor_flcf7_admin );
@@ -172,6 +185,10 @@ jgor_flcf7_check( 'page: label ids match for attributes', (bool) preg_match( '#<
 jgor_flcf7_check( 'page: control examples escaped', str_contains( $jgor_flcf7_html, 'nofloat placeholder &quot;Your name&quot;]' ) && str_contains( $jgor_flcf7_html, 'html_class=&quot;jgor-flcf7-style-filled&quot;' ) && str_contains( $jgor_flcf7_html, 'floating_labels_types: text email textarea' ) );
 jgor_flcf7_check( 'page: description with <label> escaped', str_contains( $jgor_flcf7_html, 'The &lt;label&gt; that encloses the field' ) );
 jgor_flcf7_check( 'page: css snippet in a readonly textarea', (bool) preg_match( '#<textarea id="jgor-flcf7-css-snippet"[^>]*readonly>\.wpcf7 \{\n\t--jgor-flcf7-padding-x: 0\.75em;\n#s', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, "\t--jgor-flcf7-submit-error-color: #fff;\n}</textarea>" ) );
+jgor_flcf7_check( 'page: 10 colour fields, empty, with the picker class and hex defaults', 10 === preg_match_all( '#<input type="text" class="jgor-flcf7-color" id="jgor-flcf7-design-[a-z-]+" value=""#', $jgor_flcf7_html ) && 9 === preg_match_all( '#data-default-color="\#[0-9a-f]{3,6}"#', $jgor_flcf7_html ) && (bool) preg_match( '#id="jgor-flcf7-design-label-color" value=""\s+data-default-color="\#5f6368"\s+name="jgor_flcf7_settings\[design\]\[label-color\]"#s', $jgor_flcf7_html ) );
+jgor_flcf7_check( 'page: 6 size fields and the duration with the default as placeholder', 7 === preg_match_all( '#<input type="text" class="small-text code" id="jgor-flcf7-design-[a-z-]+" value="" placeholder="[0-9.]+(?:px|em|rem|%|s)"#', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, 'id="jgor-flcf7-design-font-size" value="" placeholder="1em"' ) && str_contains( $jgor_flcf7_html, 'id="jgor-flcf7-design-duration" value="" placeholder="0.15s"' ) );
+jgor_flcf7_check( 'page: scale as number input 0.5 to 1', (bool) preg_match( '#<input type="number" class="small-text" id="jgor-flcf7-design-label-scale" value="" min="0.5" max="1" step="0.01" placeholder="0.75"#', $jgor_flcf7_html ) );
+jgor_flcf7_check( 'page: every design field has a label', 18 === preg_match_all( '#<label for="jgor-flcf7-design-[a-z-]+">#', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: no settings-saved notice without the flag', ! str_contains( $jgor_flcf7_html, 'Settings saved.' ) );
 
 // Settings fixed in code: disabled controls without name attributes.
@@ -179,6 +196,7 @@ $jgor_flcf7_lock = function ( $settings ) {
 	$settings['style']    = 'minimal';
 	$settings['load_css'] = false;
 	$settings['types']    = array( 'text', 'email' );
+	$settings['design']   = array( 'label-color' => '#000000' );
 	return $settings;
 };
 add_filter( 'jgor_flcf7_settings', $jgor_flcf7_lock );
@@ -189,7 +207,9 @@ jgor_flcf7_check( 'locked: style radios disabled without name, minimal checked',
 jgor_flcf7_check( 'locked: load_css disabled, unchecked, without name', ! str_contains( $jgor_flcf7_html, 'name="jgor_flcf7_settings[load_css]"' ) && (bool) preg_match( '#id="jgor-flcf7-load-css" value="1"\s+disabled=\'disabled\'#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'locked: type checkboxes disabled without name, 2 checked', 0 === preg_match_all( '#name="jgor_flcf7_settings\[types\]\[\]"#', $jgor_flcf7_html ) && 2 === preg_match_all( '#id="jgor-flcf7-type-[a-z]+" value="[a-z]+"\s+checked=\'checked\'\s+disabled=\'disabled\'#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'locked: free settings keep their name', str_contains( $jgor_flcf7_html, 'name="jgor_flcf7_settings[mode_label]"' ) && str_contains( $jgor_flcf7_html, 'name="jgor_flcf7_settings[required_marker]"' ) );
-jgor_flcf7_check( 'locked: 3 notes below the locked settings', 3 === preg_match_all( '#Fixed in code through the filter jgor_flcf7_settings; the value shown is the one in effect\.#', $jgor_flcf7_html ) );
+jgor_flcf7_check( 'locked: design fields disabled without name, value in effect shown', 0 === preg_match_all( '#name="jgor_flcf7_settings\[design\]#', $jgor_flcf7_html ) && (bool) preg_match( '#id="jgor-flcf7-design-label-color" value="\#000000"\s+data-default-color="\#5f6368"\s+disabled=\'disabled\'#s', $jgor_flcf7_html ) && 18 === preg_match_all( '#id="jgor-flcf7-design-[a-z-]+"[^>]*disabled=\'disabled\'#', $jgor_flcf7_html ) );
+jgor_flcf7_check( 'locked: snippet shows the value in effect', str_contains( $jgor_flcf7_html, "\t--jgor-flcf7-label-color: #000000;\n" ) );
+jgor_flcf7_check( 'locked: 6 notes below the locked settings (three design rows)', 6 === preg_match_all( '#Fixed in code through the filter jgor_flcf7_settings; the value shown is the one in effect\.#', $jgor_flcf7_html ) );
 remove_filter( 'jgor_flcf7_settings', $jgor_flcf7_lock );
 $jgor_flcf7_settings->reset_cache();
 
@@ -231,8 +251,8 @@ if ( isset( $jgor_flcf7_block[1] ) ) {
 		$jgor_flcf7_in_css[ $jgor_flcf7_decl[1] ] = $jgor_flcf7_decl[2];
 	}
 }
-jgor_flcf7_check( 'css: snippet properties equal the .wpcf7 rule of the stylesheet', JGOR_FLCF7_Admin::CSS_PROPERTIES === $jgor_flcf7_in_css, wp_json_encode( array_diff_assoc( $jgor_flcf7_in_css, JGOR_FLCF7_Admin::CSS_PROPERTIES ) ) . ' / ' . wp_json_encode( array_diff_assoc( JGOR_FLCF7_Admin::CSS_PROPERTIES, $jgor_flcf7_in_css ) ) );
-jgor_flcf7_check( 'css: snippet has one line per property', count( JGOR_FLCF7_Admin::CSS_PROPERTIES ) + 2 === count( explode( "\n", $jgor_flcf7_admin->css_snippet() ) ) );
+jgor_flcf7_check( 'css: design defaults equal the .wpcf7 rule of the stylesheet (same order)', JGOR_FLCF7_Settings::css_defaults() === $jgor_flcf7_in_css, wp_json_encode( array_diff_assoc( $jgor_flcf7_in_css, JGOR_FLCF7_Settings::css_defaults() ) ) . ' / ' . wp_json_encode( array_diff_assoc( JGOR_FLCF7_Settings::css_defaults(), $jgor_flcf7_in_css ) ) );
+jgor_flcf7_check( 'css: snippet has one line per property', count( JGOR_FLCF7_Settings::css_defaults() ) + 2 === count( explode( "\n", $jgor_flcf7_admin->css_snippet() ) ) );
 
 // Restore the option as it was before the run.
 if ( false === $jgor_flcf7_saved_option ) {

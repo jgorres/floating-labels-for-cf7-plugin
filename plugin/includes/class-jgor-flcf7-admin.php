@@ -12,10 +12,12 @@
  * disabled and without a name attribute: they are not submitted, and the
  * sanitize callback keeps their stored value.
  *
- * Colours and sizes have no fields: the screen shows the CSS custom
- * properties of the stylesheet as a read-only snippet to copy into the theme
- * (concept, section 9). The "Help" tab of the screen repeats the control
- * layers and the snippet as contextual help.
+ * The section "Design" offers one field per CSS custom property of the
+ * stylesheet (colours with the WordPress colour picker, sizes, scale and
+ * duration); an empty field keeps the stylesheet default. Module 3 prints
+ * only the changed values. A read-only snippet with the values in effect
+ * stays on the screen for themes (concept, section 9). The "Help" tab of the
+ * screen repeats the control layers and the design notes as contextual help.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -33,6 +35,16 @@ final class JGOR_FLCF7_Admin {
 	public const PAGE_SLUG = 'wpcf7-floating-labels';
 
 	/**
+	 * Handle of the settings screen script (colour picker).
+	 */
+	public const SCRIPT_HANDLE = 'jgor-flcf7-admin';
+
+	/**
+	 * Path of the settings screen script below the plugin directory.
+	 */
+	private const SCRIPT_PATH = 'assets/js/admin.js';
+
+	/**
 	 * Parent menu slugs of Contact Form 7, newest first: "wpcf7-dashboard"
 	 * since the dashboard was introduced, "wpcf7" before. The first one that
 	 * is registered wins; without either, the page goes under Settings.
@@ -47,31 +59,16 @@ final class JGOR_FLCF7_Admin {
 	private const FALLBACK_PARENT = 'options-general.php';
 
 	/**
-	 * CSS custom properties of the stylesheet with their default values.
+	 * Design properties per field row of the section "Design", keyed by the
+	 * "key" argument of the row. Every property of
+	 * JGOR_FLCF7_Settings::DESIGN_TYPES appears exactly once.
 	 *
-	 * Mirrors the .wpcf7 rule at the top of assets/css/floating-labels.css;
-	 * tests/verify-admin.php checks that both stay in sync.
-	 *
-	 * @var array<string, string>
+	 * @var array<string, string[]>
 	 */
-	public const CSS_PROPERTIES = array(
-		'--jgor-flcf7-padding-x'               => '0.75em',
-		'--jgor-flcf7-padding-y'               => '0.75em',
-		'--jgor-flcf7-label-color'             => '#5f6368',
-		'--jgor-flcf7-label-color-active'      => '#1a73e8',
-		'--jgor-flcf7-label-color-error'       => '#dc3232',
-		'--jgor-flcf7-label-size'              => '1em',
-		'--jgor-flcf7-label-scale'             => '0.75',
-		'--jgor-flcf7-border-width'            => '1px',
-		'--jgor-flcf7-border-color'            => '#80868b',
-		'--jgor-flcf7-border-color-active'     => '#1a73e8',
-		'--jgor-flcf7-border-color-error'      => '#dc3232',
-		'--jgor-flcf7-radius'                  => '4px',
-		'--jgor-flcf7-background'              => '#fff',
-		'--jgor-flcf7-background-filled'       => 'rgba(0, 0, 0, 0.06)',
-		'--jgor-flcf7-duration'                => '0.15s',
-		'--jgor-flcf7-submit-error-background' => '#dc3232',
-		'--jgor-flcf7-submit-error-color'      => '#fff',
+	public const DESIGN_GROUPS = array(
+		'design_colors' => array( 'label-color', 'label-color-active', 'label-color-error', 'border-color', 'border-color-active', 'border-color-error', 'background', 'background-filled', 'submit-error-background', 'submit-error-color' ),
+		'design_sizes'  => array( 'font-size', 'label-size', 'padding-x', 'padding-y', 'border-width', 'radius' ),
+		'design_motion' => array( 'label-scale', 'duration' ),
 	);
 
 	/**
@@ -87,6 +84,13 @@ final class JGOR_FLCF7_Admin {
 	 * @var string
 	 */
 	private string $parent = '';
+
+	/**
+	 * Hook suffix of the page, empty before add_menu() ran.
+	 *
+	 * @var string
+	 */
+	private string $hook = '';
 
 	/**
 	 * Constructor.
@@ -108,6 +112,7 @@ final class JGOR_FLCF7_Admin {
 	public function init(): void {
 		add_action( 'admin_menu', array( $this, 'add_menu' ), 20 );
 		add_action( 'admin_init', array( $this, 'register_fields' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( JGOR_FLCF7_FILE ), array( $this, 'action_links' ) );
 	}
 
@@ -129,8 +134,30 @@ final class JGOR_FLCF7_Admin {
 		);
 
 		if ( is_string( $hook ) && '' !== $hook ) {
+			$this->hook = $hook;
 			add_action( 'load-' . $hook, array( $this, 'add_help_tabs' ) );
 		}
+	}
+
+	/**
+	 * Enqueues the colour picker and the screen script on the settings page only.
+	 *
+	 * @param string $hook_suffix Hook suffix of the current admin page.
+	 * @return void
+	 */
+	public function enqueue_assets( string $hook_suffix ): void {
+		if ( '' === $this->hook || $hook_suffix !== $this->hook ) {
+			return;
+		}
+
+		wp_enqueue_style( 'wp-color-picker' );
+		wp_enqueue_script(
+			self::SCRIPT_HANDLE,
+			JGOR_FLCF7_URL . self::SCRIPT_PATH,
+			array( 'wp-color-picker' ),
+			JGOR_FLCF7_VERSION,
+			array( 'in_footer' => true )
+		);
 	}
 
 	/**
@@ -203,7 +230,8 @@ final class JGOR_FLCF7_Admin {
 	 * @return string HTML.
 	 */
 	private function help_design(): string {
-		return '<p>' . esc_html__( 'Colours, sizes and timing are CSS custom properties on the .wpcf7 wrapper. Copy the snippet into Appearance > Customize > Additional CSS or into your child theme and change the values you need; properties you leave out keep their defaults.', 'floating-labels-for-cf7' ) . '</p>'
+		return '<p>' . esc_html__( 'Colours, sizes and timing are set in the section "Design" of this screen. Leave a field empty to keep the default; only the values you change are printed, as CSS custom properties on the .wpcf7 wrapper, right after the stylesheet.', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p>' . esc_html__( 'Themes can set the same properties in CSS, for example in Appearance > Customize > Additional CSS or a child theme. The snippet shows every property with the value in effect:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->css_snippet() ) . '</code></pre>'
 			. '<p>' . esc_html__( 'To style one form only, replace .wpcf7 with the id of its wrapper, for example [id^="wpcf7-f123-"], or with a class you add through the html_class attribute.', 'floating-labels-for-cf7' ) . '</p>';
 	}
@@ -323,8 +351,13 @@ final class JGOR_FLCF7_Admin {
 		add_settings_field( 'jgor_flcf7_required_marker', __( 'Required fields', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', $this->field_args( 'required_marker' ) );
 		add_settings_field( 'jgor_flcf7_submit_error_text', __( 'Submit button on errors', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', $this->field_args( 'submit_error_text' ) );
 
+		add_settings_section( 'jgor_flcf7_design', __( 'Design', 'floating-labels-for-cf7' ), array( $this, 'render_design_intro' ), $page );
+		add_settings_field( 'jgor_flcf7_design_colors', __( 'Colours', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_design', array( 'key' => 'design_colors' ) );
+		add_settings_field( 'jgor_flcf7_design_sizes', __( 'Sizes', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_design', array( 'key' => 'design_sizes' ) );
+		add_settings_field( 'jgor_flcf7_design_motion', __( 'Floated label and animation', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_design', array( 'key' => 'design_motion' ) );
+		add_settings_field( 'jgor_flcf7_design_snippet', __( 'CSS for themes', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_design', array( 'key' => 'design_snippet' ) );
+
 		add_settings_section( 'jgor_flcf7_controls', __( 'Per form, per placement, per field', 'floating-labels-for-cf7' ), array( $this, 'render_controls' ), $page );
-		add_settings_section( 'jgor_flcf7_design', __( 'Design: CSS custom properties', 'floating-labels-for-cf7' ), array( $this, 'render_design' ), $page );
 	}
 
 	/**
@@ -397,6 +430,15 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
+	 * Intro of the section "Design".
+	 *
+	 * @return void
+	 */
+	public function render_design_intro(): void {
+		echo '<p>' . esc_html__( 'Colours, sizes and timing of the fields. Leave a field empty to keep the default; only the values you change are printed, as CSS custom properties on the .wpcf7 wrapper, right after the stylesheet.', 'floating-labels-for-cf7' ) . '</p>';
+	}
+
+	/**
 	 * Renders one field, chosen by the "key" argument of add_settings_field().
 	 *
 	 * @param array<string, mixed> $args Field arguments.
@@ -434,7 +476,7 @@ final class JGOR_FLCF7_Admin {
 				$this->render_checkbox(
 					$key,
 					__( 'Load the stylesheet of the plugin', 'floating-labels-for-cf7' ),
-					__( 'Untick when your theme styles the classes jgor-flcf7-* itself. The stylesheet follows the loading policy of Contact Form 7.', 'floating-labels-for-cf7' )
+					__( 'Untick when your theme styles the classes jgor-flcf7-* itself; the design values below are then not printed either. The stylesheet follows the loading policy of Contact Form 7.', 'floating-labels-for-cf7' )
 				);
 				break;
 
@@ -451,6 +493,22 @@ final class JGOR_FLCF7_Admin {
 					$key,
 					__( 'Shown on the submit button, in the error colour, while the form has validation errors; the label of each invalid field floats up and the message appears inside the field. Leave empty to change only the colour of the button.', 'floating-labels-for-cf7' )
 				);
+				break;
+
+			case 'design_colors':
+				$this->render_design_group( $key, __( 'Pick a colour or leave the field empty to keep the default shown as "Default" in the picker. The Filled variant uses a light grey, rgba(0, 0, 0, 0.06), as its default background.', 'floating-labels-for-cf7' ) );
+				break;
+
+			case 'design_sizes':
+				$this->render_design_group( $key, __( 'A number with px, em, rem or %, for example 0.9em. The font size of the field also scales the label and the padding; 1em keeps the size of the surrounding text.', 'floating-labels-for-cf7' ) );
+				break;
+
+			case 'design_motion':
+				$this->render_design_group( $key, __( 'Scale of the floated label between 0.5 and 1; duration of the transitions with s or ms.', 'floating-labels-for-cf7' ) );
+				break;
+
+			case 'design_snippet':
+				$this->render_design_snippet();
 				break;
 		}
 	}
@@ -572,6 +630,74 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
+	 * Renders one group of design fields (a row of the section "Design").
+	 *
+	 * Colour fields carry the class jgor-flcf7-color for the colour picker
+	 * and the default as data-default-color (hex defaults only); size and
+	 * time fields show the default as placeholder; the scale is a number
+	 * input. All fields of the group are disabled without a name when the
+	 * design is fixed in code.
+	 *
+	 * @param string $group       Key of DESIGN_GROUPS.
+	 * @param string $description Description below the group.
+	 * @return void
+	 */
+	private function render_design_group( string $group, string $description ): void {
+		$locked = $this->settings->is_locked( 'design' );
+		$stored = $this->settings->get( 'design' );
+		$stored = is_array( $stored ) ? $stored : array();
+		$keys   = self::DESIGN_GROUPS[ $group ] ?? array();
+		?>
+		<fieldset <?php disabled( $locked ); ?>>
+			<legend class="screen-reader-text"><?php echo esc_html( $this->design_group_label( $group ) ); ?></legend>
+			<?php foreach ( $keys as $key ) : ?>
+				<?php
+				$id      = $this->field_id( 'design-' . $key );
+				$name    = $this->field_name( 'design' ) . '[' . $key . ']';
+				$value   = isset( $stored[ $key ] ) && is_string( $stored[ $key ] ) ? $stored[ $key ] : '';
+				$default = JGOR_FLCF7_Settings::DESIGN_DEFAULTS[ $key ];
+				$type    = JGOR_FLCF7_Settings::DESIGN_TYPES[ $key ];
+				?>
+				<p>
+					<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $this->design_label( $key ) ); ?></label><br>
+					<?php if ( 'color' === $type ) : ?>
+						<input type="text" class="jgor-flcf7-color" id="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>"
+							<?php if ( str_starts_with( $default, '#' ) ) : ?>
+								data-default-color="<?php echo esc_attr( $default ); ?>"
+							<?php endif; ?>
+							<?php $this->print_name( $name, $locked ); ?>
+							<?php disabled( $locked ); ?>>
+					<?php elseif ( 'number' === $type ) : ?>
+						<input type="number" class="small-text" id="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" min="0.5" max="1" step="0.01" placeholder="<?php echo esc_attr( $default ); ?>"
+							<?php $this->print_name( $name, $locked ); ?>
+							<?php disabled( $locked ); ?>>
+					<?php else : ?>
+						<input type="text" class="small-text code" id="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" placeholder="<?php echo esc_attr( $default ); ?>"
+							<?php $this->print_name( $name, $locked ); ?>
+							<?php disabled( $locked ); ?>>
+					<?php endif; ?>
+				</p>
+			<?php endforeach; ?>
+		</fieldset>
+		<p class="description"><?php echo esc_html( $description ); ?></p>
+		<?php
+		$this->render_locked_note( $locked );
+	}
+
+	/**
+	 * Renders the read-only snippet with the CSS custom properties in effect.
+	 *
+	 * @return void
+	 */
+	private function render_design_snippet(): void {
+		?>
+		<label for="jgor-flcf7-css-snippet" class="screen-reader-text"><?php esc_html_e( 'CSS custom properties in effect', 'floating-labels-for-cf7' ); ?></label>
+		<textarea id="jgor-flcf7-css-snippet" class="large-text code" rows="<?php echo esc_attr( (string) ( count( JGOR_FLCF7_Settings::DESIGN_DEFAULTS ) + 2 ) ); ?>" readonly><?php echo esc_textarea( $this->css_snippet() ); ?></textarea>
+		<p class="description"><?php esc_html_e( 'The values in effect as CSS custom properties, for a child theme or Appearance > Customize > Additional CSS. To style one form only, replace .wpcf7 with the id of its wrapper, for example [id^="wpcf7-f123-"], or with a class you add through the html_class attribute.', 'floating-labels-for-cf7' ); ?></p>
+		<?php
+	}
+
+	/**
 	 * Prints the note below a setting that is fixed in code.
 	 *
 	 * @param bool $locked Whether the setting is locked.
@@ -612,34 +738,70 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
-	 * Renders the section with the CSS custom properties.
-	 *
-	 * @return void
-	 */
-	public function render_design(): void {
-		?>
-		<p><?php esc_html_e( 'Colours, sizes and timing are CSS custom properties on the .wpcf7 wrapper. Copy the snippet into Appearance > Customize > Additional CSS or into your child theme and change the values you need; properties you leave out keep their defaults.', 'floating-labels-for-cf7' ); ?></p>
-		<p><?php esc_html_e( 'To style one form only, replace .wpcf7 with the id of its wrapper, for example [id^="wpcf7-f123-"], or with a class you add through the html_class attribute.', 'floating-labels-for-cf7' ); ?></p>
-		<label for="jgor-flcf7-css-snippet" class="screen-reader-text"><?php esc_html_e( 'CSS snippet with the default values', 'floating-labels-for-cf7' ); ?></label>
-		<textarea id="jgor-flcf7-css-snippet" class="large-text code" rows="<?php echo esc_attr( (string) ( count( self::CSS_PROPERTIES ) + 2 ) ); ?>" readonly><?php echo esc_textarea( $this->css_snippet() ); ?></textarea>
-		<?php
-	}
-
-	/**
-	 * Builds the CSS snippet with every custom property and its default.
+	 * Builds the CSS snippet with every custom property and the value in effect.
 	 *
 	 * @return string
 	 */
 	public function css_snippet(): string {
 		$lines = array( '.wpcf7 {' );
 
-		foreach ( self::CSS_PROPERTIES as $property => $default ) {
-			$lines[] = "\t" . $property . ': ' . $default . ';';
+		foreach ( $this->settings->design() as $key => $value ) {
+			$lines[] = "\t" . JGOR_FLCF7_Settings::PROPERTY_PREFIX . $key . ': ' . $value . ';';
 		}
 
 		$lines[] = '}';
 
 		return implode( "\n", $lines );
+	}
+
+	/**
+	 * Returns the heading of a design group (legend of its fieldset).
+	 *
+	 * @param string $group Key of DESIGN_GROUPS.
+	 * @return string
+	 */
+	private function design_group_label( string $group ): string {
+		switch ( $group ) {
+			case 'design_colors':
+				return __( 'Colours', 'floating-labels-for-cf7' );
+			case 'design_sizes':
+				return __( 'Sizes', 'floating-labels-for-cf7' );
+			case 'design_motion':
+				return __( 'Floated label and animation', 'floating-labels-for-cf7' );
+		}
+
+		return $group;
+	}
+
+	/**
+	 * Returns the human-readable label of a design property.
+	 *
+	 * @param string $key Property name without prefix.
+	 * @return string
+	 */
+	private function design_label( string $key ): string {
+		$labels = array(
+			'label-color'             => __( 'Label', 'floating-labels-for-cf7' ),
+			'label-color-active'      => __( 'Label of the focused field', 'floating-labels-for-cf7' ),
+			'label-color-error'       => __( 'Label of an invalid field', 'floating-labels-for-cf7' ),
+			'border-color'            => __( 'Border', 'floating-labels-for-cf7' ),
+			'border-color-active'     => __( 'Border of the focused field', 'floating-labels-for-cf7' ),
+			'border-color-error'      => __( 'Border of an invalid field', 'floating-labels-for-cf7' ),
+			'background'              => __( 'Field background (Outlined)', 'floating-labels-for-cf7' ),
+			'background-filled'       => __( 'Field background (Filled)', 'floating-labels-for-cf7' ),
+			'submit-error-background' => __( 'Submit button on errors', 'floating-labels-for-cf7' ),
+			'submit-error-color'      => __( 'Text of the submit button on errors', 'floating-labels-for-cf7' ),
+			'font-size'               => __( 'Font size of the field', 'floating-labels-for-cf7' ),
+			'label-size'              => __( 'Font size of the label at rest', 'floating-labels-for-cf7' ),
+			'padding-x'               => __( 'Horizontal padding', 'floating-labels-for-cf7' ),
+			'padding-y'               => __( 'Vertical padding', 'floating-labels-for-cf7' ),
+			'border-width'            => __( 'Border width', 'floating-labels-for-cf7' ),
+			'radius'                  => __( 'Corner radius', 'floating-labels-for-cf7' ),
+			'label-scale'             => __( 'Scale of the floated label', 'floating-labels-for-cf7' ),
+			'duration'                => __( 'Transition duration', 'floating-labels-for-cf7' ),
+		);
+
+		return $labels[ $key ] ?? $key;
 	}
 
 	/**

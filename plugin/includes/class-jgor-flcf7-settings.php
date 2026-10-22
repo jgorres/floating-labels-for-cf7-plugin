@@ -11,6 +11,12 @@
  * counts as locked: the settings screen shows it disabled, and saving the
  * screen keeps the stored value for it, so the filter keeps winning.
  *
+ * Design values (colours, sizes, timing) live under the key "design": one
+ * entry per CSS custom property of the stylesheet, without the prefix
+ * --jgor-flcf7-. Only values that passed sanitizing are stored; a missing
+ * entry means "default", and module 3 prints only the values that differ
+ * from the defaults.
+ *
  * @package Floating_Labels_For_CF7
  */
 
@@ -36,7 +42,7 @@ final class JGOR_FLCF7_Settings {
 	 *
 	 * Types that render a text-like control with a placeholder attribute.
 	 * "date" and "select" are deliberately left out for 1.0 (see the concept,
-	 * section 14); checkbox, radio, file, range, quiz and captcha never fit.
+	 * section 15); checkbox, radio, file, range, quiz and captcha never fit.
 	 *
 	 * @var string[]
 	 */
@@ -61,6 +67,68 @@ final class JGOR_FLCF7_Settings {
 	 * Maximum length of the submit error text.
 	 */
 	private const SUBMIT_ERROR_TEXT_MAX = 200;
+
+	/**
+	 * Prefix of the CSS custom properties of the stylesheet.
+	 */
+	public const PROPERTY_PREFIX = '--jgor-flcf7-';
+
+	/**
+	 * CSS custom properties of the stylesheet (without prefix) with their
+	 * default values, in the order of the .wpcf7 rule at the top of
+	 * assets/css/floating-labels.css; tests/verify-admin.php checks that
+	 * both stay in sync.
+	 *
+	 * @var array<string, string>
+	 */
+	public const DESIGN_DEFAULTS = array(
+		'padding-x'               => '0.75em',
+		'padding-y'               => '0.75em',
+		'font-size'               => '1em',
+		'label-color'             => '#5f6368',
+		'label-color-active'      => '#1a73e8',
+		'label-color-error'       => '#dc3232',
+		'label-size'              => '1em',
+		'label-scale'             => '0.75',
+		'border-width'            => '1px',
+		'border-color'            => '#80868b',
+		'border-color-active'     => '#1a73e8',
+		'border-color-error'      => '#dc3232',
+		'radius'                  => '4px',
+		'background'              => '#fff',
+		'background-filled'       => 'rgba(0, 0, 0, 0.06)',
+		'duration'                => '0.15s',
+		'submit-error-background' => '#dc3232',
+		'submit-error-color'      => '#fff',
+	);
+
+	/**
+	 * Value type of every design property: "color" (hex colour), "length"
+	 * (number with px, em, rem or %), "number" (0.5 to 1) or "time" (number
+	 * with s or ms).
+	 *
+	 * @var array<string, string>
+	 */
+	public const DESIGN_TYPES = array(
+		'padding-x'               => 'length',
+		'padding-y'               => 'length',
+		'font-size'               => 'length',
+		'label-color'             => 'color',
+		'label-color-active'      => 'color',
+		'label-color-error'       => 'color',
+		'label-size'              => 'length',
+		'label-scale'             => 'number',
+		'border-width'            => 'length',
+		'border-color'            => 'color',
+		'border-color-active'     => 'color',
+		'border-color-error'      => 'color',
+		'radius'                  => 'length',
+		'background'              => 'color',
+		'background-filled'       => 'color',
+		'duration'                => 'time',
+		'submit-error-background' => 'color',
+		'submit-error-color'      => 'color',
+	);
 
 	/**
 	 * Single instance.
@@ -144,7 +212,8 @@ final class JGOR_FLCF7_Settings {
 	 *
 	 * Changing a default here changes the behaviour of sites that never
 	 * saved the settings screen. The default type list is BASE_TYPES minus
-	 * whatever the filter jgor_flcf7_field_types removed.
+	 * whatever the filter jgor_flcf7_field_types removed. An empty design
+	 * array means: every custom property keeps its stylesheet default.
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -157,6 +226,7 @@ final class JGOR_FLCF7_Settings {
 			'load_css'          => true,
 			'required_marker'   => false,
 			'submit_error_text' => self::DEFAULT_SUBMIT_ERROR_TEXT,
+			'design'            => array(),
 		);
 	}
 
@@ -256,6 +326,65 @@ final class JGOR_FLCF7_Settings {
 	}
 
 	/**
+	 * Returns the design values in effect: the stylesheet defaults with the
+	 * stored (and filtered) values on top, keyed without prefix.
+	 *
+	 * @return array<string, string>
+	 */
+	public function design(): array {
+		$design = $this->get( 'design' );
+		$design = is_array( $design ) ? $design : array();
+		$values = self::DESIGN_DEFAULTS;
+
+		foreach ( $design as $key => $value ) {
+			if ( ! is_string( $key ) || ! isset( $values[ $key ] ) ) {
+				continue;
+			}
+
+			$clean = self::sanitize_design_value( $key, $value );
+			if ( '' !== $clean ) {
+				$values[ $key ] = $clean;
+			}
+		}
+
+		return $values;
+	}
+
+	/**
+	 * Returns the design values that differ from the stylesheet defaults.
+	 *
+	 * Module 3 prints exactly these as an inline style.
+	 *
+	 * @return array<string, string>
+	 */
+	public function design_overrides(): array {
+		$overrides = array();
+
+		foreach ( $this->design() as $key => $value ) {
+			if ( self::DESIGN_DEFAULTS[ $key ] !== $value ) {
+				$overrides[ $key ] = $value;
+			}
+		}
+
+		return $overrides;
+	}
+
+	/**
+	 * Returns the stylesheet defaults keyed by the full custom property name.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function css_defaults(): array {
+		$defaults = array();
+
+		foreach ( self::DESIGN_DEFAULTS as $key => $value ) {
+			$defaults[ self::PROPERTY_PREFIX . $key ] = $value;
+		}
+
+		return $defaults;
+	}
+
+	/**
 	 * Drops the cached settings so the next read hits the option again.
 	 *
 	 * @return void
@@ -334,6 +463,9 @@ final class JGOR_FLCF7_Settings {
 
 			case 'submit_error_text':
 				return $this->sanitize_text( $raw );
+
+			case 'design':
+				return $this->sanitize_design( $raw );
 		}
 
 		if ( is_bool( $fallback ) ) {
@@ -392,6 +524,75 @@ final class JGOR_FLCF7_Settings {
 		}
 
 		return mb_substr( sanitize_text_field( $raw ), 0, self::SUBMIT_ERROR_TEXT_MAX );
+	}
+
+	/**
+	 * Keeps only known design properties with valid, non-empty values.
+	 *
+	 * @param mixed $raw Raw value, an array property => value.
+	 * @return array<string, string>
+	 */
+	private function sanitize_design( $raw ): array {
+		if ( ! is_array( $raw ) ) {
+			return array();
+		}
+
+		$clean = array();
+		foreach ( array_keys( self::DESIGN_TYPES ) as $key ) {
+			$value = self::sanitize_design_value( $key, $raw[ $key ] ?? null );
+			if ( '' !== $value ) {
+				$clean[ $key ] = $value;
+			}
+		}
+
+		return $clean;
+	}
+
+	/**
+	 * Sanitizes one design value according to the type of its property.
+	 *
+	 * Colours: "#" and three or six hex digits, lower-cased. Lengths: a
+	 * number with px, em, rem or %, or a plain 0. Numbers: 0.5 to 1, at most
+	 * two decimals. Times: a number with s or ms. Anything else, including an
+	 * unknown property, gives '', which means "default".
+	 *
+	 * @param string $key Property name without prefix.
+	 * @param mixed  $raw Raw value.
+	 * @return string Clean value, or '' for the default.
+	 */
+	public static function sanitize_design_value( string $key, $raw ): string {
+		if ( ! isset( self::DESIGN_TYPES[ $key ] ) || ! is_scalar( $raw ) ) {
+			return '';
+		}
+
+		$value = strtolower( trim( (string) $raw ) );
+		if ( '' === $value ) {
+			return '';
+		}
+
+		$type = self::DESIGN_TYPES[ $key ];
+
+		if ( 'color' === $type ) {
+			return preg_match( '/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/', $value ) ? $value : '';
+		}
+
+		if ( 'length' === $type ) {
+			return preg_match( '/^(?:0|(?:\d+(?:\.\d+)?|\.\d+)(?:px|em|rem|%))$/', $value ) ? $value : '';
+		}
+
+		if ( 'number' === $type ) {
+			if ( ! is_numeric( $value ) ) {
+				return '';
+			}
+			$number = (float) $value;
+			if ( 0.5 > $number || 1 < $number ) {
+				return '';
+			}
+			return rtrim( rtrim( number_format( $number, 2, '.', '' ), '0' ), '.' );
+		}
+
+		// Remaining type: time.
+		return preg_match( '/^(?:\d+(?:\.\d+)?|\.\d+)(?:s|ms)$/', $value ) ? $value : '';
 	}
 
 	/**
