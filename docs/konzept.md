@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 1.0 · Stand: 21.10.2026 · Plugin-Version: noch kein Code
+Version: 1.1 · Stand: 22.10.2026 · Plugin-Version: noch kein Code
 
 ## 1. Zweck
 
@@ -42,10 +42,11 @@ in beiden Anreden über translate.wordpress.org.
 | Tested up to | 7.1 (nur in `readme.txt`) |
 | Requires PHP | 8.1 |
 | Requires Plugins | `contact-form-7` (Header und `readme.txt`) |
-| Plugin URI | `https://github.com/jgorres/floating-labels-for-cf7-plugin` (darf bis zur Einreichung privat sein) |
-| Lokale Site | `https://testkunde.local` (Wegwerf-Site), CF7 per wp-cli, Plugin per Symlink auf `plugin/` |
+| Plugin URI | `https://github.com/jgorres/floating-labels-for-cf7-plugin` (Repo seit 22.10.2026 privat, Remote `origin`; vor der Einreichung öffentlich stellen) |
+| Lokale Site | `https://floating-labels-for-cf7.gorres.local` (local-sites auf Bodhran, PHP 8.4, WordPress 7.1.3 „nackt“, Twenty Twenty-Five, Admin `jgorres`, Sprache en_US, de_DE installiert), CF7, Plugin Check und Query Monitor per wp-cli, Plugin per Symlink `wp-content/plugins/floating-labels-for-cf7` → `plugin/`; Browser läuft auf Silentium, Hosts-Eintrag dort über `hosts-von-bodhran.sh` |
+| Test-Site Hostsharing | `https://<hs-testsite>`: Paket `<hs-paket>`, Domain-Admin `<hs-admin>`, DB und DB-User `<hs-db>`, PHP 8.4 (`fcgiphpbin`, in HSAdmin gesetzt), Let’s Encrypt. Kopie der lokalen Site über Stufe 6 `local-sites-hostsharing.sh` (Zugangsdaten `~/.config/local-sites/hostsharing/floating-labels-for-cf7.gorres.local.env`); Änderungen nachschieben mit `dateien floating-labels-for-cf7.gorres.local --ueberschreiben`; wp-cli dort mit `php8.4 /home/pacs/<hs-paket>/bin/wp` |
 | Rechte | Einstellungsseite `manage_options` |
-| Geprüft gegen | CF7 6.2.2 (lokal), Doku `https://contactform7.com/docs/` |
+| Geprüft gegen | CF7 6.2.3 (lokal und Hostsharing; verlangt WordPress 7.1 und PHP 8.3, liegt über `Requires at least` 6.5 und `Requires PHP` 8.1, Entscheidung beim Gerüst), Doku `https://contactform7.com/docs/` |
 
 Namensprüfung: „Contact Form 7“ ist eine eingetragene Marke von Rock Lobster
 Inc. Die Trademark-Policy (`contactform7.com/trademark-policy/`) nimmt die
@@ -364,9 +365,10 @@ Tabellen, keine Dateien.
   jedem Commit.
 - `wp plugin check` auf dem gebauten ZIP (keine externen URLs im Code,
   `Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens 150 Zeichen).
-- Testsite `testkunde.local`: CF7 per wp-cli installieren, Symlink auf
-  `plugin/`, Testformulare: (a) CF7-Standardvorlage (Label-Modus), (b)
-  Placeholder-Vorlage, (c) gemischt mit `nofloat`, `id:`-Option und
+- Testsite `floating-labels-for-cf7.gorres.local` (CF7, Plugin Check, Query
+  Monitor, Symlink auf `plugin/`, Abschnitt 2), Testformulare: (a) CF7-
+  Standardvorlage (Label-Modus), (b) Placeholder-Vorlage, (c) gemischt mit
+  `nofloat`, `id:`-Option und
   verknüpftem `<label for>`, Select, Checkbox, Datei, (d) Formular mit
   `floating_labels: off`, (e) dasselbe Formular zweimal auf einer Seite.
 - Per `wp eval`: `WPCF7_ContactForm::get_instance( $id )->form_html()` →
@@ -378,13 +380,17 @@ Tabellen, keine Dateien.
   sinken zurück; Screenshots für `assets/`.
 - Ohne `ext-dom` (per `wp eval` mit Klassen-Stub nicht simulierbar; Codepfad
   per PHPStan und Lesen prüfen): Hinweis im Admin, Formular unverändert.
+- Gegenprobe auf der Hostsharing-Testsite `<hs-testsite>`
+  (PHP 8.4, Produktiv-Stack) vor jedem Release; Stand mit
+  `local-sites-hostsharing.sh dateien … --ueberschreiben` nachziehen.
 - Testeinstellungen und Testformulare nach der Prüfung entfernen.
 
 ## 13. Reihenfolge der Umsetzung
 
 1. Gerüst (Header, Konstanten, Bootstrap, Settings-Klasse, Hinweis ohne
-   CF7), `stubs/cf7.php`, `composer install`, erster Commit, GitHub-Remote
-   (privat), `testkunde.local` mit CF7 und Symlink.
+   CF7), `stubs/cf7.php`, `composer install`, Commit. Erledigt am
+   22.10.2026: GitHub-Remote (privat, Commit a8cdc4d), lokale Testsite und
+   Hostsharing-Testsite (Abschnitt 2).
 2. Modul 2 Markup: Placeholder-Modus, dann Label-Modus, Ausnahmen, Filter.
    Prüfung per `wp eval`.
 3. Modul 3 CSS: Variante Outlined, dann Filled und Minimal, Fehlerzustand,
@@ -411,3 +417,4 @@ Tabellen, keine Dateien.
 | Version | Datum | Änderung |
 | --- | --- | --- |
 | 1.0 | 21.10.2026 | Erste Fassung: Zweck, Eckdaten mit Namensprüfung, CF7-Grundlagen, vier Module, Prüfung, Reihenfolge |
+| 1.1 | 22.10.2026 | Testumgebung: GitHub-Repo (privat), lokale Site `floating-labels-for-cf7.gorres.local`, Hostsharing-Site `<hs-testsite>` (<hs-admin>, DB `<hs-db>`, PHP 8.4); CF7 6.2.3 verlangt WordPress 7.1 und PHP 8.3 |
