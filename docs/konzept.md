@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 1.4 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–3 umgesetzt, Modul 4 folgt)
+Version: 1.5 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–3 umgesetzt, Modul 4 folgt)
 
 ## 1. Zweck
 
@@ -79,7 +79,7 @@ floating-labels-for-cf7/
 │   └── languages/floating-labels-for-cf7.pot
 ├── tests/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
-│   └── verify-markup.php             42 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
+│   └── verify-markup.php             58 PASS/FAIL-Prüfungen für Modul 2 (wp eval-file)
 ├── docs/  assets/  glotpress/
 ├── composer.json, phpcs.xml.dist, phpstan.neon.dist, phpstan-bootstrap.php, stubs/
 └── build.sh, .distignore, .gitignore, LICENSE
@@ -108,17 +108,18 @@ und kommt nicht ins Release-ZIP; die Scripte laufen nur unter WP-CLI
   Screenreader nicht zwei Namen vorlesen. CF7-Attribute (`aria-required`,
   `aria-invalid`, `aria-describedby`) bleiben erhalten.
 - **CF7-Konventionen:** Die Steuerung je Formular läuft über die Additional
-  Settings (`floating_labels: off`), je Feld über eine Form-Tag-Option
-  (`nofloat`). Das CSS folgt der Ladepolitik von CF7 über die Action
-  `wpcf7_enqueue_styles`.
+  Settings (`floating_labels: off`, `floating_labels_style: filled`, …), je
+  Platzierung über das Shortcode-/Block-Attribut `html_class`, je Feld über
+  eine Form-Tag-Option (`nofloat`); Rangfolge in 7.4. Das CSS folgt der
+  Ladepolitik von CF7 über die Action `wpcf7_enqueue_styles`.
 - **Theme-freundlich:** Farben, Maße und Dauer als Custom Properties
   `--jgor-flcf7-*`, gesetzt auf `.wpcf7`. Das Steuerelement erbt die Schrift
   des Themes (`font: inherit`). Die Variante „Minimal“ liefert nur
   Positionierung, Zustände und Label-Farben, die Optik des Feldes kommt dann
   aus dem Theme.
 - **Entwickler-Filter:** `jgor_flcf7_settings` (Konfiguration aus Code),
-  `jgor_flcf7_enabled` (je Formular), `jgor_flcf7_label_text` (je Feld),
-  `jgor_flcf7_field_types`.
+  `jgor_flcf7_form_settings` (je Rendering), `jgor_flcf7_enabled` (je
+  Formular), `jgor_flcf7_label_text` (je Feld), `jgor_flcf7_field_types`.
 - **Schlank:** Eine Option (`jgor_flcf7_settings`, autoload), eine
   CSS-Datei, keine Tabellen, keine Transients, kein Cron. Der Umbau läuft
   einmal je gerendertem Formular auf einem kleinen HTML-Fragment.
@@ -155,7 +156,10 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   `n` zählt je Request hoch), `pref( 'name' )` den ersten Wert einer Zeile
   aus den Additional Settings (`null` ohne Eintrag), `scan_form_tags()` die
   Form-Tag-Objekte. `get_instance( $id )` liefert `null` für unbekannte
-  Posts.
+  Posts. `shortcode_attr( 'html_class' )` (seit CF7 5.0) liefert das
+  Attribut des Shortcodes (`[contact-form-7 id="…" html_class="…"]`) bzw. des Blocks
+  (Feld „Class“ im Seitenleisten-Panel „Form attributes“); CF7 schreibt die
+  Klassen per `sanitize_html_class()` auf das `<form>`.
 - **Assets:** CF7 registriert seine Styles auf `wp_enqueue_scripts` und
   bindet sie ein, wenn `wpcf7_load_css()` wahr ist (Standard, abschaltbar über
   `WPCF7_LOAD_CSS` oder Filter `wpcf7_load_css`). `wpcf7_enqueue_styles()`
@@ -168,8 +172,10 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   des Wraps. Nach erfolgreichem Versand `form.reset()`. DOM-Events
   (`wpcf7invalid`, `wpcf7spam`, `wpcf7mailsent`, `wpcf7mailfailed`,
   `wpcf7submit`) braucht das Plugin nicht.
-- **Block-Editor:** Der CF7-Block rendert denselben Shortcode, der Filter
-  greift dort ebenso.
+- **Block-Editor:** Der CF7-Block (`contact-form-7/contact-form-selector`)
+  rendert denselben Shortcode, der Filter greift dort ebenso. Seine
+  Attribute `htmlId`, `htmlName`, `htmlTitle`, `htmlClass` entsprechen den
+  Shortcode-Attributen `html_*`.
 
 ## 6. Modul 1: Grundgerüst (`class-jgor-flcf7-plugin.php`, `class-jgor-flcf7-settings.php`)
 
@@ -229,11 +235,12 @@ das Frontend begrenzt. Ablauf je Formular:
 1. Schneller Vorab-Test: kein String oder kein `wpcf7-form-control-wrap`
    per `strpos()` → unverändert zurück.
 2. Formular über `WPCF7_ContactForm::get_current()`; kein Formular →
-   unverändert. Modi bestimmen (7.4): Einstellungen `mode_placeholder` /
-   `mode_label`, dann Additional Setting `floating_labels`, dann Filter
-   `jgor_flcf7_enabled`. Abgeschaltet oder kein Modus aktiv → unverändert.
-3. Felder sammeln: `scan_form_tags()` → Name → Basistyp, nur Basistypen aus
-   `types` (geschnitten mit `field_types()`). Ausgeschlossen: Tags mit
+   unverändert. Wirksame Einstellungen für dieses Rendering bestimmen (7.4):
+   Modi, Feldtypen, Variante und Pflichtstern aus der Option, übersteuert
+   durch Additional Settings, `html_class` und Filter. Abgeschaltet, kein
+   Modus aktiv oder kein Feldtyp erlaubt → unverändert.
+3. Felder sammeln: `scan_form_tags()` → Name → Basistyp, nur die wirksamen
+   Feldtypen. Ausgeschlossen: Tags mit
    `has_option( 'nofloat' )`, Tags ohne Namen, Namen mit zwei verschiedenen
    Basistypen (mehrdeutig). Leere Liste → unverändert.
 4. HTML in DOMDocument laden (7.5), alle `span.wpcf7-form-control-wrap`
@@ -248,8 +255,9 @@ das Frontend begrenzt. Ablauf je Formular:
    `$name`, `$contact_form`); kein String oder leer → Feld bleibt
    unverändert. Whitespace (auch geschützte Leerzeichen) wird überall zu
    einem Leerzeichen zusammengezogen und getrimmt.
-6. Umbau (7.6). Wurde kein Feld geändert, geht das Original-HTML zurück
-   (keine Neu-Serialisierung); sonst zurück zu HTML.
+6. Umbau (7.6) mit der wirksamen Variante und dem wirksamen Pflichtstern.
+   Wurde kein Feld geändert, geht das Original-HTML zurück (keine
+   Neu-Serialisierung); sonst zurück zu HTML.
 
 ### 7.1 Placeholder-Modus
 
@@ -296,18 +304,59 @@ werden alle IDs des Fragments gesammelt; kollidiert eine neue ID, hängt das
 Plugin `-2`, `-3`, … an. Der Unit-Tag ist je Instanz eindeutig, auch wenn
 dasselbe Formular zweimal auf einer Seite steht.
 
-### 7.4 Ausnahmen
+### 7.4 Steuerung: global, je Formular, je Platzierung, je Feld
 
-- Form-Tag-Option `nofloat`, vor den Werten in Anführungszeichen (5):
-  `[text* your-name nofloat placeholder "Your name"]`.
-- Additional Settings: `floating_labels: off` (ganzes Formular; ebenso
-  `false`, `no`, `0`, Groß-/Kleinschreibung egal), `floating_labels:
-  placeholder` oder `floating_labels: label` (nur der genannte Modus, auch
-  wenn die Einstellungen ihn abgeschaltet haben).
-- Filter `jgor_flcf7_enabled` (`$enabled`, `$contact_form`): läuft nach dem
-  Additional Setting und übersteuert es in beide Richtungen.
-- Feldtypen außerhalb von `types`, Tags ohne Namen, mehrdeutige Namen (7,
-  Schritt 3), Wraps mit unbekanntem Inhalt (7, Schritt 4).
+Die wirksamen Werte eines Renderings entstehen in Schichten; jede spätere
+Schicht übersteuert die frühere, ungültige Werte werden ignoriert:
+
+1. **Option** (Modul 1): `mode_placeholder`, `mode_label`, `types`,
+   `style`, `required_marker`.
+2. **Additional Settings des Formulars** (Tab „Additional Settings“ im
+   CF7-Editor, gelesen per `pref()`):
+
+   ```
+   floating_labels: off
+   floating_labels: placeholder
+   floating_labels_style: filled
+   floating_labels_marker: on
+   floating_labels_types: text email textarea
+   ```
+
+   `floating_labels: off` (auch `false`, `no`, `0`) schaltet das Formular
+   ab, `placeholder` oder `label` lässt nur den genannten Modus zu, auch
+   wenn die Option ihn abgeschaltet hat. `floating_labels_style` nimmt
+   `outlined`, `filled`, `minimal`; `floating_labels_marker` nimmt `on`/`off`
+   (auch `true`/`false`, `yes`/`no`, `1`/`0`); `floating_labels_types` ist
+   eine Liste von Basistypen, durch Leerzeichen oder Kommas getrennt, nur
+   Typen aus `field_types()` zählen, eine leere Liste schaltet alle Typen
+   ab. Groß-/Kleinschreibung ist egal.
+3. **`html_class` der Platzierung** (Shortcode `[contact-form-7 id="…"
+   html_class="…"]`, im CF7-Block das Feld „Class“ im Panel „Form
+   attributes“; gelesen per `shortcode_attr( 'html_class' )`). Erkannte
+   Klassen: `jgor-flcf7-off`, `jgor-flcf7-on`, `jgor-flcf7-mode-placeholder`,
+   `jgor-flcf7-mode-label`, `jgor-flcf7-style-outlined`,
+   `jgor-flcf7-style-filled`, `jgor-flcf7-style-minimal`,
+   `jgor-flcf7-marker-on`, `jgor-flcf7-marker-off`. Dasselbe Formular kann
+   so je Seite anders aussehen. Die Namen unterscheiden sich absichtlich von
+   den Wrap-Klassen aus 7.6: CF7 schreibt `html_class` auf das `<form>`, eine
+   Wrap-Klasse dort würde die Varianten-Regeln des CSS auf alle Felder
+   anwenden.
+4. **Filter `jgor_flcf7_form_settings`** (`$settings`, `$contact_form`):
+   erhält das Array `enabled`, `mode_placeholder`, `mode_label`, `types`,
+   `style`, `required_marker` nach den Schichten 1–3 und gibt es zurück;
+   nur bekannte Schlüssel mit gültigen Werten werden übernommen.
+5. **Filter `jgor_flcf7_enabled`** (`$enabled`, `$contact_form`): läuft
+   zuletzt, schaltet in beide Richtungen.
+6. **Je Feld:** Form-Tag-Option `nofloat`, vor den Werten in
+   Anführungszeichen (5): `[text* your-name nofloat placeholder "Your
+   name"]`. Außerdem fallen heraus: Feldtypen außerhalb der wirksamen
+   `types`, Tags ohne Namen, mehrdeutige Namen (7, Schritt 3), Wraps mit
+   unbekanntem Inhalt (7, Schritt 4).
+
+Farben und Maße je Formular oder Platzierung setzt das Theme über die
+Custom Properties (8) auf dem Formular-Wrapper, zum Beispiel
+`[id^="wpcf7-f123-"] { --jgor-flcf7-border-color-active: #0a7d3e; }`, oder
+über eine eigene Klasse in `html_class`.
 
 ### 7.5 Technik: DOMDocument
 
@@ -350,8 +399,8 @@ Geschwister-Selektoren reichen (`.jgor-flcf7-control:focus + .jgor-flcf7-label`,
 `.wpcf7-not-valid-tip` (serverseitig schon vorhanden oder per JS angehängt)
 landet hinter dem Label. Klassen am Wrap in dieser Reihenfolge:
 `jgor-flcf7-wrap`, Variante (`jgor-flcf7-outlined`, `-filled`, `-minimal`),
-bei einer `textarea` zusätzlich `jgor-flcf7-textarea`, bei eingeschaltetem
-`required_marker` zusätzlich `jgor-flcf7-marker`. Die Varianten-Klasse sitzt
+bei einer `textarea` zusätzlich `jgor-flcf7-textarea`, bei wirksamem
+Pflichtstern (7.4) zusätzlich `jgor-flcf7-marker`. Die Varianten-Klasse sitzt
 am Wrap, damit eine CSS-Datei alle Varianten abdeckt; die Marker-Klasse
 schaltet den Pflichtstern im CSS, ohne dass das Plugin eine zweite CSS-Datei
 oder Inline-CSS bräuchte.
@@ -443,15 +492,16 @@ oder Inline-CSS bräuchte.
 
 ## 9. Modul 4: Einstellungsseite (`class-jgor-flcf7-admin.php`)
 
-- Untermenü im CF7-Menü (`add_submenu_page( 'wpcf7', … )`, Slug
-  `wpcf7-floating-labels`), Capability `manage_options`, Settings API mit
+- Untermenü im CF7-Menü: Elternslug `wpcf7-dashboard` (CF7 6.2.3; ältere
+  Versionen `wpcf7`, Fallback über `$admin_page_hooks`), Slug
+  `wpcf7-floating-labels`, Capability `manage_options`, Settings API mit
   `register_setting()` (aus Modul 1) und `sanitize()`, Nonce über
   `settings_fields()`.
 - Felder: zwei Checkboxen für die Modi, Checkboxen je Feldtyp (Liste aus
   `field_types()`), Radio für die Variante, Checkbox CSS laden, Checkbox
-  Pflichtfeld-Stern. Kurzer Hinweistext mit den drei Steuerwegen (`nofloat`
-  vor den Werten in Anführungszeichen, `floating_labels: off`, Custom
-  Properties) und den Filtern.
+  Pflichtfeld-Stern. Kurzer Hinweistext zu den Steuerwegen aus 7.4
+  (Additional Settings `floating_labels*`, `html_class`-Klassen, `nofloat`
+  vor den Werten in Anführungszeichen, Custom Properties) und den Filtern.
 - Abschnitt „Design“: keine Eingabefelder für Farben und Maße. Stattdessen
   ein schreibgeschützter Codeblock mit dem CSS-Snippet aus 8 (Selektor
   `.wpcf7`, alle Custom Properties mit ihren Defaults) zum Kopieren in
@@ -526,7 +576,7 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 ```
 
 - `tests/verify-markup.php` rendert die Formulare per `form_html()` und
-  prüft 42 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
+  prüft 58 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
   Placeholder-Modus, Ersatz des umschließenden Labels, Label-Text aus der
   Vorlage, Varianten- und Textarea-Klasse, IDs aus dem Unit-Tag, `for` =
   `id`, `placeholder=" "`, unberührte Felder (Submit, `nofloat`, Select,
@@ -534,7 +584,12 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   off|placeholder|label`, Filter `jgor_flcf7_enabled` und
   `jgor_flcf7_label_text` (auch Rückgabe leer), Typen-Einstellung ohne
   `textarea`, Formular (d) byteidentisch zum Original (Unit-Tag
-  normalisiert), zwei Instanzen mit verschiedenen IDs, UTF-8 und Entities.
+  normalisiert), zwei Instanzen mit verschiedenen IDs, UTF-8 und Entities,
+  Steuerung je Formular (`floating_labels_style`, `_marker`, `_types`, leere
+  Liste, ungültiger Wert), je Platzierung (`html_class`-Klassen samt
+  Rangfolge über das Formular und `jgor-flcf7-on` gegen `floating_labels:
+  off`), Filter `jgor_flcf7_form_settings` (Vorrang vor `html_class`,
+  `enabled` false, ungültige Werte).
   Das Script ändert die Option vorübergehend und stellt die Defaults danach
   wieder her. `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
@@ -560,7 +615,9 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
    ohne CF7 per wp-cli geprüft).
 2. Modul 2 Markup: Placeholder-Modus, dann Label-Modus, Ausnahmen, Filter.
    Prüfung per `wp eval`. Erledigt am 22.10.2026 (Commit 124beaa, Prüfscripte
-   756f4c1): 42 Prüfungen PASS, `composer check` ohne Befund.
+   756f4c1): 42 Prüfungen PASS, `composer check` ohne Befund. Erweitert am
+   22.10.2026 um die Steuerung je Formular und Platzierung (7.4): 58
+   Prüfungen PASS.
 3. Modul 3 CSS: Variante Outlined, dann Filled und Minimal, Fehlerzustand,
    Reduced Motion, RTL. Erledigt am 22.10.2026 (Commit aac696a), Sichtprüfung
    lokal; Browser-Matrix und Screenshots mit Schritt 5.
@@ -587,6 +644,13 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
   Default abweichenden Properties per `wp_add_inline_style( 'jgor-flcf7',
   … )` am vorhandenen Handle. Kostet die strikte CSP-Tauglichkeit für Styles
   ohne `'unsafe-inline'`; darum abschaltbar („Design-Werte ausgeben“).
+- Komfort-Oberflächen für die Steuerung je Formular und Platzierung
+  (Erweiterung 1.1): eigener Tab im CF7-Editor (`wpcf7_editor_panels`,
+  Speichern auf `wpcf7_save_contact_form`) statt Additional Settings, und
+  eigene Felder in der Seitenleiste des CF7-Blocks (Editor-JS ohne
+  Build-Schritt über `blocks.registerBlockType` und `editor.BlockEdit`,
+  serverseitig schreibt `render_block_data` den Wert in `htmlClass`). Beides
+  nur Oberfläche, der Mechanismus aus 7.4 bleibt.
 - CF7-Formularklasse `use-floating-validation-tip` (absolut positionierte
   Fehlertips) mit dem Wrap abstimmen, sobald ein Fall auftaucht.
 - Umstieg von DOMDocument auf `WP_HTML_Processor`, sobald der Core das
@@ -601,3 +665,4 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 | 1.2 | 22.10.2026 | Gerüst umgesetzt (Commit 4a1c2c2): Hauptdatei, Bootstrap, Settings mit Filtern `jgor_flcf7_settings` und `jgor_flcf7_field_types`, Uninstall, CF7-Stubs; Entscheidung: `Requires at least` 6.5 und `Requires PHP` 8.1 bleiben |
 | 1.3 | 22.10.2026 | Module 2 und 3 umgesetzt (Commits 124beaa, aac696a, 756f4c1), Konzept an den Code angeglichen: Form-Tag-Syntax (`nofloat` vor Werten in Anführungszeichen), Werte von `floating_labels`, Prüfregeln je Wrap, ID-Eindeutigkeit, Wrap-Klassen `jgor-flcf7-textarea` und `jgor-flcf7-marker`, CSS-Geometrie (Label auf der ersten Textzeile, Floaten per `scale()`, Properties `--jgor-flcf7-padding-y`, `-border-width`, `-background-filled`, `-label-scale` statt `-label-size-floated`), Sperr-Definition des Filters `jgor_flcf7_settings` (9.1), Prüfscripte in `tests/`, Verzeichnisbaum |
 | 1.4 | 22.10.2026 | Entscheidung Design-Werte: 1.0 ohne Eingabefelder, die Einstellungsseite zeigt das CSS-Snippet mit allen Custom Properties (9); Eingabefelder mit `wp_add_inline_style()` als Erweiterung 1.1 vorgemerkt (14) |
+| 1.5 | 22.10.2026 | Steuerung je Formular (Additional Settings `floating_labels_style`, `floating_labels_marker`, `floating_labels_types`), je Platzierung (`html_class`-Klassen `jgor-flcf7-off`, `-on`, `-mode-*`, `-style-*`, `-marker-on`, `-marker-off`) und Filter `jgor_flcf7_form_settings` mit Rangfolge (7.4); Modul 2 entsprechend erweitert, 58 Prüfungen; §9 Elternslug `wpcf7-dashboard`; §14 Editor-Tab und Block-Seitenleiste für 1.1 |

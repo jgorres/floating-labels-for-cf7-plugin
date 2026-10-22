@@ -75,6 +75,15 @@ class WPCF7_ContactForm {
 	public function form_html( $options = '' ) {}
 
 	/**
+	 * Returns one attribute of the shortcode or block that renders the form
+	 * (html_id, html_name, html_title, html_class, output), null when unset.
+	 *
+	 * @param string $name Attribute name.
+	 * @return string|null
+	 */
+	public function shortcode_attr( $name ) {}
+
+	/**
 	 * Returns the form-tags of the form template, optionally filtered.
 	 *
 	 * @param array<string, mixed>|string|null $cond Filter conditions (type, basetype, name, feature).

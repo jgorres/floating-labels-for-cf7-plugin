@@ -10,6 +10,10 @@
  * linked <label> of the form template (label mode) or from the placeholder
  * option of the form-tag (placeholder mode).
  *
+ * What applies to one rendering is decided in layers, see form_settings():
+ * the plugin settings, the additional settings of the form, the classes in
+ * the html_class attribute of the shortcode or block, and two filters.
+ *
  * Nothing else changes: fields the module does not recognise keep their
  * markup, and when the rebuild fails at any point the original HTML is
  * returned untouched. The rebuild uses DOMDocument (ext-dom); the bootstrap
@@ -51,9 +55,15 @@ final class JGOR_FLCF7_Markup {
 	public const TEXTAREA_CLASS = 'jgor-flcf7-textarea';
 
 	/**
-	 * Class added to the wrap when the setting "required_marker" is on.
+	 * Class added to the wrap when the required marker is on.
 	 */
 	public const MARKER_CLASS = 'jgor-flcf7-marker';
+
+	/**
+	 * Prefix of the html_class classes that pick a variant for one placement
+	 * (jgor-flcf7-style-outlined, jgor-flcf7-style-filled, jgor-flcf7-style-minimal).
+	 */
+	public const HTML_CLASS_STYLE_PREFIX = 'jgor-flcf7-style-';
 
 	/**
 	 * Id of the wrapper element the HTML fragment is parsed into.
@@ -128,36 +138,110 @@ final class JGOR_FLCF7_Markup {
 			return $html;
 		}
 
-		$modes = $this->modes( $form );
-		if ( null === $modes ) {
+		$config = $this->form_settings( $form );
+		if ( null === $config ) {
 			return $html;
 		}
 
-		$fields = $this->fields( $form );
+		$fields = $this->fields( $form, $config['types'] );
 		if ( empty( $fields ) ) {
 			return $html;
 		}
 
-		$rebuilt = $this->rebuild( $html, $form, $fields, $modes );
+		$rebuilt = $this->rebuild( $html, $form, $fields, $config );
 
 		return null === $rebuilt ? $html : $rebuilt;
 	}
 
 	/**
-	 * Determines which modes apply to a form, or null when the form is skipped.
+	 * Determines the settings that apply to one rendering of a form.
 	 *
-	 * Order: plugin settings, then the additional setting "floating_labels"
-	 * of the form (off, placeholder, label), then the filter
-	 * jgor_flcf7_enabled.
+	 * Layers, lowest first: the plugin settings; the additional settings of
+	 * the form (floating_labels, floating_labels_style, floating_labels_marker,
+	 * floating_labels_types); the classes in the html_class attribute of the
+	 * shortcode or block (jgor-flcf7-off, jgor-flcf7-on, jgor-flcf7-mode-*,
+	 * jgor-flcf7-style-*, jgor-flcf7-marker-on, jgor-flcf7-marker-off); the
+	 * filter jgor_flcf7_form_settings; the filter jgor_flcf7_enabled. Returns
+	 * null when the form is skipped: disabled, no mode active or no field
+	 * type allowed.
 	 *
 	 * @param WPCF7_ContactForm $form The contact form being rendered.
-	 * @return array{placeholder: bool, label: bool}|null
+	 * @return array{placeholder: bool, label: bool, types: string[], style: string, marker: bool}|null
 	 */
-	private function modes( WPCF7_ContactForm $form ): ?array {
-		$placeholder = (bool) $this->settings->get( 'mode_placeholder' );
-		$label       = (bool) $this->settings->get( 'mode_label' );
-		$enabled     = true;
+	private function form_settings( WPCF7_ContactForm $form ): ?array {
+		$known = $this->settings->field_types();
+		$types = $this->settings->get( 'types' );
 
+		$current = array(
+			'enabled'          => true,
+			'mode_placeholder' => (bool) $this->settings->get( 'mode_placeholder' ),
+			'mode_label'       => (bool) $this->settings->get( 'mode_label' ),
+			'types'            => is_array( $types ) ? array_values( array_intersect( $known, $types ) ) : array(),
+			'style'            => (string) $this->settings->get( 'style' ),
+			'required_marker'  => (bool) $this->settings->get( 'required_marker' ),
+		);
+
+		$current = $this->apply_additional_settings( $form, $current, $known );
+		$current = $this->apply_html_class( $form, $current );
+
+		/**
+		 * Filters the settings that apply to one rendering of a contact form.
+		 *
+		 * Runs after the additional settings of the form and the classes of
+		 * the shortcode or block have been read. Keys: enabled (bool),
+		 * mode_placeholder (bool), mode_label (bool), types (string[] of
+		 * Contact Form 7 base types), style ("outlined", "filled" or
+		 * "minimal") and required_marker (bool). Invalid values are ignored.
+		 *
+		 * @param array<string, mixed> $settings     Effective settings for this rendering.
+		 * @param WPCF7_ContactForm    $contact_form The contact form being rendered.
+		 */
+		$filtered = apply_filters( 'jgor_flcf7_form_settings', $current, $form );
+		if ( is_array( $filtered ) ) {
+			$current = $this->merge_form_settings( $current, $filtered, $known );
+		}
+
+		/**
+		 * Filters whether a contact form gets floating labels.
+		 *
+		 * Runs last, after the additional settings of the form, the classes
+		 * of the shortcode or block and the filter jgor_flcf7_form_settings,
+		 * so code can override all of them in both directions.
+		 *
+		 * @param bool              $enabled      Whether the form gets floating labels.
+		 * @param WPCF7_ContactForm $contact_form The contact form being rendered.
+		 */
+		$enabled = (bool) apply_filters( 'jgor_flcf7_enabled', $current['enabled'], $form );
+
+		if ( ! $enabled || ( ! $current['mode_placeholder'] && ! $current['mode_label'] ) || empty( $current['types'] ) ) {
+			return null;
+		}
+
+		return array(
+			'placeholder' => $current['mode_placeholder'],
+			'label'       => $current['mode_label'],
+			'types'       => $current['types'],
+			'style'       => $current['style'],
+			'marker'      => $current['required_marker'],
+		);
+	}
+
+	/**
+	 * Applies the additional settings of the form (tab "Additional Settings").
+	 *
+	 * Lines: "floating_labels: off" (also false, no, 0), "floating_labels:
+	 * placeholder" or "floating_labels: label" (only that mode),
+	 * "floating_labels_style: outlined|filled|minimal",
+	 * "floating_labels_marker: on|off" and "floating_labels_types: text email"
+	 * (space or comma separated base types; an empty list switches every
+	 * type off). Unknown values are ignored.
+	 *
+	 * @param WPCF7_ContactForm    $form    The contact form being rendered.
+	 * @param array<string, mixed> $current Settings so far.
+	 * @param string[]             $known   Base types the plugin may rebuild.
+	 * @return array<string, mixed>
+	 */
+	private function apply_additional_settings( WPCF7_ContactForm $form, array $current, array $known ): array {
 		$pref = $form->pref( 'floating_labels' );
 		if ( is_string( $pref ) ) {
 			switch ( strtolower( trim( $pref ) ) ) {
@@ -165,59 +249,236 @@ final class JGOR_FLCF7_Markup {
 				case 'false':
 				case 'no':
 				case '0':
-					$enabled = false;
+					$current['enabled'] = false;
 					break;
 
 				case 'placeholder':
-					$placeholder = true;
-					$label       = false;
+					$current['mode_placeholder'] = true;
+					$current['mode_label']       = false;
 					break;
 
 				case 'label':
-					$placeholder = false;
-					$label       = true;
+					$current['mode_placeholder'] = false;
+					$current['mode_label']       = true;
 					break;
 			}
 		}
 
-		/**
-		 * Filters whether a contact form gets floating labels.
-		 *
-		 * Runs after the additional setting "floating_labels" of the form has
-		 * been read, so code can override it in both directions.
-		 *
-		 * @param bool              $enabled      Whether the form gets floating labels.
-		 * @param WPCF7_ContactForm $contact_form The contact form being rendered.
-		 */
-		$enabled = (bool) apply_filters( 'jgor_flcf7_enabled', $enabled, $form );
+		$pref = $form->pref( 'floating_labels_style' );
+		if ( is_string( $pref ) ) {
+			$style = sanitize_key( $pref );
+			if ( in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ) {
+				$current['style'] = $style;
+			}
+		}
 
-		if ( ! $enabled || ( ! $placeholder && ! $label ) ) {
+		$pref = $form->pref( 'floating_labels_marker' );
+		if ( is_string( $pref ) ) {
+			$marker = $this->to_bool( $pref );
+			if ( null !== $marker ) {
+				$current['required_marker'] = $marker;
+			}
+		}
+
+		$pref = $form->pref( 'floating_labels_types' );
+		if ( is_string( $pref ) ) {
+			$current['types'] = $this->parse_types( $pref, $known );
+		}
+
+		return $current;
+	}
+
+	/**
+	 * Applies the classes of the html_class attribute of the shortcode or block.
+	 *
+	 * The Contact Form 7 block offers the attribute as "Class" in its panel
+	 * "Form attributes"; the shortcode takes html_class="...". Recognised
+	 * classes: jgor-flcf7-off, jgor-flcf7-on, jgor-flcf7-mode-placeholder,
+	 * jgor-flcf7-mode-label, jgor-flcf7-style-outlined, jgor-flcf7-style-filled,
+	 * jgor-flcf7-style-minimal, jgor-flcf7-marker-on, jgor-flcf7-marker-off.
+	 * They differ from the classes the rebuild puts on the wrap on purpose:
+	 * Contact Form 7 prints html_class on the <form>, where a wrap class
+	 * would match the variant rules of the stylesheet for every field.
+	 * shortcode_attr() exists since Contact Form 7 5.0.
+	 *
+	 * @param WPCF7_ContactForm    $form    The contact form being rendered.
+	 * @param array<string, mixed> $current Settings so far.
+	 * @return array<string, mixed>
+	 */
+	private function apply_html_class( WPCF7_ContactForm $form, array $current ): array {
+		$classes = $form->shortcode_attr( 'html_class' );
+		if ( ! is_string( $classes ) || '' === trim( $classes ) ) {
+			return $current;
+		}
+
+		$tokens = preg_split( '/\s+/', strtolower( trim( $classes ) ) );
+		if ( ! is_array( $tokens ) ) {
+			return $current;
+		}
+
+		foreach ( $tokens as $token ) {
+			switch ( $token ) {
+				case 'jgor-flcf7-off':
+					$current['enabled'] = false;
+					break;
+
+				case 'jgor-flcf7-on':
+					$current['enabled'] = true;
+					break;
+
+				case 'jgor-flcf7-mode-placeholder':
+					$current['mode_placeholder'] = true;
+					$current['mode_label']       = false;
+					break;
+
+				case 'jgor-flcf7-mode-label':
+					$current['mode_placeholder'] = false;
+					$current['mode_label']       = true;
+					break;
+
+				case 'jgor-flcf7-marker-on':
+					$current['required_marker'] = true;
+					break;
+
+				case 'jgor-flcf7-marker-off':
+					$current['required_marker'] = false;
+					break;
+
+				default:
+					if ( str_starts_with( $token, self::HTML_CLASS_STYLE_PREFIX ) ) {
+						$style = substr( $token, strlen( self::HTML_CLASS_STYLE_PREFIX ) );
+						if ( in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ) {
+							$current['style'] = $style;
+						}
+					}
+			}
+		}
+
+		return $current;
+	}
+
+	/**
+	 * Merges the result of the filter jgor_flcf7_form_settings into the settings.
+	 *
+	 * Only known keys with valid values are taken over.
+	 *
+	 * @param array<string, mixed> $current  Settings so far.
+	 * @param array<string, mixed> $filtered Array returned by the filter.
+	 * @param string[]             $known    Base types the plugin may rebuild.
+	 * @return array<string, mixed>
+	 */
+	private function merge_form_settings( array $current, array $filtered, array $known ): array {
+		foreach ( array( 'enabled', 'mode_placeholder', 'mode_label', 'required_marker' ) as $key ) {
+			if ( ! array_key_exists( $key, $filtered ) ) {
+				continue;
+			}
+
+			$value = $this->to_bool( $filtered[ $key ] );
+			if ( null !== $value ) {
+				$current[ $key ] = $value;
+			}
+		}
+
+		if ( isset( $filtered['style'] ) && is_string( $filtered['style'] ) ) {
+			$style = sanitize_key( $filtered['style'] );
+			if ( in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ) {
+				$current['style'] = $style;
+			}
+		}
+
+		if ( isset( $filtered['types'] ) && is_array( $filtered['types'] ) ) {
+			$wanted = array();
+			foreach ( $filtered['types'] as $type ) {
+				if ( is_string( $type ) ) {
+					$wanted[] = sanitize_key( $type );
+				}
+			}
+			$current['types'] = array_values( array_intersect( $known, $wanted ) );
+		}
+
+		return $current;
+	}
+
+	/**
+	 * Reads a boolean from a setting value.
+	 *
+	 * Accepts bool, int and the strings on/off, true/false, yes/no, 1/0
+	 * (case-insensitive). Anything else is null, which callers treat as
+	 * "leave unchanged".
+	 *
+	 * @param mixed $value Raw value.
+	 * @return bool|null
+	 */
+	private function to_bool( $value ): ?bool {
+		if ( is_bool( $value ) ) {
+			return $value;
+		}
+
+		if ( is_int( $value ) ) {
+			return 0 !== $value;
+		}
+
+		if ( ! is_string( $value ) ) {
 			return null;
 		}
 
-		return array(
-			'placeholder' => $placeholder,
-			'label'       => $label,
-		);
+		switch ( strtolower( trim( $value ) ) ) {
+			case 'on':
+			case 'true':
+			case 'yes':
+			case '1':
+				return true;
+
+			case 'off':
+			case 'false':
+			case 'no':
+			case '0':
+				return false;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Parses a list of base types from an additional setting.
+	 *
+	 * @param string   $setting Space or comma separated base types.
+	 * @param string[] $known   Base types the plugin may rebuild.
+	 * @return string[] Known types in the order of $known; empty when none match.
+	 */
+	private function parse_types( string $setting, array $known ): array {
+		$parts = preg_split( '/[\s,]+/', strtolower( trim( $setting ) ) );
+		if ( ! is_array( $parts ) ) {
+			return array();
+		}
+
+		$wanted = array();
+		foreach ( $parts as $part ) {
+			$part = sanitize_key( $part );
+			if ( '' !== $part ) {
+				$wanted[] = $part;
+			}
+		}
+
+		return array_values( array_intersect( $known, $wanted ) );
 	}
 
 	/**
 	 * Names of the form-tags the module may rebuild, mapped to their base type.
 	 *
 	 * Uses the form-tags of the template instead of guessing from attributes:
-	 * only tags whose base type is enabled in the settings and that do not
+	 * only tags whose base type is allowed for this rendering and that do not
 	 * carry the option "nofloat" qualify. A name used by two tags of
 	 * different types is ambiguous and skipped.
 	 *
-	 * @param WPCF7_ContactForm $form The contact form being rendered.
+	 * @param WPCF7_ContactForm $form  The contact form being rendered.
+	 * @param string[]          $types Base types allowed for this rendering.
 	 * @return array<string, string>
 	 */
-	private function fields( WPCF7_ContactForm $form ): array {
-		$types = $this->settings->get( 'types' );
-		if ( ! is_array( $types ) || empty( $types ) ) {
+	private function fields( WPCF7_ContactForm $form, array $types ): array {
+		if ( empty( $types ) ) {
 			return array();
 		}
-		$types = array_intersect( $this->settings->field_types(), $types );
 
 		$fields    = array();
 		$ambiguous = array();
@@ -249,13 +510,15 @@ final class JGOR_FLCF7_Markup {
 	/**
 	 * Parses the form HTML, rebuilds the qualifying fields and serialises it again.
 	 *
-	 * @param string                                $html   Form HTML.
-	 * @param WPCF7_ContactForm                     $form   The contact form being rendered.
-	 * @param array<string, string>                 $fields Field names mapped to base types, see fields().
-	 * @param array{placeholder: bool, label: bool} $modes  Active modes, see modes().
+	 * @param string                $html   Form HTML.
+	 * @param WPCF7_ContactForm     $form   The contact form being rendered.
+	 * @param array<string, string> $fields Field names mapped to base types, see fields().
+	 * @param array<string, mixed>  $config Settings for this rendering, see form_settings().
 	 * @return string|null Rebuilt HTML, or null when nothing changed or parsing failed.
+	 *
+	 * @phpstan-param array{placeholder: bool, label: bool, types: string[], style: string, marker: bool} $config
 	 */
-	private function rebuild( string $html, WPCF7_ContactForm $form, array $fields, array $modes ): ?string {
+	private function rebuild( string $html, WPCF7_ContactForm $form, array $fields, array $config ): ?string {
 		$loaded = $this->load( $html );
 		if ( null === $loaded ) {
 			return null;
@@ -270,7 +533,6 @@ final class JGOR_FLCF7_Markup {
 
 		$this->used_ids = $this->collect_ids( $xpath, $root );
 
-		$style    = (string) $this->settings->get( 'style' );
 		$unit_tag = (string) $form->unit_tag();
 		$changed  = 0;
 
@@ -293,7 +555,7 @@ final class JGOR_FLCF7_Markup {
 			$label     = null;
 			$enclosing = null;
 
-			if ( $modes['label'] ) {
+			if ( $config['label'] ) {
 				$enclosing = $this->enclosing_label( $wrap );
 				if ( null !== $enclosing ) {
 					$text = $this->label_text( $enclosing, $wrap );
@@ -314,7 +576,7 @@ final class JGOR_FLCF7_Markup {
 				}
 			}
 
-			if ( null === $text && $modes['placeholder'] ) {
+			if ( null === $text && $config['placeholder'] ) {
 				$text = $this->normalize_text( $control->getAttribute( 'placeholder' ) );
 				if ( '' === $text ) {
 					$text = null;
@@ -345,7 +607,7 @@ final class JGOR_FLCF7_Markup {
 				continue;
 			}
 
-			$this->apply( $dom, $wrap, $control, $name, $unit_tag, $style, $filtered, $text, $label, $enclosing );
+			$this->apply( $dom, $wrap, $control, $name, $unit_tag, $config['style'], $config['marker'], $filtered, $text, $label, $enclosing );
 			++$changed;
 		}
 
@@ -364,14 +626,15 @@ final class JGOR_FLCF7_Markup {
 	 * @param DOMElement      $control       The input or textarea inside the wrap.
 	 * @param string          $name          Field name.
 	 * @param string          $unit_tag      Unit-tag of the form instance.
-	 * @param string          $style         CSS variant from the settings.
+	 * @param string          $style         CSS variant for this rendering.
+	 * @param bool            $marker        Whether required fields get the marker class.
 	 * @param string          $text          Label text after the filter.
 	 * @param string          $original_text Label text before the filter.
 	 * @param DOMElement|null $label         Existing <label for> to move into the wrap, if any.
 	 * @param DOMElement|null $enclosing     Enclosing <label> of the template to replace, if any.
 	 * @return void
 	 */
-	private function apply( DOMDocument $dom, DOMElement $wrap, DOMElement $control, string $name, string $unit_tag, string $style, string $text, string $original_text, ?DOMElement $label, ?DOMElement $enclosing ): void {
+	private function apply( DOMDocument $dom, DOMElement $wrap, DOMElement $control, string $name, string $unit_tag, string $style, bool $marker, string $text, string $original_text, ?DOMElement $label, ?DOMElement $enclosing ): void {
 		$id = $control->getAttribute( 'id' );
 		if ( '' === $id ) {
 			$id = $this->unique_id( $unit_tag . '-fl-' . $name );
@@ -386,7 +649,7 @@ final class JGOR_FLCF7_Markup {
 		if ( 'textarea' === strtolower( $control->tagName ) ) {
 			$this->add_class( $wrap, self::TEXTAREA_CLASS );
 		}
-		if ( $this->settings->get( 'required_marker' ) ) {
+		if ( $marker ) {
 			$this->add_class( $wrap, self::MARKER_CLASS );
 		}
 
