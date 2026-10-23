@@ -1087,8 +1087,10 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Fehlertext vorhanden), Plugin Check ohne Befund. 23.10.2026 nach Konzept
   2.7 erneut mit `dateien` (der `dateien`-Lauf braucht kein
   HSAdmin-Passwort und läuft aus dem Bash-Tool, Probelauf mit `--dry-run`
-  zuerst): 16 Plugin-Dateien identisch, Plugin Check ohne Befund,
-  Formulare bis auf die gespeicherte Option identisch. `datenbank` ist nur
+  zuerst): 16 Plugin-Dateien identisch, Plugin Check ohne Befund; mit
+  `datenbank --ueberschreiben --ja` danach Option und sechs Formulare
+  identisch (die Meldung „Site-URL: ?“ des Scripts ist harmlos, `siteurl`
+  und `home` stimmen). `datenbank` ist nur
   nötig, wenn sich Seiten oder Formulare ändern; neue Optionsschlüssel
   kommen über die Defaults. Die Warnung des Scripts zu `rewrite flush` ist
   harmlos: keine `.htaccess`, Permalinks `/index.php/…`.
@@ -1168,8 +1170,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    und 6 neu. Hostsharing am 23.10.2026 mit `dateien --ueberschreiben --ja`
    nachgezogen (Sicherung vorher, 3 neue und 11 geänderte Dateien): alle
    16 Plugin-Dateien md5-identisch, Plugin Check auf dem Server ohne
-   Befund, Kontaktseite bis auf die Option (`required_marker` dort noch
-   false, DB-Stand von vor 2.3) identisch. Offen: Sichtprüfung von
+   Befund; danach auch `datenbank --ueberschreiben --ja` (lokale und
+   Remote-DB gesichert, 36 URL-Ersetzungen): Option, Formulare und
+   Kontaktseite (sechs Formulare) identisch, Site-URL korrekt. Offen: Sichtprüfung von
    Effekten, Spalten und Panels in
    Chromium, Firefox und Edge auf Silentium (Nutzer), Screenshots 1–4
    zeigen noch keinen Pflichtstern
