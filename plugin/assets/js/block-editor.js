@@ -24,6 +24,14 @@
  *   server in window.jgorFlcf7EditorData; without it only the first panel
  *   is shown.
  *
+ * Every panel is a collapsible PanelBody; the controls sit directly inside
+ * it and take the spacing of the block inspector (16px between controls,
+ * as in the panels of the core blocks). A colour is one full-width button
+ * with the indicator of the chosen colour and the name of the property;
+ * it opens the colour palette of the editor (theme, default and custom
+ * colours, plus a free colour) in a popover. Only hex colours are stored.
+ * The styles of these rows live in assets/css/editor.css.
+ *
  * No build step: the script uses the global "wp" packages and
  * wp.element.createElement instead of JSX. The helpers are exposed on
  * window.jgorFlcf7BlockEditor so tests/verify-editor-js.mjs can check them
@@ -36,6 +44,7 @@
 	'use strict';
 
 	var __ = wp.i18n.__;
+	var _x = wp.i18n._x;
 	var el = wp.element.createElement;
 	var Fragment = wp.element.Fragment;
 
@@ -355,7 +364,7 @@
 	}
 
 	/**
-	 * Normalises a colour from the colour picker: hex colours only, in
+	 * Normalises a colour from the colour palette: hex colours only, in
 	 * lower case, as the server accepts them; anything else means "unset".
 	 *
 	 * @param {*} value Colour string, or undefined when cleared.
@@ -369,6 +378,37 @@
 		value = value.trim().toLowerCase();
 
 		return /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test( value ) ? value : '';
+	}
+
+	/**
+	 * Builds the palette groups of the colour picker from the editor
+	 * settings: the colours of the theme, the default colours of WordPress
+	 * (unless the theme hides them) and the colours the user added, each as
+	 * a named group as in the colour panels of the core blocks. Empty groups
+	 * are left out; without any group the picker offers the free colour only.
+	 *
+	 * @param {*} theme        Theme palette (setting color.palette.theme).
+	 * @param {*} defaults     Default palette (setting color.palette.default).
+	 * @param {*} custom       User palette (setting color.palette.custom).
+	 * @param {*} showDefaults Whether the default palette is offered (setting color.defaultPalette).
+	 * @return {Array<{name: string, colors: Array}>} Palette groups.
+	 */
+	function paletteGroups( theme, defaults, custom, showDefaults ) {
+		var groups = [];
+
+		if ( Array.isArray( theme ) && theme.length > 0 ) {
+			groups.push( { name: _x( 'Theme', 'colour palette group', 'floating-labels-for-cf7' ), colors: theme } );
+		}
+
+		if ( showDefaults !== false && Array.isArray( defaults ) && defaults.length > 0 ) {
+			groups.push( { name: _x( 'Default', 'colour palette group', 'floating-labels-for-cf7' ), colors: defaults } );
+		}
+
+		if ( Array.isArray( custom ) && custom.length > 0 ) {
+			groups.push( { name: _x( 'Custom', 'colour palette group', 'floating-labels-for-cf7' ), colors: custom } );
+		}
+
+		return groups;
 	}
 
 	/**
@@ -569,17 +609,87 @@
 	}
 
 	/**
-	 * Builds the text control of one size or animation property.
+	 * One colour of the design panels: a full-width button with the colour
+	 * indicator (hatched while unset) and the name of the property; a click
+	 * opens the colour palette of the editor in a popover next to the
+	 * sidebar, as the colour panels of the core blocks do.
 	 *
-	 * The scale (type "number") gets a number input within the range the
-	 * server accepts; every other value is typed with its unit.
+	 * A component, because the palette comes from the block editor settings
+	 * through the hook useSettings (WordPress 6.5 and newer).
+	 *
+	 * @param {Object}   props          Properties.
+	 * @param {string}   props.label    Name of the property.
+	 * @param {string}   props.value    Current colour, '' when unset.
+	 * @param {Function} props.onChange Callback with the colour of the palette, or undefined when cleared.
+	 * @return {Object} Element (Dropdown).
+	 */
+	function ColorControl( props ) {
+		var settings = wp.blockEditor.useSettings( 'color.palette.theme', 'color.palette.default', 'color.palette.custom', 'color.defaultPalette' );
+		var colors = paletteGroups( settings[ 0 ], settings[ 1 ], settings[ 2 ], settings[ 3 ] );
+		var value = typeof props.value === 'string' ? props.value : '';
+
+		return el( wp.components.Dropdown, {
+			className: 'jgor-flcf7-color',
+			contentClassName: 'jgor-flcf7-color__popover',
+			popoverProps: { placement: 'left-start', offset: 36, shift: true },
+			renderToggle: function ( toggle ) {
+				return el(
+					wp.components.Button,
+					{
+						className: 'jgor-flcf7-color__toggle',
+						onClick: toggle.onToggle,
+						'aria-expanded': toggle.isOpen,
+						__next40pxDefaultSize: true
+					},
+					el( wp.components.ColorIndicator, {
+						className: 'jgor-flcf7-color__indicator' + ( value === '' ? ' is-unset' : '' ),
+						colorValue: value === '' ? undefined : value
+					} ),
+					el( 'span', { className: 'jgor-flcf7-color__name' }, props.label )
+				);
+			},
+			renderContent: function () {
+				return el(
+					'div',
+					{ className: 'jgor-flcf7-color__panel' },
+					el( wp.components.ColorPalette, {
+						colors: colors,
+						value: value === '' ? undefined : value,
+						onChange: props.onChange,
+						clearable: true,
+						enableAlpha: false,
+						__experimentalIsRenderedInSidebar: true
+					} )
+				);
+			}
+		} );
+	}
+
+	/**
+	 * Builds the control of one design property.
+	 *
+	 * Colours get the ColorControl row; the scale (type "number") a number
+	 * input within the range the server accepts; every other value is typed
+	 * with its unit into a text control that shows the value of the settings
+	 * screen as placeholder.
 	 *
 	 * @param {Object}   property Entry of DESIGN.
 	 * @param {string}   value    Current value, '' when unset.
 	 * @param {Function} change   Callback (key, value).
-	 * @return {Object} Element (TextControl).
+	 * @return {Object} Element (ColorControl or TextControl).
 	 */
 	function designControl( property, value, change ) {
+		if ( property.type === 'color' ) {
+			return el( ColorControl, {
+				key: property.key,
+				label: property.label,
+				value: value,
+				onChange: function ( next ) {
+					change( property.key, colorValue( next ) );
+				}
+			} );
+		}
+
 		var controlProps = {
 			key: property.key,
 			label: property.label,
@@ -607,7 +717,7 @@
 	 * property list from the server.
 	 *
 	 * @param {Object} store Result of storeFor().
-	 * @return {Object[]} Elements (PanelColorSettings, PanelBody).
+	 * @return {Object[]} Elements (PanelBody).
 	 */
 	function designPanels( store ) {
 		if ( DESIGN.length === 0 ) {
@@ -637,42 +747,15 @@
 				return null;
 			}
 
-			if ( spec.group === 'colors' ) {
-				return el(
-					wp.blockEditor.PanelColorSettings,
-					{
-						key: spec.group,
-						title: spec.title,
-						initialOpen: false,
-						enableAlpha: false,
-						__experimentalIsRenderedInSidebar: true,
-						colorSettings: properties.map( function ( property ) {
-							return {
-								value: design[ property.key ],
-								label: property.label,
-								onChange: function ( value ) {
-									change( property.key, colorValue( value ) );
-								}
-							};
-						} )
-					},
-					helpElement( store.designHelp )
-				);
-			}
-
 			var controls = properties.map( function ( property ) {
 				return designControl( property, design[ property.key ] || '', change );
 			} );
-			var help = helpElement( spec.help );
+			var help = helpElement( spec.group === 'colors' ? store.designHelp : spec.help );
 			if ( help ) {
 				controls.push( help );
 			}
 
-			return el(
-				wp.components.PanelBody,
-				{ key: spec.group, title: spec.title, initialOpen: false },
-				el( wp.components.Flex, { direction: 'column', gap: 4, align: 'stretch' }, controls )
-			);
+			return el( wp.components.PanelBody, { key: spec.group, title: spec.title, initialOpen: false }, controls );
 		} ).filter( Boolean );
 	}
 
@@ -702,11 +785,7 @@
 		controls.push( helpElement( store.help ) );
 
 		var panels = [
-			el(
-				wp.components.PanelBody,
-				{ key: 'main', title: __( 'Floating Labels', 'floating-labels-for-cf7' ), initialOpen: true },
-				el( wp.components.Flex, { direction: 'column', gap: 4, align: 'stretch' }, controls )
-			)
+			el( wp.components.PanelBody, { key: 'main', title: __( 'Floating Labels', 'floating-labels-for-cf7' ), initialOpen: true }, controls )
 		].concat( designPanels( store ) );
 
 		return el( wp.blockEditor.InspectorControls, null, panels );
@@ -742,6 +821,7 @@
 		DESIGN_SHORTCODE_ATTRIBUTE: DESIGN_SHORTCODE_ATTRIBUTE,
 		GROUPS: GROUPS,
 		DESIGN: DESIGN,
+		ColorControl: ColorControl,
 		splitClasses: splitClasses,
 		currentValue: currentValue,
 		withGroupValue: withGroupValue,
@@ -749,6 +829,7 @@
 		parseDesign: parseDesign,
 		serializeDesign: serializeDesign,
 		colorValue: colorValue,
+		paletteGroups: paletteGroups,
 		shortcodeHtmlClass: shortcodeHtmlClass,
 		withShortcodeHtmlClass: withShortcodeHtmlClass,
 		shortcodeDesign: shortcodeDesign,

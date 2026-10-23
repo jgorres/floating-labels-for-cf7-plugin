@@ -1,0 +1,37 @@
+/**
+ * Floating Labels for CF7 – block editor styles.
+ *
+ * Loaded with the block editor script (module 5), for the colour rows of
+ * the panel "Floating labels: colours": one full-width button per colour
+ * with the indicator of the chosen colour (hatched while the colour is
+ * unset) and the name of the property; the colour palette opens in a
+ * popover next to the sidebar, sized like the colour popovers of the core
+ * blocks. The other controls of the panels need no styles: they take the
+ * spacing of the block inspector.
+ */
+
+.jgor-flcf7-color__toggle.jgor-flcf7-color__toggle {
+	width: 100%;
+	justify-content: flex-start;
+	text-align: start;
+}
+
+.jgor-flcf7-color__toggle .component-color-indicator {
+	flex-shrink: 0;
+}
+
+.jgor-flcf7-color__indicator.is-unset {
+	background: linear-gradient(-45deg, transparent 48%, #ddd 48%, #ddd 52%, transparent 52%);
+}
+
+.jgor-flcf7-color__name {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.jgor-flcf7-color__panel {
+	box-sizing: border-box;
+	width: 260px;
+	padding: 16px;
+}

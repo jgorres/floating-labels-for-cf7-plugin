@@ -4,14 +4,16 @@
  * block and of a Shortcode block with the shortcode.
  *
  * Enqueues a small editor script (assets/js/block-editor.js, no build step)
- * on enqueue_block_editor_assets. The script hooks into the filter
- * editor.BlockEdit and adds the panel "Floating Labels" with four selects
- * (on/off, label source, variant, required marker), stored as placement
- * classes of the concept (section 7.4) in the block attribute htmlClass or
- * the shortcode attribute html_class, and the panels "Floating labels:
- * colours", "sizes" and "animation" with the design values of this
- * placement, stored in the block attribute jgorFlcf7Design or the shortcode
- * attribute jgor_flcf7_design (server side: JGOR_FLCF7_Placement_Design).
+ * and its stylesheet (assets/css/editor.css) on enqueue_block_editor_assets.
+ * The script hooks into the filter editor.BlockEdit and adds the panel
+ * "Floating Labels" with four selects (on/off, label source, variant,
+ * required marker), stored as placement classes of the concept (section
+ * 7.4) in the block attribute htmlClass or the shortcode attribute
+ * html_class, and the panels "Floating labels: colours", "sizes" and
+ * "animation" with the design values of this placement, stored in the block
+ * attribute jgorFlcf7Design or the shortcode attribute jgor_flcf7_design
+ * (server side: JGOR_FLCF7_Placement_Design). The stylesheet styles the
+ * colour rows of the colours panel only.
  *
  * The list of design properties (key, group, type, translated label and the
  * value in effect on the settings screen as placeholder) is handed to the
@@ -24,12 +26,12 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Enqueues the block editor script.
+ * Enqueues the block editor script and stylesheet.
  */
 final class JGOR_FLCF7_Editor {
 
 	/**
-	 * Script handle.
+	 * Script handle; the stylesheet uses the same handle.
 	 */
 	public const HANDLE = 'jgor-flcf7-editor';
 
@@ -47,9 +49,21 @@ final class JGOR_FLCF7_Editor {
 	public const DEPENDENCIES = array( 'wp-hooks', 'wp-compose', 'wp-element', 'wp-components', 'wp-block-editor', 'wp-i18n' );
 
 	/**
+	 * Stylesheet dependencies: the component styles the colour rows build on.
+	 *
+	 * @var string[]
+	 */
+	public const STYLE_DEPENDENCIES = array( 'wp-components' );
+
+	/**
 	 * Path of the script below the plugin directory.
 	 */
 	private const SCRIPT_PATH = 'assets/js/block-editor.js';
+
+	/**
+	 * Path of the stylesheet below the plugin directory.
+	 */
+	private const STYLE_PATH = 'assets/css/editor.css';
 
 	/**
 	 * Global the script reads its data from.
@@ -82,7 +96,8 @@ final class JGOR_FLCF7_Editor {
 	}
 
 	/**
-	 * Enqueues the script when the Contact Form 7 block is registered.
+	 * Enqueues the script and the stylesheet when the Contact Form 7 block
+	 * is registered.
 	 *
 	 * Without the block (an older Contact Form 7, or the block removed by
 	 * code) the panel would have nothing to attach to, so nothing is loaded.
@@ -110,6 +125,13 @@ final class JGOR_FLCF7_Editor {
 		if ( is_string( $json ) ) {
 			wp_add_inline_script( self::HANDLE, 'window.' . self::DATA_GLOBAL . ' = ' . $json . ';', 'before' );
 		}
+
+		wp_enqueue_style(
+			self::HANDLE,
+			JGOR_FLCF7_URL . self::STYLE_PATH,
+			self::STYLE_DEPENDENCIES,
+			JGOR_FLCF7_VERSION
+		);
 	}
 
 	/**

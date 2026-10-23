@@ -8,13 +8,17 @@
  *   node tests/verify-editor-js.mjs
  *
  * The WordPress packages are replaced by stubs: createElement returns plain
- * objects, so the element tree the panels build can be inspected, and the
- * filter registration is recorded instead of applied. The design properties
- * the server hands over (window.jgorFlcf7EditorData) are stubbed with the
- * same 18 properties and groups as the settings screen. Covered: the class
- * helpers, the shortcode attribute helpers (html_class, jgor_flcf7_design),
- * the design helpers, the panels on the Contact Form 7 block and on a
- * Shortcode block, and the script without the server data.
+ * objects, so the element tree the panels build can be inspected (function
+ * components such as the colour rows are expanded by calling them), the
+ * filter registration is recorded instead of applied, and useSettings hands
+ * over a small colour palette. The design properties the server hands over
+ * (window.jgorFlcf7EditorData) are stubbed with the same 18 properties and
+ * groups as the settings screen. Covered: the class helpers, the shortcode
+ * attribute helpers (html_class, jgor_flcf7_design), the design helpers,
+ * the palette groups, the panels on the Contact Form 7 block and on a
+ * Shortcode block (collapsible PanelBody each, colour rows with palette
+ * popover, controls without extra wrappers), and the script without the
+ * server data.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -41,6 +45,20 @@ function check( label, ok, detail = '' ) {
 }
 
 /**
+ * Returns the children of an element; a function component is called with
+ * its props so its own element tree can be searched.
+ *
+ * @param {Object} node Element built by the stub.
+ * @return {*} Children, or the rendered tree of a function component.
+ */
+function childrenOf( node ) {
+	if ( typeof node.type === 'function' ) {
+		return node.type( { ...node.props, children: node.children } );
+	}
+	return node.children;
+}
+
+/**
  * Finds the first element of a type in an element tree built by the stub.
  *
  * @param {*}      node Element, array of elements or anything else.
@@ -63,7 +81,7 @@ function find( node, type ) {
 	if ( node.type === type ) {
 		return node;
 	}
-	return find( node.children, type );
+	return find( childrenOf( node ), type );
 }
 
 /**
@@ -80,7 +98,7 @@ function findAll( node, type ) {
 	if ( ! node || typeof node !== 'object' ) {
 		return [];
 	}
-	return ( node.type === type ? [ node ] : [] ).concat( findAll( node.children, type ) );
+	return ( node.type === type ? [ node ] : [] ).concat( findAll( childrenOf( node ), type ) );
 }
 
 /**
@@ -112,8 +130,30 @@ function serverData() {
 	return { design };
 }
 
+/**
+ * Renders the toggle button of a colour row (Dropdown element).
+ *
+ * @param {Object} row Dropdown element of a colour row.
+ * @return {Object} Button element.
+ */
+function toggleOf( row ) {
+	return row.props.renderToggle( { isOpen: false, onToggle: () => {} } );
+}
+
+/**
+ * Returns the ColorPalette element of a colour row (Dropdown element).
+ *
+ * @param {Object} row Dropdown element of a colour row.
+ * @return {Object|null} ColorPalette element.
+ */
+function paletteOf( row ) {
+	return find( row.props.renderContent(), 'ColorPalette' );
+}
+
 // Stubs of the WordPress packages the script reads from window.wp.
 const filters = [];
+const themePalette = [ { name: 'Base', slug: 'base', color: '#ffffff' }, { name: 'Contrast', slug: 'contrast', color: '#111111' } ];
+const defaultPalette = [ { name: 'Black', slug: 'black', color: '#000000' } ];
 globalThis.window = globalThis;
 globalThis.wp = {
 	hooks: {
@@ -126,9 +166,13 @@ globalThis.wp = {
 		createElement: ( type, props, ...children ) => ( { type, props: props || {}, children } ),
 		Fragment: 'Fragment',
 	},
-	components: { PanelBody: 'PanelBody', SelectControl: 'SelectControl', TextControl: 'TextControl', Flex: 'Flex' },
-	blockEditor: { InspectorControls: 'InspectorControls', PanelColorSettings: 'PanelColorSettings' },
-	i18n: { __: ( text ) => text },
+	components: { PanelBody: 'PanelBody', SelectControl: 'SelectControl', TextControl: 'TextControl', Flex: 'Flex', Dropdown: 'Dropdown', Button: 'Button', ColorIndicator: 'ColorIndicator', ColorPalette: 'ColorPalette' },
+	blockEditor: {
+		InspectorControls: 'InspectorControls',
+		PanelColorSettings: 'PanelColorSettings',
+		useSettings: ( ...paths ) => paths.map( ( path ) => ( { 'color.palette.theme': themePalette, 'color.palette.default': defaultPalette, 'color.palette.custom': [], 'color.defaultPalette': true } )[ path ] ),
+	},
+	i18n: { __: ( text ) => text, _x: ( text ) => text },
 };
 globalThis.jgorFlcf7EditorData = serverData();
 
@@ -137,7 +181,7 @@ const source = readFileSync( file, 'utf8' );
 vm.runInThisContext( source, { filename: file } );
 
 const api = globalThis.jgorFlcf7BlockEditor;
-check( 'api: window.jgorFlcf7BlockEditor exposed', !! api && typeof api.withGroupValue === 'function' && typeof api.withShortcodeHtmlClass === 'function' && typeof api.withShortcodeDesign === 'function' );
+check( 'api: window.jgorFlcf7BlockEditor exposed', !! api && typeof api.withGroupValue === 'function' && typeof api.withShortcodeHtmlClass === 'function' && typeof api.withShortcodeDesign === 'function' && typeof api.ColorControl === 'function' );
 
 // Filter registration.
 check( 'filter: editor.BlockEdit registered once under jgor-flcf7/block-editor', filters.length === 1 && filters[ 0 ].hook === 'editor.BlockEdit' && filters[ 0 ].namespace === 'jgor-flcf7/block-editor' && typeof filters[ 0 ].callback === 'function' );
@@ -197,6 +241,11 @@ check( 'withShortcodeDesign: appends the attribute', api.withShortcodeDesign( sc
 check( 'withShortcodeDesign: replaces in place, html_class untouched', api.withShortcodeDesign( '[contact-form-7 id="1" jgor_flcf7_design="radius:9px" html_class="a"]', { 'label-color': '#abc' } ) === '[contact-form-7 id="1" jgor_flcf7_design="label-color:#abc" html_class="a"]' );
 check( 'withShortcodeDesign: empty values remove the attribute', api.withShortcodeDesign( '[contact-form-7 id="1" jgor_flcf7_design="radius:9px" html_class="a"]', {} ) === '[contact-form-7 id="1" html_class="a"]' );
 
+// Palette groups for the colour rows.
+check( 'paletteGroups: theme, default and custom as named groups, in that order', JSON.stringify( api.paletteGroups( themePalette, defaultPalette, [ { color: '#abcdef' } ], true ).map( ( group ) => group.name + ':' + group.colors.length ) ) === '["Theme:2","Default:1","Custom:1"]' );
+check( 'paletteGroups: empty groups left out, non-arrays ignored', api.paletteGroups( [], defaultPalette, undefined, true ).length === 1 && api.paletteGroups( undefined, undefined, undefined, true ).length === 0 );
+check( 'paletteGroups: default palette hidden when the theme switches it off', api.paletteGroups( themePalette, defaultPalette, [], false ).map( ( group ) => group.name ).join( ',' ) === 'Theme' );
+
 // The higher-order component.
 const BlockEdit = 'BlockEdit';
 const Wrapped = filters[ 0 ].callback( BlockEdit );
@@ -220,7 +269,7 @@ const panelBodies = findAll( inspector, 'PanelBody' );
 const panelBody = panelBodies[ 0 ];
 check( 'panel: InspectorControls with PanelBody "Floating Labels" first, open by default', !! panelBody && panelBody.props.title === 'Floating Labels' && panelBody.props.initialOpen === true );
 const selects = findAll( panelBody, 'SelectControl' );
-check( 'panel: four selects in a vertical Flex', selects.length === 4 && find( panelBody, 'Flex' ) !== null && find( panelBody, 'Flex' ).props.direction === 'column' );
+check( 'panel: four selects directly in the panel, no Flex wrapper (spacing of the inspector)', selects.length === 4 && find( panelBody, 'Flex' ) === null && panelBody.children[ 0 ].length === 5 );
 check( 'panel: labels', selects.map( ( select ) => select.props.label ).join( '|' ) === 'Floating labels|Label source|Variant|Required fields' );
 check( 'panel: values read from htmlClass', selects.map( ( select ) => select.props.value ).join( '|' ) === '||jgor-flcf7-style-filled|' );
 check( 'panel: keys set on the selects', selects.every( ( select, index ) => select.props.key === groups[ index ].key ) );
@@ -233,24 +282,29 @@ check( 'change: on/off -> class appended, others kept', saved.htmlClass === 'cus
 selects[ 2 ].props.onChange( '' );
 check( 'change: default -> class removed', saved.htmlClass === 'custom' );
 
-// Design panels on the Contact Form 7 block.
-const colorPanels = findAll( inspector, 'PanelColorSettings' );
-check( 'design: one PanelColorSettings "Floating labels: colours", closed, hex only, in the sidebar', colorPanels.length === 1 && colorPanels[ 0 ].props.title === 'Floating labels: colours' && colorPanels[ 0 ].props.initialOpen === false && colorPanels[ 0 ].props.enableAlpha === false && colorPanels[ 0 ].props.__experimentalIsRenderedInSidebar === true );
-const colorSettings = colorPanels.length ? colorPanels[ 0 ].props.colorSettings : [];
-check( 'design: ten colour rows with labels, value read from jgorFlcf7Design', colorSettings.length === 10 && colorSettings[ 0 ].label === 'Label of label-color' && colorSettings[ 0 ].value === '#abcdef' && colorSettings[ 1 ].value === undefined );
-check( 'design: storage note under the colours', !! find( colorPanels[ 0 ], 'p' ) && String( find( colorPanels[ 0 ], 'p' ).children[ 0 ] ).includes( 'stored with the block' ) );
-check( 'design: PanelBody "Floating labels: sizes" and "Floating labels: animation", closed', panelBodies.length === 3 && panelBodies[ 1 ].props.title === 'Floating labels: sizes' && panelBodies[ 2 ].props.title === 'Floating labels: animation' && panelBodies[ 1 ].props.initialOpen === false && panelBodies[ 2 ].props.initialOpen === false );
-const sizeControls = findAll( panelBodies[ 1 ], 'TextControl' );
-const motionControls = findAll( panelBodies[ 2 ], 'TextControl' );
-check( 'design: six size controls with placeholder, value from jgorFlcf7Design', sizeControls.length === 6 && sizeControls[ 0 ].props.label === 'Label of font-size' && sizeControls[ 0 ].props.value === '1.2em' && sizeControls[ 0 ].props.placeholder === '1em' && sizeControls[ 1 ].props.value === '' && sizeControls[ 0 ].props.type === undefined );
+// Design panels on the Contact Form 7 block: collapsible PanelBody each.
+check( 'design: four PanelBody panels: "Floating Labels", colours, sizes, animation; the design panels closed', panelBodies.length === 4 && panelBodies.slice( 1 ).map( ( body ) => body.props.title ).join( '|' ) === 'Floating labels: colours|Floating labels: sizes|Floating labels: animation' && panelBodies.slice( 1 ).every( ( body ) => body.props.initialOpen === false ) );
+check( 'design: PanelColorSettings (ToolsPanel, not collapsible) no longer used', find( inspector, 'PanelColorSettings' ) === null );
+const colorRows = findAll( panelBodies[ 1 ], 'Dropdown' );
+check( 'design: ten colour rows (Dropdown) with popover next to the sidebar, no Flex wrapper', colorRows.length === 10 && find( panelBodies[ 1 ], 'Flex' ) === null && colorRows.every( ( row ) => row.props.popoverProps.placement === 'left-start' && row.props.className === 'jgor-flcf7-color' ) );
+const firstToggle = toggleOf( colorRows[ 0 ] );
+const secondToggle = toggleOf( colorRows[ 1 ] );
+check( 'design: toggle is a full-width button with the colour indicator and the label', firstToggle.type === 'Button' && firstToggle.props.className === 'jgor-flcf7-color__toggle' && find( firstToggle, 'ColorIndicator' ).props.colorValue === '#abcdef' && String( find( firstToggle, 'span' ).children[ 0 ] ) === 'Label of label-color' );
+check( 'design: unset colour -> hatched indicator without colour', find( secondToggle, 'ColorIndicator' ).props.colorValue === undefined && find( secondToggle, 'ColorIndicator' ).props.className.includes( 'is-unset' ) && ! find( firstToggle, 'ColorIndicator' ).props.className.includes( 'is-unset' ) );
+const firstPalette = paletteOf( colorRows[ 0 ] );
+check( 'design: popover holds the ColorPalette with the palette groups, clearable, hex only', !! firstPalette && firstPalette.props.value === '#abcdef' && firstPalette.props.clearable === true && firstPalette.props.enableAlpha === false && firstPalette.props.colors.map( ( group ) => group.name ).join( ',' ) === 'Theme,Default' && paletteOf( colorRows[ 1 ] ).props.value === undefined );
+check( 'design: storage note under the colours', !! find( panelBodies[ 1 ], 'p' ) && String( find( panelBodies[ 1 ], 'p' ).children[ 0 ] ).includes( 'stored with the block' ) );
+const sizeControls = findAll( panelBodies[ 2 ], 'TextControl' );
+const motionControls = findAll( panelBodies[ 3 ], 'TextControl' );
+check( 'design: six size controls with placeholder, value from jgorFlcf7Design, no Flex wrapper', sizeControls.length === 6 && find( panelBodies[ 2 ], 'Flex' ) === null && sizeControls[ 0 ].props.label === 'Label of font-size' && sizeControls[ 0 ].props.value === '1.2em' && sizeControls[ 0 ].props.placeholder === '1em' && sizeControls[ 1 ].props.value === '' && sizeControls[ 0 ].props.type === undefined );
 check( 'design: two animation controls, the scale as number input 0.5 to 1', motionControls.length === 2 && motionControls[ 0 ].props.type === 'number' && motionControls[ 0 ].props.min === 0.5 && motionControls[ 0 ].props.max === 1 && motionControls[ 0 ].props.step === 0.01 && motionControls[ 0 ].props.placeholder === '0.75' && motionControls[ 1 ].props.type === undefined );
-check( 'design: format notes under sizes and animation', String( find( panelBodies[ 1 ], 'p' ).children[ 0 ] ).includes( 'px, em, rem or %' ) && String( find( panelBodies[ 2 ], 'p' ).children[ 0 ] ).includes( '0.5 and 1' ) );
+check( 'design: format notes under sizes and animation', String( find( panelBodies[ 2 ], 'p' ).children[ 0 ] ).includes( 'px, em, rem or %' ) && String( find( panelBodies[ 3 ], 'p' ).children[ 0 ] ).includes( '0.5 and 1' ) );
 
-colorSettings[ 3 ].onChange( '#00FF00' );
+paletteOf( colorRows[ 3 ] ).props.onChange( '#00FF00' );
 check( 'design change: colour -> setAttributes({ jgorFlcf7Design }) with the hex colour added, unknown key dropped', JSON.stringify( saved.jgorFlcf7Design ) === '{"label-color":"#abcdef","border-color":"#00ff00","font-size":"1.2em"}' );
-colorSettings[ 0 ].onChange( undefined );
+paletteOf( colorRows[ 0 ] ).props.onChange( undefined );
 check( 'design change: colour cleared -> key removed', JSON.stringify( saved.jgorFlcf7Design ) === '{"font-size":"1.2em"}' );
-colorSettings[ 0 ].onChange( 'rgb(1,2,3)' );
+paletteOf( colorRows[ 0 ] ).props.onChange( 'rgb(1,2,3)' );
 check( 'design change: non-hex colour -> key removed', JSON.stringify( saved.jgorFlcf7Design ) === '{"font-size":"1.2em"}' );
 sizeControls[ 2 ].props.onChange( '2em' );
 check( 'design change: size typed -> added', JSON.stringify( saved.jgorFlcf7Design ) === '{"label-color":"#abcdef","font-size":"1.2em","padding-x":"2em"}' );
@@ -259,7 +313,7 @@ const onlyOne = Wrapped( {
 	attributes: { id: 123, jgorFlcf7Design: { 'font-size': '1.2em' } },
 	setAttributes: ( attributes ) => { saved = attributes; },
 } );
-findAll( findAll( find( onlyOne, 'InspectorControls' ), 'PanelBody' )[ 1 ], 'TextControl' )[ 0 ].props.onChange( '' );
+findAll( findAll( find( onlyOne, 'InspectorControls' ), 'PanelBody' )[ 2 ], 'TextControl' )[ 0 ].props.onChange( '' );
 check( 'design change: last value cleared -> attribute set to undefined (leaves the block)', 'jgorFlcf7Design' in saved && saved.jgorFlcf7Design === undefined );
 
 // Shortcode block.
@@ -294,11 +348,12 @@ const shortcodeDesignTree = Wrapped( {
 	setAttributes: ( attributes ) => { savedText = attributes; },
 } );
 const shortcodeInspector = find( shortcodeDesignTree, 'InspectorControls' );
-const shortcodeColors = find( shortcodeInspector, 'PanelColorSettings' );
-const shortcodeSizes = findAll( findAll( shortcodeInspector, 'PanelBody' )[ 1 ], 'TextControl' );
-check( 'shortcode block: design panels present, value read from jgor_flcf7_design', !! shortcodeColors && shortcodeColors.props.colorSettings.length === 10 && shortcodeSizes.length === 6 && shortcodeSizes[ 0 ].props.value === '1.2em' );
-check( 'shortcode block: storage note names jgor_flcf7_design', String( find( shortcodeColors, 'p' ).children[ 0 ] ).includes( 'jgor_flcf7_design attribute' ) );
-shortcodeColors.props.colorSettings[ 0 ].onChange( '#123456' );
+const shortcodeBodies = findAll( shortcodeInspector, 'PanelBody' );
+const shortcodeColors = findAll( shortcodeBodies[ 1 ], 'Dropdown' );
+const shortcodeSizes = findAll( shortcodeBodies[ 2 ], 'TextControl' );
+check( 'shortcode block: design panels present, value read from jgor_flcf7_design', shortcodeBodies.length === 4 && shortcodeColors.length === 10 && shortcodeSizes.length === 6 && shortcodeSizes[ 0 ].props.value === '1.2em' );
+check( 'shortcode block: storage note names jgor_flcf7_design', String( find( shortcodeBodies[ 1 ], 'p' ).children[ 0 ] ).includes( 'jgor_flcf7_design attribute' ) );
+paletteOf( shortcodeColors[ 0 ] ).props.onChange( '#123456' );
 check( 'shortcode block: colour -> attribute rewritten in place, html_class untouched', savedText.text === '[contact-form-7 id="5" jgor_flcf7_design="label-color:#123456;font-size:1.2em" html_class="a"]' );
 shortcodeSizes[ 0 ].props.onChange( '' );
 check( 'shortcode block: last design value cleared -> attribute removed', savedText.text === '[contact-form-7 id="5" html_class="a"]' );
@@ -308,7 +363,7 @@ delete globalThis.jgorFlcf7EditorData;
 vm.runInThisContext( source, { filename: file } );
 const bare = globalThis.jgorFlcf7BlockEditor;
 const bareTree = filters[ 1 ].callback( BlockEdit )( { name: bare.BLOCK_NAME, attributes: { id: 1, jgorFlcf7Design: { 'font-size': '1.2em' } }, setAttributes: noop } );
-check( 'without data: no design properties, only the panel "Floating Labels"', bare.DESIGN.length === 0 && findAll( find( bareTree, 'InspectorControls' ), 'PanelBody' ).length === 1 && find( bareTree, 'PanelColorSettings' ) === null );
+check( 'without data: no design properties, only the panel "Floating Labels"', bare.DESIGN.length === 0 && findAll( find( bareTree, 'InspectorControls' ), 'PanelBody' ).length === 1 && find( bareTree, 'Dropdown' ) === null );
 
 if ( failed > 0 ) {
 	console.error( failed + ' check(s) failed.' );
