@@ -1084,7 +1084,11 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Normalisierung von URL und Unit-Tag mit der lokalen Seite verglichen.
   22.10.2026, nach dem Fehlerfall erneut mit `dateien`: alle zehn
   Plugin-Dateien md5-identisch, fünf Formulare identisch (Senden-Hülle und
-  Fehlertext vorhanden), Plugin Check ohne Befund. `datenbank` ist nur
+  Fehlertext vorhanden), Plugin Check ohne Befund. 23.10.2026 nach Konzept
+  2.7 erneut mit `dateien` (der `dateien`-Lauf braucht kein
+  HSAdmin-Passwort und läuft aus dem Bash-Tool, Probelauf mit `--dry-run`
+  zuerst): 16 Plugin-Dateien identisch, Plugin Check ohne Befund,
+  Formulare bis auf die gespeicherte Option identisch. `datenbank` ist nur
   nötig, wenn sich Seiten oder Formulare ändern; neue Optionsschlüssel
   kommen über die Defaults. Die Warnung des Scripts zu `rewrite flush` ist
   harmlos: keine `.htaccess`, Permalinks `/index.php/…`.
@@ -1161,9 +1165,14 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    Properties (6, 7.4, 8, 9.2, 10). Erledigt: Prüfscripte 88/54/29/27/86
    PASS, `composer check` und PHPCS auf `tests/` ohne Befund, `.pot` 140
    Texte, ZIP mit 16 Dateien und Plugin Check ohne Befund, Screenshots 5
-   und 6 neu. Offen: Sichtprüfung von Effekten, Spalten und Panels in
-   Chromium, Firefox und Edge auf Silentium (Nutzer), Hostsharing mit
-   `dateien` nachziehen, Screenshots 1–4 zeigen noch keinen Pflichtstern
+   und 6 neu. Hostsharing am 23.10.2026 mit `dateien --ueberschreiben --ja`
+   nachgezogen (Sicherung vorher, 3 neue und 11 geänderte Dateien): alle
+   16 Plugin-Dateien md5-identisch, Plugin Check auf dem Server ohne
+   Befund, Kontaktseite bis auf die Option (`required_marker` dort noch
+   false, DB-Stand von vor 2.3) identisch. Offen: Sichtprüfung von
+   Effekten, Spalten und Panels in
+   Chromium, Firefox und Edge auf Silentium (Nutzer), Screenshots 1–4
+   zeigen noch keinen Pflichtstern
    (bei Bedarf per `docs/screenshots-erzeugen.sh` neu).
 
 ## 15. Offen
