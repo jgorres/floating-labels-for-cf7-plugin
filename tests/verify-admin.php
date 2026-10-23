@@ -66,13 +66,13 @@ function jgor_flcf7_render_page( JGOR_FLCF7_Admin $admin ): string {
 /**
  * Returns the submenu entries registered under a parent slug.
  *
- * @param string $parent Parent slug.
+ * @param string $parent_slug Parent slug.
  * @return array<int, array<int, string>>
  */
-function jgor_flcf7_submenu( string $parent ): array {
+function jgor_flcf7_submenu( string $parent_slug ): array {
 	global $submenu;
 
-	return isset( $submenu[ $parent ] ) && is_array( $submenu[ $parent ] ) ? $submenu[ $parent ] : array();
+	return isset( $submenu[ $parent_slug ] ) && is_array( $submenu[ $parent_slug ] ) ? $submenu[ $parent_slug ] : array();
 }
 
 $jgor_flcf7_admins = get_users(
@@ -101,9 +101,11 @@ $jgor_flcf7_admin = new JGOR_FLCF7_Admin( $jgor_flcf7_settings );
  * @return void
  */
 function jgor_flcf7_fake_parent( ?string $slug ): void {
+	// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited -- the check fakes the menu globals of an admin request on purpose.
 	$GLOBALS['admin_page_hooks'] = null === $slug ? array() : array( $slug => 'contact' );
 	$GLOBALS['_parent_pages']    = null === $slug ? array() : array( $slug => false );
 	$GLOBALS['submenu']          = array();
+	// phpcs:enable
 }
 
 // Menu: Contact Form 7 parent (6.2.3 slug), then the fallback under Settings.
@@ -128,8 +130,9 @@ jgor_flcf7_fake_parent( 'wpcf7-dashboard' );
 $jgor_flcf7_admin->add_menu();
 
 // Contextual help: registered on the load hook of the page, three tabs and a sidebar.
-$jgor_flcf7_hook = get_plugin_page_hookname( JGOR_FLCF7_Admin::PAGE_SLUG, 'wpcf7-dashboard' );
-jgor_flcf7_check( 'help: add_help_tabs() hooked to load-' . $jgor_flcf7_hook, false !== has_action( 'load-' . $jgor_flcf7_hook, array( $jgor_flcf7_admin, 'add_help_tabs' ) ) );
+$jgor_flcf7_hook   = get_plugin_page_hookname( JGOR_FLCF7_Admin::PAGE_SLUG, 'wpcf7-dashboard' );
+$jgor_flcf7_hooked = has_action( 'load-' . $jgor_flcf7_hook, array( $jgor_flcf7_admin, 'add_help_tabs' ) );
+jgor_flcf7_check( 'help: add_help_tabs() hooked to load-' . $jgor_flcf7_hook, false !== $jgor_flcf7_hooked );
 set_current_screen( $jgor_flcf7_hook );
 $jgor_flcf7_admin->add_help_tabs();
 $jgor_flcf7_screen = get_current_screen();
@@ -140,11 +143,17 @@ jgor_flcf7_check( 'help: design tab carries the css snippet', isset( $jgor_flcf7
 
 // Colour picker assets: only on the hook of the page.
 $jgor_flcf7_admin->enqueue_assets( 'edit.php' );
-jgor_flcf7_check( 'assets: nothing enqueued on other admin pages', ! wp_script_is( JGOR_FLCF7_Admin::SCRIPT_HANDLE, 'enqueued' ) && ! wp_style_is( 'wp-color-picker', 'enqueued' ) );
+jgor_flcf7_check( 'assets: nothing enqueued on other admin pages', ! wp_script_is( JGOR_FLCF7_Admin::SCRIPT_HANDLE, 'enqueued' ) && ! wp_style_is( JGOR_FLCF7_Admin::SCRIPT_HANDLE, 'enqueued' ) && ! wp_style_is( 'wp-color-picker', 'enqueued' ) );
 $jgor_flcf7_admin->enqueue_assets( $jgor_flcf7_hook );
 $jgor_flcf7_admin_script = wp_scripts()->registered[ JGOR_FLCF7_Admin::SCRIPT_HANDLE ] ?? null;
+$jgor_flcf7_admin_style  = wp_styles()->registered[ JGOR_FLCF7_Admin::SCRIPT_HANDLE ] ?? null;
 jgor_flcf7_check( 'assets: colour picker style and screen script enqueued on the page', wp_style_is( 'wp-color-picker', 'enqueued' ) && wp_script_is( JGOR_FLCF7_Admin::SCRIPT_HANDLE, 'enqueued' ) && $jgor_flcf7_admin_script instanceof _WP_Dependency && array( 'wp-color-picker' ) === $jgor_flcf7_admin_script->deps && JGOR_FLCF7_VERSION === $jgor_flcf7_admin_script->ver && 1 === (int) wp_scripts()->get_data( JGOR_FLCF7_Admin::SCRIPT_HANDLE, 'group' ) );
-jgor_flcf7_check( 'assets: screen script file exists and calls wpColorPicker', file_exists( JGOR_FLCF7_PATH . 'assets/js/admin.js' ) && str_contains( (string) file_get_contents( JGOR_FLCF7_PATH . 'assets/js/admin.js' ), ".wpColorPicker()" ) );
+jgor_flcf7_check( 'assets: screen stylesheet enqueued after the colour picker, plugin version', wp_style_is( JGOR_FLCF7_Admin::SCRIPT_HANDLE, 'enqueued' ) && $jgor_flcf7_admin_style instanceof _WP_Dependency && is_string( $jgor_flcf7_admin_style->src ) && str_ends_with( $jgor_flcf7_admin_style->src, '/assets/css/admin.css' ) && array( 'wp-color-picker' ) === $jgor_flcf7_admin_style->deps && JGOR_FLCF7_VERSION === $jgor_flcf7_admin_style->ver );
+// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local plugin file, no URL.
+jgor_flcf7_check( 'assets: screen script file exists and calls wpColorPicker', file_exists( JGOR_FLCF7_PATH . 'assets/js/admin.js' ) && str_contains( (string) file_get_contents( JGOR_FLCF7_PATH . 'assets/js/admin.js' ), '.wpColorPicker()' ) );
+// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local plugin file, no URL.
+$jgor_flcf7_admin_css = file_exists( JGOR_FLCF7_PATH . 'assets/css/admin.css' ) ? (string) file_get_contents( JGOR_FLCF7_PATH . 'assets/css/admin.css' ) : '';
+jgor_flcf7_check( 'assets: screen stylesheet lays the column groups out as a grid of 16em columns, three at most', str_contains( $jgor_flcf7_admin_css, '.' . JGOR_FLCF7_Admin::COLUMNS_CLASS . ' {' ) && str_contains( $jgor_flcf7_admin_css, 'grid-template-columns: repeat(auto-fill, 16em);' ) && str_contains( $jgor_flcf7_admin_css, 'max-width: 51em;' ) );
 jgor_flcf7_check( 'help: overview tab escapes <label>', isset( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'] ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'], 'a &lt;label&gt; that encloses' ) );
 jgor_flcf7_check( 'help: sidebar links to the plugin page and the Contact Form 7 docs', $jgor_flcf7_screen instanceof WP_Screen && str_contains( $jgor_flcf7_screen->get_help_sidebar(), 'https://github.com/jgorres/floating-labels-for-cf7-plugin' ) && str_contains( $jgor_flcf7_screen->get_help_sidebar(), 'https://contactform7.com/additional-settings/' ) );
 
@@ -179,7 +188,9 @@ jgor_flcf7_check( 'page: 6 type checkboxes, all checked', 6 === preg_match_all( 
 jgor_flcf7_check( 'page: textarea type label', str_contains( $jgor_flcf7_html, 'Text area (textarea)' ) );
 jgor_flcf7_check( 'page: outlined radio checked, 3 radios', 3 === preg_match_all( '#type="radio"[^>]*name="jgor_flcf7_settings\[style\]"#s', $jgor_flcf7_html ) && (bool) preg_match( '#value="outlined"[^>]*name="jgor_flcf7_settings\[style\]"[^>]*checked#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: submit error text input with the default', (bool) preg_match( '#<input type="text" class="regular-text" id="jgor-flcf7-submit-error-text" value="Please check the highlighted fields"\s+name="jgor_flcf7_settings\[submit_error_text\]"#s', $jgor_flcf7_html ) );
-jgor_flcf7_check( 'page: load_css checked, required_marker unchecked', (bool) preg_match( '#name="jgor_flcf7_settings\[load_css\]"[^>]*checked#s', $jgor_flcf7_html ) && ! preg_match( '#name="jgor_flcf7_settings\[required_marker\]"[^>]*checked#s', $jgor_flcf7_html ) );
+jgor_flcf7_check( 'page: load_css and required_marker checked by default', (bool) preg_match( '#name="jgor_flcf7_settings\[load_css\]"[^>]*checked#s', $jgor_flcf7_html ) && (bool) preg_match( '#name="jgor_flcf7_settings\[required_marker\]"[^>]*checked#s', $jgor_flcf7_html ) );
+// The type checkboxes are grid items: no line break inside their fieldset.
+jgor_flcf7_check( 'page: four column groups (types, colours, sizes, motion), no line breaks between the type checkboxes', 4 === preg_match_all( '#<fieldset class="' . JGOR_FLCF7_Admin::COLUMNS_CLASS . '"#', $jgor_flcf7_html ) && (bool) preg_match( '#<fieldset class="' . JGOR_FLCF7_Admin::COLUMNS_CLASS . '"\s*>\s*<legend class="screen-reader-text">Fields with floating labels</legend>#', $jgor_flcf7_html ) && ! preg_match( '#<legend class="screen-reader-text">Fields with floating labels</legend>(?:(?!</fieldset>).)*<br>#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: no disabled controls and no locked notice by default', ! str_contains( $jgor_flcf7_html, 'disabled=' ) && ! str_contains( $jgor_flcf7_html, 'fixed in code' ) );
 jgor_flcf7_check( 'page: label ids match for attributes', (bool) preg_match( '#<label for="jgor-flcf7-mode-label">\s*<input type="checkbox" id="jgor-flcf7-mode-label"#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: control examples escaped', str_contains( $jgor_flcf7_html, 'nofloat placeholder &quot;Your name&quot;]' ) && str_contains( $jgor_flcf7_html, 'html_class=&quot;jgor-flcf7-style-filled&quot;' ) && str_contains( $jgor_flcf7_html, 'floating_labels_types: text email textarea' ) );
@@ -216,7 +227,7 @@ $jgor_flcf7_settings->reset_cache();
 // Capability: a visitor without manage_options is stopped by wp_die().
 $jgor_flcf7_die = static function () {
 	return static function ( $message ) {
-		throw new RuntimeException( is_string( $message ) ? $message : 'wp_die' );
+		throw new RuntimeException( esc_html( is_string( $message ) ? $message : 'wp_die' ) );
 	};
 };
 add_filter( 'wp_die_handler', $jgor_flcf7_die );
@@ -242,6 +253,7 @@ jgor_flcf7_check( 'plugins screen: no link without manage_options', 1 === count(
 wp_set_current_user( (int) $jgor_flcf7_admins[0]->ID );
 
 // CSS snippet mirrors the .wpcf7 rule of the stylesheet.
+// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local plugin file, no URL.
 $jgor_flcf7_css = (string) file_get_contents( JGOR_FLCF7_PATH . 'assets/css/floating-labels.css' );
 preg_match( '#^\.wpcf7 \{\n(.*?)\n\}#ms', $jgor_flcf7_css, $jgor_flcf7_block );
 $jgor_flcf7_in_css = array();

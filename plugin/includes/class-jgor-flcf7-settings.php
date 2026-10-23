@@ -224,7 +224,7 @@ final class JGOR_FLCF7_Settings {
 			'types'             => array_values( array_intersect( self::BASE_TYPES, $this->field_types() ) ),
 			'style'             => 'outlined',
 			'load_css'          => true,
-			'required_marker'   => false,
+			'required_marker'   => true,
 			'submit_error_text' => self::DEFAULT_SUBMIT_ERROR_TEXT,
 			'design'            => array(),
 		);

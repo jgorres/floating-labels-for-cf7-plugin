@@ -100,7 +100,14 @@ $jgor_flcf7_clean = $jgor_flcf7_settings->sanitize(
 		),
 	)
 );
-jgor_flcf7_check( 'sanitize(): only valid, non-empty, known design values kept', array( 'padding-x' => '2em', 'label-color' => '#abcdef' ) === $jgor_flcf7_clean['design'], wp_json_encode( $jgor_flcf7_clean['design'] ) );
+jgor_flcf7_check(
+	'sanitize(): only valid, non-empty, known design values kept',
+	array(
+		'padding-x'   => '2em',
+		'label-color' => '#abcdef',
+	) === $jgor_flcf7_clean['design'],
+	wp_json_encode( $jgor_flcf7_clean['design'] )
+);
 jgor_flcf7_check( 'sanitize(): non-array design -> empty array', array() === $jgor_flcf7_settings->sanitize( array( 'design' => 'x' ) )['design'] );
 jgor_flcf7_check( 'defaults(): design is an empty array', array() === $jgor_flcf7_settings->defaults()['design'] );
 
@@ -124,14 +131,24 @@ $jgor_flcf7_option['design'] = array(
 update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
 $jgor_flcf7_settings->reset_cache();
 jgor_flcf7_check( 'design(): stored values on top of the defaults', '#123456' === $jgor_flcf7_settings->design()['label-color'] && '1.2em' === $jgor_flcf7_settings->design()['font-size'] && '0.75em' === $jgor_flcf7_settings->design()['padding-x'] );
-jgor_flcf7_check( 'design_overrides(): values equal to the default are left out', array( 'font-size' => '1.2em', 'label-color' => '#123456' ) === $jgor_flcf7_settings->design_overrides(), wp_json_encode( $jgor_flcf7_settings->design_overrides() ) );
+jgor_flcf7_check(
+	'design_overrides(): values equal to the default are left out',
+	array(
+		'font-size'   => '1.2em',
+		'label-color' => '#123456',
+	) === $jgor_flcf7_settings->design_overrides(),
+	wp_json_encode( $jgor_flcf7_settings->design_overrides() )
+);
 jgor_flcf7_check( 'inline_css(): one .wpcf7 rule with the overrides only', '.wpcf7 { --jgor-flcf7-font-size: 1.2em; --jgor-flcf7-label-color: #123456; }' === $jgor_flcf7_assets->inline_css(), $jgor_flcf7_assets->inline_css() );
 jgor_flcf7_reset_style();
 $jgor_flcf7_assets->enqueue();
 jgor_flcf7_check( 'enqueue(): inline style added after the stylesheet', str_contains( jgor_flcf7_inline_after(), '--jgor-flcf7-label-color: #123456;' ) );
 
 // Invalid stored values (option edited by hand) are ignored at output time.
-$jgor_flcf7_option['design'] = array( 'label-color' => 'red; } body { display: none', 'font-size' => '1.2em' );
+$jgor_flcf7_option['design'] = array(
+	'label-color' => 'red; } body { display: none',
+	'font-size'   => '1.2em',
+);
 update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
 $jgor_flcf7_settings->reset_cache();
 jgor_flcf7_check( 'inline_css(): invalid stored value dropped, valid one kept', '.wpcf7 { --jgor-flcf7-font-size: 1.2em; }' === $jgor_flcf7_assets->inline_css(), $jgor_flcf7_assets->inline_css() );
@@ -162,6 +179,7 @@ remove_filter( 'jgor_flcf7_settings', $jgor_flcf7_lock );
 $jgor_flcf7_settings->reset_cache();
 
 // Stylesheet: the font-size property is defined and applied to the wrap.
+// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local plugin file, no URL.
 $jgor_flcf7_css = (string) file_get_contents( JGOR_FLCF7_PATH . 'assets/css/floating-labels.css' );
 jgor_flcf7_check( 'css: --jgor-flcf7-font-size defined and used on the wrap', str_contains( $jgor_flcf7_css, "\t--jgor-flcf7-font-size: 1em;\n" ) && (bool) preg_match( '#\.wpcf7 \.jgor-flcf7-wrap \{[^}]*font-size: var\(--jgor-flcf7-font-size\);#s', $jgor_flcf7_css ) );
 

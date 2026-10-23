@@ -19,6 +19,11 @@
  * stays on the screen for themes (concept, section 9). The "Help" tab of the
  * screen repeats the control layers and the design notes as contextual help.
  *
+ * Groups of small controls (the field types, the colours, the sizes, the
+ * floated-label values) are laid out in columns of equal width by the
+ * stylesheet assets/css/admin.css, loaded on this screen only together with
+ * the colour picker script.
+ *
  * @package Floating_Labels_For_CF7
  */
 
@@ -35,7 +40,7 @@ final class JGOR_FLCF7_Admin {
 	public const PAGE_SLUG = 'wpcf7-floating-labels';
 
 	/**
-	 * Handle of the settings screen script (colour picker).
+	 * Handle of the settings screen script (colour picker) and stylesheet.
 	 */
 	public const SCRIPT_HANDLE = 'jgor-flcf7-admin';
 
@@ -43,6 +48,16 @@ final class JGOR_FLCF7_Admin {
 	 * Path of the settings screen script below the plugin directory.
 	 */
 	private const SCRIPT_PATH = 'assets/js/admin.js';
+
+	/**
+	 * Path of the settings screen stylesheet below the plugin directory.
+	 */
+	private const STYLE_PATH = 'assets/css/admin.css';
+
+	/**
+	 * Class of the fieldsets the stylesheet lays out in columns.
+	 */
+	public const COLUMNS_CLASS = 'jgor-flcf7-columns';
 
 	/**
 	 * Parent menu slugs of Contact Form 7, newest first: "wpcf7-dashboard"
@@ -140,7 +155,8 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
-	 * Enqueues the colour picker and the screen script on the settings page only.
+	 * Enqueues the colour picker, the screen script and the screen
+	 * stylesheet on the settings page only.
 	 *
 	 * @param string $hook_suffix Hook suffix of the current admin page.
 	 * @return void
@@ -157,6 +173,12 @@ final class JGOR_FLCF7_Admin {
 			array( 'wp-color-picker' ),
 			JGOR_FLCF7_VERSION,
 			array( 'in_footer' => true )
+		);
+		wp_enqueue_style(
+			self::SCRIPT_HANDLE,
+			JGOR_FLCF7_URL . self::STYLE_PATH,
+			array( 'wp-color-picker' ),
+			JGOR_FLCF7_VERSION
 		);
 	}
 
@@ -560,7 +582,7 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
-	 * Renders the checkboxes of the field types.
+	 * Renders the checkboxes of the field types, laid out in columns.
 	 *
 	 * @return void
 	 */
@@ -569,7 +591,7 @@ final class JGOR_FLCF7_Admin {
 		$current = $this->settings->get( 'types' );
 		$current = is_array( $current ) ? $current : array();
 		?>
-		<fieldset <?php disabled( $locked ); ?>>
+		<fieldset class="<?php echo esc_attr( self::COLUMNS_CLASS ); ?>" <?php disabled( $locked ); ?>>
 			<legend class="screen-reader-text"><?php esc_html_e( 'Fields with floating labels', 'floating-labels-for-cf7' ); ?></legend>
 			<?php foreach ( $this->settings->field_types() as $type ) : ?>
 				<?php $id = $this->field_id( 'type-' . $type ); ?>
@@ -579,7 +601,7 @@ final class JGOR_FLCF7_Admin {
 						<?php checked( in_array( $type, $current, true ) ); ?>
 						<?php disabled( $locked ); ?>>
 					<?php echo esc_html( $this->type_label( $type ) ); ?>
-				</label><br>
+				</label>
 			<?php endforeach; ?>
 		</fieldset>
 		<p class="description"><?php esc_html_e( 'Untick every type to switch floating labels off without losing the other settings.', 'floating-labels-for-cf7' ); ?></p>
@@ -631,7 +653,8 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
-	 * Renders one group of design fields (a row of the section "Design").
+	 * Renders one group of design fields (a row of the section "Design"),
+	 * laid out in columns.
 	 *
 	 * Colour fields carry the class jgor-flcf7-color for the colour picker
 	 * and the default as data-default-color (hex defaults only); size and
@@ -649,7 +672,7 @@ final class JGOR_FLCF7_Admin {
 		$stored = is_array( $stored ) ? $stored : array();
 		$keys   = self::DESIGN_GROUPS[ $group ] ?? array();
 		?>
-		<fieldset <?php disabled( $locked ); ?>>
+		<fieldset class="<?php echo esc_attr( self::COLUMNS_CLASS ); ?>" <?php disabled( $locked ); ?>>
 			<legend class="screen-reader-text"><?php echo esc_html( $this->design_group_label( $group ) ); ?></legend>
 			<?php foreach ( $keys as $key ) : ?>
 				<?php
