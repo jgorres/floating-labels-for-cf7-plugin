@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.4 · Stand: 22.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
+Version: 2.5 · Stand: 23.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -91,7 +91,8 @@ floating-labels-for-cf7/
 ├── docs/
 │   ├── konzept.md                    dieses Dokument
 │   ├── assets-erzeugen.py            Icon (SVG und APNG) und Banner (APNG), Pillow
-│   └── screenshots-erzeugen.sh       Screenshots 1–4 auf der lokalen Testsite, Chromium headless
+│   ├── screenshots-erzeugen.sh       Screenshots 1–4 auf der lokalen Testsite, Chromium headless
+│   └── screenshots-admin-erzeugen.js Screenshots 5–6 (Einstellungsseite, Block-Seitenleiste), playwright-core + Chromium
 ├── assets/                           WP.org-Assets: icon.svg, icon-128x128.png, icon-256x256.png,
 │                                     banner-772x250.png, banner-1544x500.png, screenshot-1..6.png
 ├── glotpress/
@@ -932,8 +933,10 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
   `wp-admin/admin.php?page=wpcf7-floating-labels`). Browser-Matrix vor dem
-  Release von Hand in Firefox und Edge auf Silentium (Playwright steht auf
-  Bodhran ohne Browser nicht zur Verfügung): Ruhezustand, Fokus per Klick
+  Release von Hand in Firefox und Edge auf Silentium (der Playwright-MCP
+  steht auf Bodhran ohne Chrome nicht zur Verfügung, playwright-core mit dem
+  System-Chromium schon, siehe `docs/screenshots-admin-erzeugen.js`):
+  Ruhezustand, Fokus per Klick
   und per Tab, Eingabe, Autofill, Fehlerfall (Pflichtfeld leer abschicken →
   Label rot oben, Tip im Feld, Senden-Button rot mit Fehlertext), Versand
   mit `skip_mail: on` → Labels sinken zurück, Einstellungsseite speichern
@@ -960,9 +963,20 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Pflichtfeld; die Datei liegt kurz im Webroot, weil Schriften per CORS nur
   von derselben Herkunft laden), schneidet auf 780 px Breite zu und entfernt
   Seiten und Formular wieder. Icons und Banner haben einen dünnen schwarzen
-  Rand mit gerundeten Ecken, außerhalb transparent. Die Screenshots 5
-  (Einstellungsseite mit Hilfe-Reiter) und 6 (Panel im CF7-Block) entstehen
-  von Hand im eingeloggten Browser.
+  Rand mit gerundeten Ecken, außerhalb transparent.
+  `node docs/screenshots-admin-erzeugen.js` erzeugt die Screenshots 5 und 6:
+  Es legt ein temporäres Admin-Konto (`jgor-shottest`, Locale `en_US`,
+  Anzeigename „Jane Doe“) und eine Entwurfsseite an, nimmt das Formular
+  „Contact form 1“ (legt es nur an, wenn es fehlt), meldet sich mit
+  playwright-core und `/usr/bin/chromium` headless an (1280 px, Query
+  Monitor ausgeblendet) und fotografiert die Einstellungsseite als
+  Ganzseiten-Aufnahme bis zum Ende der Farbfelder mit geöffnetem
+  Farbwähler (Screenshot 5, 1280×2205) sowie den Block-Editor mit per
+  `wp.blocks.createBlock()` eingefügtem CF7-Block, eingeklapptem CF7-Panel
+  und zur Seitenleiste „Floating Labels“ gescrollt (Screenshot 6,
+  1280×1400); gespeichert wird nichts, danach entfernt es Seite, Konto und
+  ein selbst angelegtes Formular wieder. playwright-core kommt aus einer
+  globalen Installation oder aus dem npx-Cache des Playwright-MCP.
 - Ohne `ext-dom` (per `wp eval` mit Klassen-Stub nicht simulierbar; Codepfad
   per PHPStan und Lesen prüfen): Hinweis im Admin, Formular unverändert.
 - Gegenprobe auf der Hostsharing-Testsite `<hs-testsite>`
@@ -1010,8 +1024,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
       Modul 5 89, seit den Design-Einstellungen 115. Erledigt; vor jedem
       Release neu erzeugen.
    4. Assets (Commit dfd3c79): animiertes Icon, animierte Banner,
-      Screenshots 1–4 per Script. Offen: Screenshots 5 (Einstellungsseite)
-      und 6 (Panel im CF7-Block), Nutzer im Browser.
+      Screenshots 1–4 per Script. Screenshots 5 (Einstellungsseite mit
+      Farbwähler) und 6 (Panels im CF7-Block) am 23.10.2026 per
+      `docs/screenshots-admin-erzeugen.js` erzeugt. Erledigt.
    5. `build.sh` und Plugin Check auf dem ZIP ohne Befund,
       Hostsharing-Gegenprobe bestanden. Fehlerfall am 22.10.2026 ergänzt
       (Commit ba9a53c: Tip im Feld, Label floatet, Senden-Button mit
@@ -1027,22 +1042,22 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 6. Modul 5 Block-Seitenleiste (10), vorgezogen aus 1.1. Erledigt am
    22.10.2026 (Commit a820fd7, Shortcode-Block im Folge-Commit): 16 und 47
    Prüfungen PASS, `composer check` ohne Befund, Plugin Check auf dem ZIP
-   ohne Befund. Offen: Sichtprüfung im Block-Editor und Screenshot 6
-   (Nutzer). Hostsharing am 22.10.2026 mit `dateien` nachgezogen und lesend
+   ohne Befund. Screenshot 6 seit 23.10.2026 per Script (5.4). Offen:
+   Sichtprüfung im Block-Editor (Nutzer). Hostsharing am 22.10.2026 mit `dateien` nachgezogen und lesend
    geprüft (13 Dateien identisch, `verify-editor.php` remote 16 PASS,
    Plugin Check ohne Befund).
 7. Design-Einstellungen (9.2), vorgezogen aus 1.1. Erledigt am 22.10.2026
    (Commit b21db52): 26 und 50 Prüfungen PASS, `composer check` ohne
    Befund, Plugin Check auf dem ZIP ohne Befund. Offen: Sichtprüfung der
-   Felder und des Farbwählers auf Silentium (Nutzer, Screenshot 5 zeigt sie
-   dann). Hostsharing am 22.10.2026 nachgezogen (Kontaktseite identisch bis
+   Felder und des Farbwählers auf Silentium (Nutzer; Screenshot 5 zeigt
+   sie seit 23.10.2026). Hostsharing am 22.10.2026 nachgezogen (Kontaktseite identisch bis
    auf `required_marker`); nach dem Fix in 7.2 erneut mit `dateien`
    nachziehen.
 8. Design je Platzierung (10.1). Erledigt am 22.10.2026 (Commit cbc7ca7):
    82, 23 und 76 Prüfungen PASS, `composer check` ohne Befund, Plugin Check
    auf dem ZIP (14 Dateien) ohne Befund, `.pot` 120 Texte. Offen:
-   Sichtprüfung der Panels auf Silentium (Nutzer, Screenshot 6 zeigt sie
-   dann), Hostsharing mit `dateien` nachziehen.
+   Sichtprüfung der Panels auf Silentium (Nutzer; Screenshot 6 zeigt sie
+   seit 23.10.2026), Hostsharing mit `dateien` nachziehen.
 
 ## 15. Offen
 
@@ -1086,3 +1101,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.2 | 22.10.2026 | Design-Einstellungen (Commit b21db52), vorgezogen aus 1.1: neuer Abschnitt 9.2 (Option `design`, Sanitize je Typ, Felder mit Farbwähler, Inline-Style nur für Abweichungen, Property `--jgor-flcf7-font-size`); §3 Dateien, §4, §6 Optionstabelle, §8 Property und Ausgabe, §9 Sektionen, §13 `verify-design.php` (26) und `verify-admin.php` (50), ZIP 13 Dateien, §14 Schritt 7, §15 Design-Punkt ersetzt; readme, Kontexthilfe; `.pot` 115 Texte |
 | 2.3 | 22.10.2026 | Fund der Hostsharing-Gegenprobe: CF7 gibt jede `id:`-Option nur einmal je Seitenaufruf aus, beim zweiten Rendering desselben Formulars fand Modul 2 das verknüpfte `<label for>` nicht; `fields()` liefert die `id:`-Option mit, `linked_label()` sucht damit, das Feld bekommt eine ID aus dem Unit-Tag (5, 7, 7.2); `verify-markup.php` 69 Prüfungen; §14 Schritte 2, 6, 7 |
 | 2.4 | 22.10.2026 | Design je Platzierung im Block-Panel (Commit cbc7ca7): neuer Abschnitt 10.1 (Panels „Floating labels: colours/sizes/animation“, Block-Attribut `jgorFlcf7Design` per `register_block_type_args`, Shortcode-Attribut `jgor_flcf7_design`, `render_block_…` und `do_shortcode_tag`, `style` am Wrapper, neue Klasse `JGOR_FLCF7_Placement_Design`); §3 Dateien, §4, §5 Block-Rendering und Shortcode-Attribute, §6 Bootstrap, §7.4, §9.2, §10 Inline-Daten, §13 (`verify-markup.php` 82, `verify-editor.php` 23, `verify-editor-js.mjs` 76, ZIP 14 Dateien 52 KB, Browser-Matrix), §14 Schritt 8; readme, Kontexthilfe; `.pot` 120 Texte |
+| 2.5 | 23.10.2026 | Screenshots 5 und 6 per `docs/screenshots-admin-erzeugen.js` (playwright-core + System-Chromium, temporäres Konto, Entwurfsseite, Aufräumen): §3 Verzeichnisbaum, §13 Assets und Hinweis zu Playwright auf Bodhran, §14 Schritte 5.4 (erledigt), 6, 7 und 8 |

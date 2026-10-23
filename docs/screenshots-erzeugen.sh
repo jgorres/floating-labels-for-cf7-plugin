@@ -10,8 +10,8 @@ clear
 #              und drei Seiten (Outlined, Filled, Minimal) an, fotografiert sie
 #              headless mit Chromium, baut den Fehlerfall aus dem gerenderten
 #              HTML nach, schneidet auf den Formularbereich zu und räumt die
-#              Seiten und das Formular wieder weg. Screenshot 5 (Einstellungs-
-#              seite) entsteht von Hand im eingeloggten Browser.
+#              Seiten und das Formular wieder weg. Die Screenshots 5 und 6
+#              erzeugt docs/screenshots-admin-erzeugen.js.
 # ==================================================
 
 set -euo pipefail
