@@ -91,7 +91,7 @@ $jgor_flcf7_all = array_keys( JGOR_FLCF7_Settings::DESIGN_TYPES );
 sort( $jgor_flcf7_all );
 jgor_flcf7_check( 'data: every design property exactly once', $jgor_flcf7_keys === $jgor_flcf7_all, implode( ',', $jgor_flcf7_keys ) );
 $jgor_flcf7_groups = array_count_values( array_column( $jgor_flcf7_design, 'group' ) );
-jgor_flcf7_check( 'data: groups colors (10), sizes (6), motion (2) in the order of the settings screen', 10 === ( $jgor_flcf7_groups['colors'] ?? 0 ) && 6 === ( $jgor_flcf7_groups['sizes'] ?? 0 ) && 2 === ( $jgor_flcf7_groups['motion'] ?? 0 ) && 'label-color' === ( $jgor_flcf7_design[0]['key'] ?? '' ) && 'duration' === ( $jgor_flcf7_design[17]['key'] ?? '' ) );
+jgor_flcf7_check( 'data: groups colors (10), sizes (6), motion (2), effect (4) in the order of the settings screen', 10 === ( $jgor_flcf7_groups['colors'] ?? 0 ) && 6 === ( $jgor_flcf7_groups['sizes'] ?? 0 ) && 2 === ( $jgor_flcf7_groups['motion'] ?? 0 ) && 4 === ( $jgor_flcf7_groups['effect'] ?? 0 ) && 'label-color' === ( $jgor_flcf7_design[0]['key'] ?? '' ) && 'duration' === ( $jgor_flcf7_design[17]['key'] ?? '' ) && 'effect-duration' === ( $jgor_flcf7_design[21]['key'] ?? '' ) );
 $jgor_flcf7_first = $jgor_flcf7_design[0] ?? array();
 jgor_flcf7_check( 'data: type, translated label and the value in effect as placeholder', 'color' === ( $jgor_flcf7_first['type'] ?? '' ) && 'Label' === ( $jgor_flcf7_first['label'] ?? '' ) && ( $jgor_flcf7_first['placeholder'] ?? '' ) === JGOR_FLCF7_Settings::instance()->design()['label-color'] );
 
@@ -112,13 +112,16 @@ $jgor_flcf7_classes = array( 'jgor-flcf7-on', 'jgor-flcf7-off', 'jgor-flcf7-mode
 foreach ( JGOR_FLCF7_Settings::STYLES as $jgor_flcf7_style_name ) {
 	$jgor_flcf7_classes[] = JGOR_FLCF7_Markup::HTML_CLASS_STYLE_PREFIX . $jgor_flcf7_style_name;
 }
+foreach ( JGOR_FLCF7_Settings::EFFECTS as $jgor_flcf7_effect_name ) {
+	$jgor_flcf7_classes[] = JGOR_FLCF7_Markup::HTML_CLASS_EFFECT_PREFIX . $jgor_flcf7_effect_name;
+}
 $jgor_flcf7_missing = array();
 foreach ( $jgor_flcf7_classes as $jgor_flcf7_class ) {
 	if ( ! str_contains( $jgor_flcf7_js, "'" . $jgor_flcf7_class . "'" ) ) {
 		$jgor_flcf7_missing[] = $jgor_flcf7_class;
 	}
 }
-jgor_flcf7_check( 'file: every placement class of the concept (9) is offered', empty( $jgor_flcf7_missing ), implode( ', ', $jgor_flcf7_missing ) );
+jgor_flcf7_check( 'file: every placement class of the concept (13) is offered', 13 === count( $jgor_flcf7_classes ) && empty( $jgor_flcf7_missing ), implode( ', ', $jgor_flcf7_missing ) );
 jgor_flcf7_check( 'file: design attributes, data global and colour palette used', str_contains( $jgor_flcf7_js, "'" . JGOR_FLCF7_Placement_Design::BLOCK_ATTRIBUTE . "'" ) && str_contains( $jgor_flcf7_js, "'" . JGOR_FLCF7_Placement_Design::SHORTCODE_ATTRIBUTE . "'" ) && str_contains( $jgor_flcf7_js, 'window.' . JGOR_FLCF7_Editor::DATA_GLOBAL ) && str_contains( $jgor_flcf7_js, 'wp.components.ColorPalette' ) && str_contains( $jgor_flcf7_js, 'wp.blockEditor.useSettings' ) );
 jgor_flcf7_check( 'file: collapsible panels only, no PanelColorSettings and no Flex wrappers', ! str_contains( $jgor_flcf7_js, 'PanelColorSettings' ) && ! str_contains( $jgor_flcf7_js, 'wp.components.Flex' ) );
 // __( 'text' ) and _x( 'text', 'context' ) without the domain, and the number of calls against the number of domain arguments.

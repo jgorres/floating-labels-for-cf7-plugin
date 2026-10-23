@@ -11,11 +11,11 @@
  * counts as locked: the settings screen shows it disabled, and saving the
  * screen keeps the stored value for it, so the filter keeps winning.
  *
- * Design values (colours, sizes, timing) live under the key "design": one
- * entry per CSS custom property of the stylesheet, without the prefix
- * --jgor-flcf7-. Only values that passed sanitizing are stored; a missing
- * entry means "default", and module 3 prints only the values that differ
- * from the defaults.
+ * Design values (colours, sizes, timing, focus effect) live under the key
+ * "design": one entry per CSS custom property of the stylesheet, without the
+ * prefix --jgor-flcf7-. Only values that passed sanitizing are stored; a
+ * missing entry means "default", and module 3 prints only the values that
+ * differ from the defaults.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -54,6 +54,16 @@ final class JGOR_FLCF7_Settings {
 	 * @var string[]
 	 */
 	public const STYLES = array( 'outlined', 'filled', 'minimal' );
+
+	/**
+	 * Available focus effects: none, a glow, a pulsing glow or a light
+	 * running around the border of the focused field. Every effect except
+	 * "none" is a class jgor-flcf7-<effect> on the wrap (module 2) with its
+	 * rules in the stylesheet (module 3).
+	 *
+	 * @var string[]
+	 */
+	public const EFFECTS = array( 'none', 'glow', 'pulse', 'sweep' );
 
 	/**
 	 * Default text shown on the submit button while the form has errors.
@@ -100,6 +110,10 @@ final class JGOR_FLCF7_Settings {
 		'duration'                => '0.15s',
 		'submit-error-background' => '#dc3232',
 		'submit-error-color'      => '#fff',
+		'effect-color'            => '#1a73e8',
+		'effect-size'             => '8px',
+		'effect-width'            => '2px',
+		'effect-duration'         => '1.5s',
 	);
 
 	/**
@@ -128,6 +142,10 @@ final class JGOR_FLCF7_Settings {
 		'duration'                => 'time',
 		'submit-error-background' => 'color',
 		'submit-error-color'      => 'color',
+		'effect-color'            => 'color',
+		'effect-size'             => 'length',
+		'effect-width'            => 'length',
+		'effect-duration'         => 'time',
 	);
 
 	/**
@@ -223,6 +241,7 @@ final class JGOR_FLCF7_Settings {
 			'mode_label'        => true,
 			'types'             => array_values( array_intersect( self::BASE_TYPES, $this->field_types() ) ),
 			'style'             => 'outlined',
+			'effect'            => 'none',
 			'load_css'          => true,
 			'required_marker'   => true,
 			'submit_error_text' => self::DEFAULT_SUBMIT_ERROR_TEXT,
@@ -460,6 +479,9 @@ final class JGOR_FLCF7_Settings {
 
 			case 'style':
 				return $this->sanitize_choice( $raw, self::STYLES, $fallback );
+
+			case 'effect':
+				return $this->sanitize_choice( $raw, self::EFFECTS, $fallback );
 
 			case 'submit_error_text':
 				return $this->sanitize_text( $raw );

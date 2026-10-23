@@ -258,6 +258,25 @@ jgor_flcf7_check( 'placement: jgor-flcf7-mode-label on a placeholder form -> no 
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_marker: on', array( 'html_class' => 'jgor-flcf7-marker-off' ) );
 jgor_flcf7_check( 'placement: jgor-flcf7-marker-off overrides floating_labels_marker: on', 3 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-marker"' ) );
 
+// Focus effect: none by default, per form, per placement, through the filter; unknown values ignored.
+jgor_flcf7_check( 'effect: no effect class by default', ! preg_match( '#jgor-flcf7-(?:glow|pulse|sweep)#', $jgor_flcf7_a ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_effect: glow' );
+jgor_flcf7_check( 'form: floating_labels_effect: glow -> class jgor-flcf7-glow behind the marker on every wrap', 3 === preg_match_all( '#jgor-flcf7-marker jgor-flcf7-glow"#', $jgor_flcf7_p ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_effect: glow', array( 'html_class' => 'jgor-flcf7-effect-sweep' ) );
+jgor_flcf7_check( 'placement: jgor-flcf7-effect-sweep overrides floating_labels_effect: glow', 3 === preg_match_all( '#jgor-flcf7-sweep"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-glow' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_effect: pulse', array( 'html_class' => 'jgor-flcf7-effect-none' ) );
+jgor_flcf7_check( 'placement: jgor-flcf7-effect-none -> no effect class', ! preg_match( '#jgor-flcf7-(?:glow|pulse|sweep)#', $jgor_flcf7_p ) && 3 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_effect: spin', array( 'html_class' => 'jgor-flcf7-effect-blink' ) );
+jgor_flcf7_check( 'effect: unknown values in form and placement ignored', ! preg_match( '#jgor-flcf7-(?:glow|pulse|sweep|spin|blink)#', $jgor_flcf7_p ) );
+$jgor_flcf7_fe = function ( $settings ) {
+	$settings['effect'] = 'pulse';
+	return $settings;
+};
+add_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_fe );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, null, array( 'html_class' => 'jgor-flcf7-effect-glow' ) );
+jgor_flcf7_check( 'filter jgor_flcf7_form_settings: effect wins over html_class', 3 === preg_match_all( '#jgor-flcf7-pulse"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-glow' ) );
+remove_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_fe );
+
 // Filter jgor_flcf7_form_settings.
 $jgor_flcf7_f3 = function ( $settings ) {
 	$settings['style'] = 'filled';
@@ -279,11 +298,12 @@ $jgor_flcf7_f5 = function ( $settings ) {
 	$settings['style']           = 'bogus';
 	$settings['types']           = 'text';
 	$settings['required_marker'] = 'maybe';
+	$settings['effect']          = 'spin';
 	return $settings;
 };
 add_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_f5 );
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b );
-jgor_flcf7_check( 'filter jgor_flcf7_form_settings with invalid values -> ignored (defaults keep: outlined, marker on)', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-outlined#', $jgor_flcf7_p ) && 3 === preg_match_all( '#jgor-flcf7-marker"#', $jgor_flcf7_p ) );
+jgor_flcf7_check( 'filter jgor_flcf7_form_settings with invalid values -> ignored (defaults keep: outlined, marker on, no effect)', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-outlined#', $jgor_flcf7_p ) && 3 === preg_match_all( '#jgor-flcf7-marker"#', $jgor_flcf7_p ) && ! preg_match( '#jgor-flcf7-(?:glow|pulse|sweep|spin)#', $jgor_flcf7_p ) );
 remove_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_f5 );
 
 // Submit error text: filter, form settings filter and empty setting (colour only).

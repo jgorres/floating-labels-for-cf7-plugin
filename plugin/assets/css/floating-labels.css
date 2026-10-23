@@ -22,6 +22,11 @@
  * offsets in place. Logical properties keep the layout correct in
  * right-to-left scripts.
  *
+ * Focus effects: the effect class (jgor-flcf7-glow, jgor-flcf7-pulse,
+ * jgor-flcf7-sweep) sits on the wrap next to the variant class and shows a
+ * glow, a pulsing glow or a light running around the border while the
+ * field has focus; see the section "Focus effects" below.
+ *
  * Themes adjust colours, sizes and timing through the custom properties
  * below; set them on .wpcf7 or any ancestor. Values changed on the settings
  * screen are printed by the plugin as an inline .wpcf7 rule right after
@@ -47,6 +52,10 @@
 	--jgor-flcf7-duration: 0.15s;
 	--jgor-flcf7-submit-error-background: #dc3232;
 	--jgor-flcf7-submit-error-color: #fff;
+	--jgor-flcf7-effect-color: #1a73e8;
+	--jgor-flcf7-effect-size: 8px;
+	--jgor-flcf7-effect-width: 2px;
+	--jgor-flcf7-effect-duration: 1.5s;
 }
 
 /* ------------------------------------------------------------------
@@ -265,6 +274,87 @@
 }
 
 /* ------------------------------------------------------------------
+ * Focus effects (setting "effect": glow, pulsing glow, running light)
+ *
+ * The effect class sits on the wrap next to the variant class; without it
+ * nothing of this section applies. Glow and pulse are a box-shadow of the
+ * control while it has focus. The running light is a ring drawn by the
+ * ::before pseudo-element of the wrap (an input cannot carry one): a conic
+ * gradient, masked to its outer band of --jgor-flcf7-effect-width and
+ * turned through the custom property --jgor-flcf7-angle, which @property
+ * registers as an animatable angle. A browser without @property shows the
+ * ring without motion, one without mask-composite no ring at all. The
+ * floated label of the Outlined variant paints above the ring, as it does
+ * above the border.
+ * ---------------------------------------------------------------- */
+
+.wpcf7 .jgor-flcf7-glow .jgor-flcf7-control:focus {
+	box-shadow: 0 0 var(--jgor-flcf7-effect-size) var(--jgor-flcf7-effect-color);
+}
+
+.wpcf7 .jgor-flcf7-pulse .jgor-flcf7-control:focus {
+	animation: jgor-flcf7-pulse var(--jgor-flcf7-effect-duration) ease-in-out infinite;
+}
+
+@keyframes jgor-flcf7-pulse {
+	0%,
+	100% {
+		box-shadow: 0 0 0 var(--jgor-flcf7-effect-color);
+	}
+
+	50% {
+		box-shadow: 0 0 var(--jgor-flcf7-effect-size) var(--jgor-flcf7-effect-color);
+	}
+}
+
+@property --jgor-flcf7-angle {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+
+.wpcf7 .jgor-flcf7-sweep::before {
+	content: "";
+	position: absolute;
+	inset: calc(-1 * var(--jgor-flcf7-effect-width));
+	box-sizing: border-box;
+	padding: var(--jgor-flcf7-effect-width);
+	border-radius: calc(var(--jgor-flcf7-radius) + var(--jgor-flcf7-effect-width));
+	background: conic-gradient(from var(--jgor-flcf7-angle), transparent 0 70%, var(--jgor-flcf7-effect-color) 100%);
+	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+	mask-composite: exclude;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.wpcf7 .jgor-flcf7-sweep:focus-within::before {
+	opacity: 1;
+	animation: jgor-flcf7-sweep var(--jgor-flcf7-effect-duration) linear infinite;
+}
+
+@keyframes jgor-flcf7-sweep {
+	to {
+		--jgor-flcf7-angle: 360deg;
+	}
+}
+
+/* Filled: the box has square bottom corners. Minimal: the ring starts
+ * below the space the wrap keeps for the floated label. */
+.wpcf7 .jgor-flcf7-filled.jgor-flcf7-sweep::before {
+	border-radius:
+		calc(var(--jgor-flcf7-radius) + var(--jgor-flcf7-effect-width))
+		calc(var(--jgor-flcf7-radius) + var(--jgor-flcf7-effect-width))
+		var(--jgor-flcf7-effect-width)
+		var(--jgor-flcf7-effect-width);
+}
+
+.wpcf7 .jgor-flcf7-minimal.jgor-flcf7-sweep::before {
+	top: calc(var(--jgor-flcf7-label-size) * var(--jgor-flcf7-label-scale) * 1.6 - var(--jgor-flcf7-effect-width));
+}
+
+/* ------------------------------------------------------------------
  * Submit button on validation errors
  *
  * The plugin wraps the submit input in span.jgor-flcf7-submit and adds
@@ -330,5 +420,15 @@
 	.wpcf7 .jgor-flcf7-label,
 	.wpcf7 .jgor-flcf7-wrap .jgor-flcf7-control {
 		transition: none;
+	}
+
+	/* The pulse becomes a steady glow, the running light a steady ring. */
+	.wpcf7 .jgor-flcf7-pulse .jgor-flcf7-control:focus {
+		box-shadow: 0 0 var(--jgor-flcf7-effect-size) var(--jgor-flcf7-effect-color);
+		animation: none;
+	}
+
+	.wpcf7 .jgor-flcf7-sweep:focus-within::before {
+		animation: none;
 	}
 }

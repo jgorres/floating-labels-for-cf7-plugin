@@ -72,10 +72,10 @@ update_option( 'jgor_flcf7_settings', $jgor_flcf7_settings->defaults() );
 $jgor_flcf7_settings->reset_cache();
 
 // Property lists.
-jgor_flcf7_check( 'properties: 18 defaults and 18 types with the same keys', 18 === count( JGOR_FLCF7_Settings::DESIGN_DEFAULTS ) && array_keys( JGOR_FLCF7_Settings::DESIGN_DEFAULTS ) === array_keys( JGOR_FLCF7_Settings::DESIGN_TYPES ) );
+jgor_flcf7_check( 'properties: 22 defaults and 22 types with the same keys', 22 === count( JGOR_FLCF7_Settings::DESIGN_DEFAULTS ) && array_keys( JGOR_FLCF7_Settings::DESIGN_DEFAULTS ) === array_keys( JGOR_FLCF7_Settings::DESIGN_TYPES ) );
 jgor_flcf7_check( 'properties: css_defaults() carries the prefix', isset( JGOR_FLCF7_Settings::css_defaults()['--jgor-flcf7-font-size'] ) && '1em' === JGOR_FLCF7_Settings::css_defaults()['--jgor-flcf7-font-size'] );
 $jgor_flcf7_counts = array_count_values( JGOR_FLCF7_Settings::DESIGN_TYPES );
-jgor_flcf7_check( 'properties: 10 colours, 6 lengths, 1 number, 1 time', 10 === $jgor_flcf7_counts['color'] && 6 === $jgor_flcf7_counts['length'] && 1 === $jgor_flcf7_counts['number'] && 1 === $jgor_flcf7_counts['time'] );
+jgor_flcf7_check( 'properties: 11 colours, 8 lengths, 1 number, 2 times', 11 === $jgor_flcf7_counts['color'] && 8 === $jgor_flcf7_counts['length'] && 1 === $jgor_flcf7_counts['number'] && 2 === $jgor_flcf7_counts['time'] );
 
 // Sanitizing per type.
 $jgor_flcf7_s = 'JGOR_FLCF7_Settings::sanitize_design_value';
@@ -85,6 +85,8 @@ jgor_flcf7_check( 'length: px, em, rem, %, 0 accepted', '12px' === $jgor_flcf7_s
 jgor_flcf7_check( 'length: unitless, negative, spaced, double rejected', '' === $jgor_flcf7_s( 'padding-x', '12' ) && '' === $jgor_flcf7_s( 'padding-x', '-1px' ) && '' === $jgor_flcf7_s( 'padding-x', '1 em' ) && '' === $jgor_flcf7_s( 'padding-x', '1em 2em' ) && '' === $jgor_flcf7_s( 'padding-x', '1vw' ) );
 jgor_flcf7_check( 'number: 0.8 kept, 1 and 0.5 normalised, out of range rejected', '0.8' === $jgor_flcf7_s( 'label-scale', '0.80' ) && '1' === $jgor_flcf7_s( 'label-scale', '1.0' ) && '0.5' === $jgor_flcf7_s( 'label-scale', '0.5' ) && '' === $jgor_flcf7_s( 'label-scale', '0.4' ) && '' === $jgor_flcf7_s( 'label-scale', '1.2' ) && '' === $jgor_flcf7_s( 'label-scale', 'abc' ) );
 jgor_flcf7_check( 'time: s and ms accepted, bare number rejected', '0.3s' === $jgor_flcf7_s( 'duration', '0.3s' ) && '200ms' === $jgor_flcf7_s( 'duration', '200MS' ) && '' === $jgor_flcf7_s( 'duration', '1' ) && '' === $jgor_flcf7_s( 'duration', '1min' ) );
+jgor_flcf7_check( 'effect properties: colour, lengths and time sanitized like the others', '#abc' === $jgor_flcf7_s( 'effect-color', '#ABC' ) && '12px' === $jgor_flcf7_s( 'effect-size', '12px' ) && '0' === $jgor_flcf7_s( 'effect-width', '0' ) && '2s' === $jgor_flcf7_s( 'effect-duration', '2S' ) && '' === $jgor_flcf7_s( 'effect-duration', 'fast' ) && '' === $jgor_flcf7_s( 'effect-size', '8' ) );
+jgor_flcf7_check( 'effect setting: choice sanitized, default none', 'none' === $jgor_flcf7_settings->defaults()['effect'] && 'sweep' === $jgor_flcf7_settings->sanitize( array( 'effect' => 'SWEEP' ) )['effect'] && 'none' === $jgor_flcf7_settings->sanitize( array( 'effect' => 'spin' ) )['effect'] && 'none' === $jgor_flcf7_settings->sanitize( array() )['effect'] );
 jgor_flcf7_check( 'unknown property, empty and non-scalar -> empty', '' === $jgor_flcf7_s( 'bogus', '#fff' ) && '' === $jgor_flcf7_s( 'label-color', '' ) && '' === $jgor_flcf7_s( 'label-color', array( '#fff' ) ) && '' === $jgor_flcf7_s( 'label-color', null ) );
 
 // Option sanitize callback.
@@ -181,6 +183,7 @@ $jgor_flcf7_settings->reset_cache();
 // Stylesheet: the font-size property is defined and applied to the wrap.
 // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local plugin file, no URL.
 $jgor_flcf7_css = (string) file_get_contents( JGOR_FLCF7_PATH . 'assets/css/floating-labels.css' );
+jgor_flcf7_check( 'css: focus effect rules (glow, pulse keyframes, sweep ring with @property and mask, reduced motion)', str_contains( $jgor_flcf7_css, '.wpcf7 .jgor-flcf7-glow .jgor-flcf7-control:focus {' ) && str_contains( $jgor_flcf7_css, '@keyframes jgor-flcf7-pulse' ) && str_contains( $jgor_flcf7_css, '@property --jgor-flcf7-angle' ) && str_contains( $jgor_flcf7_css, '.wpcf7 .jgor-flcf7-sweep:focus-within::before {' ) && str_contains( $jgor_flcf7_css, 'mask-composite: exclude;' ) && 2 === preg_match_all( '#animation: none;#', $jgor_flcf7_css ) );
 jgor_flcf7_check( 'css: --jgor-flcf7-font-size defined and used on the wrap', str_contains( $jgor_flcf7_css, "\t--jgor-flcf7-font-size: 1em;\n" ) && (bool) preg_match( '#\.wpcf7 \.jgor-flcf7-wrap \{[^}]*font-size: var\(--jgor-flcf7-font-size\);#s', $jgor_flcf7_css ) );
 
 // Restore the option as it was before the run.

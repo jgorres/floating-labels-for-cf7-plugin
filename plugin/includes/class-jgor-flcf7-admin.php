@@ -13,16 +13,16 @@
  * sanitize callback keeps their stored value.
  *
  * The section "Design" offers one field per CSS custom property of the
- * stylesheet (colours with the WordPress colour picker, sizes, scale and
- * duration); an empty field keeps the stylesheet default. Module 3 prints
+ * stylesheet (colours with the WordPress colour picker, sizes, scale,
+ * durations); an empty field keeps the stylesheet default. Module 3 prints
  * only the changed values. A read-only snippet with the values in effect
  * stays on the screen for themes (concept, section 9). The "Help" tab of the
  * screen repeats the control layers and the design notes as contextual help.
  *
  * Groups of small controls (the field types, the colours, the sizes, the
- * floated-label values) are laid out in columns of equal width by the
- * stylesheet assets/css/admin.css, loaded on this screen only together with
- * the colour picker script.
+ * floated-label values, the focus effect values) are laid out in columns of
+ * equal width by the stylesheet assets/css/admin.css, loaded on this screen
+ * only together with the colour picker script.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -84,6 +84,7 @@ final class JGOR_FLCF7_Admin {
 		'design_colors' => array( 'label-color', 'label-color-active', 'label-color-error', 'border-color', 'border-color-active', 'border-color-error', 'background', 'background-filled', 'submit-error-background', 'submit-error-color' ),
 		'design_sizes'  => array( 'font-size', 'label-size', 'padding-x', 'padding-y', 'border-width', 'radius' ),
 		'design_motion' => array( 'label-scale', 'duration' ),
+		'design_effect' => array( 'effect-color', 'effect-size', 'effect-width', 'effect-duration' ),
 	);
 
 	/**
@@ -240,7 +241,7 @@ final class JGOR_FLCF7_Admin {
 		return '<p>' . esc_html__( 'The settings of this screen apply to every form. Override them per form, per placement or per field; later layers win.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p><strong>' . esc_html__( 'Per form', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add lines to the "Additional Settings" tab of the form:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_additional_settings() ) . '</code></pre>'
-			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages. The panels "Floating labels: colours", "Floating labels: sizes" and "Floating labels: animation" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html( $this->text_per_placement() ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_html_classes() ) . '</code></pre>'
 			. '<p><strong>' . esc_html__( 'Per field', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add the option nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_nofloat() ) . '</code></pre>';
@@ -252,7 +253,7 @@ final class JGOR_FLCF7_Admin {
 	 * @return string HTML.
 	 */
 	private function help_design(): string {
-		return '<p>' . esc_html__( 'Colours, sizes and timing are set in the section "Design" of this screen. Leave a field empty to keep the default; only the values you change are printed, as CSS custom properties on the .wpcf7 wrapper, right after the stylesheet.', 'floating-labels-for-cf7' ) . '</p>'
+		return '<p>' . esc_html__( 'Colours, sizes, timing and the look of the focus effect are set in the section "Design" of this screen. Leave a field empty to keep the default; only the values you change are printed, as CSS custom properties on the .wpcf7 wrapper, right after the stylesheet.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'Themes can set the same properties in CSS, for example in Appearance > Customize > Additional CSS or a child theme. The snippet shows every property with the value in effect:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->css_snippet() ) . '</code></pre>'
 			. '<p>' . esc_html__( 'To style one form only, replace .wpcf7 with the id of its wrapper, for example [id^="wpcf7-f123-"], or with a class you add through the html_class attribute.', 'floating-labels-for-cf7' ) . '</p>';
@@ -271,12 +272,21 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
+	 * Text about the placement controls, shared by the screen and the help.
+	 *
+	 * @return string Plain text.
+	 */
+	private function text_per_placement(): string {
+		return __( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages. The panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:', 'floating-labels-for-cf7' );
+	}
+
+	/**
 	 * Example lines for the "Additional Settings" tab of a form (concept 7.4).
 	 *
 	 * @return string Plain text.
 	 */
 	private function example_additional_settings(): string {
-		return "floating_labels: off\nfloating_labels: placeholder\nfloating_labels: label\nfloating_labels_style: filled\nfloating_labels_marker: on\nfloating_labels_types: text email textarea";
+		return "floating_labels: off\nfloating_labels: placeholder\nfloating_labels: label\nfloating_labels_style: filled\nfloating_labels_effect: glow\nfloating_labels_marker: on\nfloating_labels_types: text email textarea";
 	}
 
 	/**
@@ -286,7 +296,7 @@ final class JGOR_FLCF7_Admin {
 	 * @return string Plain text.
 	 */
 	private function example_html_classes(): string {
-		return "jgor-flcf7-off  jgor-flcf7-on\njgor-flcf7-mode-placeholder  jgor-flcf7-mode-label\njgor-flcf7-style-outlined  jgor-flcf7-style-filled  jgor-flcf7-style-minimal\njgor-flcf7-marker-on  jgor-flcf7-marker-off\n\n[contact-form-7 id=\"123\" html_class=\"jgor-flcf7-style-filled\"]\n[contact-form-7 id=\"123\" jgor_flcf7_design=\"border-color:#0a7d3e;font-size:1.1em\"]";
+		return "jgor-flcf7-off  jgor-flcf7-on\njgor-flcf7-mode-placeholder  jgor-flcf7-mode-label\njgor-flcf7-style-outlined  jgor-flcf7-style-filled  jgor-flcf7-style-minimal\njgor-flcf7-effect-none  jgor-flcf7-effect-glow  jgor-flcf7-effect-pulse  jgor-flcf7-effect-sweep\njgor-flcf7-marker-on  jgor-flcf7-marker-off\n\n[contact-form-7 id=\"123\" html_class=\"jgor-flcf7-style-filled\"]\n[contact-form-7 id=\"123\" jgor_flcf7_design=\"border-color:#0a7d3e;font-size:1.1em\"]";
 	}
 
 	/**
@@ -370,6 +380,7 @@ final class JGOR_FLCF7_Admin {
 
 		add_settings_section( 'jgor_flcf7_appearance', __( 'Appearance', 'floating-labels-for-cf7' ), '__return_null', $page );
 		add_settings_field( 'jgor_flcf7_style', __( 'Variant', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', array( 'key' => 'style' ) );
+		add_settings_field( 'jgor_flcf7_effect', __( 'Focus effect', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', array( 'key' => 'effect' ) );
 		add_settings_field( 'jgor_flcf7_load_css', __( 'Stylesheet', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', $this->field_args( 'load_css' ) );
 		add_settings_field( 'jgor_flcf7_required_marker', __( 'Required fields', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', $this->field_args( 'required_marker' ) );
 		add_settings_field( 'jgor_flcf7_submit_error_text', __( 'Submit button on errors', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_appearance', $this->field_args( 'submit_error_text' ) );
@@ -378,6 +389,7 @@ final class JGOR_FLCF7_Admin {
 		add_settings_field( 'jgor_flcf7_design_colors', __( 'Colours', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_design', array( 'key' => 'design_colors' ) );
 		add_settings_field( 'jgor_flcf7_design_sizes', __( 'Sizes', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_design', array( 'key' => 'design_sizes' ) );
 		add_settings_field( 'jgor_flcf7_design_motion', __( 'Floated label and animation', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_design', array( 'key' => 'design_motion' ) );
+		add_settings_field( 'jgor_flcf7_design_effect', __( 'Glow and running light', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_design', array( 'key' => 'design_effect' ) );
 		add_settings_field( 'jgor_flcf7_design_snippet', __( 'CSS for themes', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_design', array( 'key' => 'design_snippet' ) );
 
 		add_settings_section( 'jgor_flcf7_controls', __( 'Per form, per placement, per field', 'floating-labels-for-cf7' ), array( $this, 'render_controls' ), $page );
@@ -495,6 +507,10 @@ final class JGOR_FLCF7_Admin {
 				$this->render_style();
 				break;
 
+			case 'effect':
+				$this->render_effect();
+				break;
+
 			case 'load_css':
 				$this->render_checkbox(
 					$key,
@@ -528,6 +544,10 @@ final class JGOR_FLCF7_Admin {
 
 			case 'design_motion':
 				$this->render_design_group( $key, __( 'Scale of the floated label between 0.5 and 1; duration of the transitions with s or ms.', 'floating-labels-for-cf7' ) );
+				break;
+
+			case 'design_effect':
+				$this->render_design_group( $key, __( 'Used by the focus effect chosen under Appearance: the colour of the glow and of the running light, the size of the glow, the width of the running light, and the duration of one pulse or one round with s or ms.', 'floating-labels-for-cf7' ) );
 				break;
 
 			case 'design_snippet':
@@ -615,39 +635,90 @@ final class JGOR_FLCF7_Admin {
 	 * @return void
 	 */
 	private function render_style(): void {
-		$locked  = $this->settings->is_locked( 'style' );
-		$current = (string) $this->settings->get( 'style' );
-
 		// One entry per value of JGOR_FLCF7_Settings::STYLES: label and description.
-		$styles = array(
-			'outlined' => array(
-				__( 'Outlined', 'floating-labels-for-cf7' ),
-				__( 'Border all round; the label floats onto the border line.', 'floating-labels-for-cf7' ),
+		$this->render_radios(
+			'style',
+			__( 'Variant', 'floating-labels-for-cf7' ),
+			array(
+				'outlined' => array(
+					__( 'Outlined', 'floating-labels-for-cf7' ),
+					__( 'Border all round; the label floats onto the border line.', 'floating-labels-for-cf7' ),
+				),
+				'filled'   => array(
+					__( 'Filled', 'floating-labels-for-cf7' ),
+					__( 'Tinted box with a bottom line; the label floats inside the box.', 'floating-labels-for-cf7' ),
+				),
+				'minimal'  => array(
+					__( 'Minimal', 'floating-labels-for-cf7' ),
+					__( 'No colours, borders or backgrounds; your theme styles the field, the label floats above it.', 'floating-labels-for-cf7' ),
+				),
 			),
-			'filled'   => array(
-				__( 'Filled', 'floating-labels-for-cf7' ),
-				__( 'Tinted box with a bottom line; the label floats inside the box.', 'floating-labels-for-cf7' ),
-			),
-			'minimal'  => array(
-				__( 'Minimal', 'floating-labels-for-cf7' ),
-				__( 'No colours, borders or backgrounds; your theme styles the field, the label floats above it.', 'floating-labels-for-cf7' ),
-			),
+			''
 		);
+	}
+
+	/**
+	 * Renders the radio buttons of the focus effect.
+	 *
+	 * @return void
+	 */
+	private function render_effect(): void {
+		// One entry per value of JGOR_FLCF7_Settings::EFFECTS: label and description.
+		$this->render_radios(
+			'effect',
+			__( 'Focus effect', 'floating-labels-for-cf7' ),
+			array(
+				'none'  => array(
+					__( 'None', 'floating-labels-for-cf7' ),
+					__( 'The border changes colour only.', 'floating-labels-for-cf7' ),
+				),
+				'glow'  => array(
+					__( 'Glow', 'floating-labels-for-cf7' ),
+					__( 'A soft glow around the focused field.', 'floating-labels-for-cf7' ),
+				),
+				'pulse' => array(
+					__( 'Pulsing glow', 'floating-labels-for-cf7' ),
+					__( 'The glow swells and fades while the field has focus.', 'floating-labels-for-cf7' ),
+				),
+				'sweep' => array(
+					__( 'Running light', 'floating-labels-for-cf7' ),
+					__( 'A light runs around the border of the focused field.', 'floating-labels-for-cf7' ),
+				),
+			),
+			__( 'Pure CSS, shown while a field has focus. Colour, size, width and duration are set under Design. Visitors who prefer reduced motion see the glow and the running light without movement.', 'floating-labels-for-cf7' )
+		);
+	}
+
+	/**
+	 * Renders a group of radio buttons for a choice setting.
+	 *
+	 * @param string                               $key         Setting key.
+	 * @param string                               $legend      Legend of the fieldset (screen readers).
+	 * @param array<string, array{string, string}> $choices Value => [label, description].
+	 * @param string                               $description Description below the group, '' for none.
+	 * @return void
+	 */
+	private function render_radios( string $key, string $legend, array $choices, string $description ): void {
+		$locked  = $this->settings->is_locked( $key );
+		$current = (string) $this->settings->get( $key );
 		?>
 		<fieldset <?php disabled( $locked ); ?>>
-			<legend class="screen-reader-text"><?php esc_html_e( 'Variant', 'floating-labels-for-cf7' ); ?></legend>
-			<?php foreach ( $styles as $style => $texts ) : ?>
-				<?php $id = $this->field_id( 'style-' . $style ); ?>
+			<legend class="screen-reader-text"><?php echo esc_html( $legend ); ?></legend>
+			<?php foreach ( $choices as $value => $texts ) : ?>
+				<?php $id = $this->field_id( $key . '-' . $value ); ?>
 				<label for="<?php echo esc_attr( $id ); ?>">
-					<input type="radio" id="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $style ); ?>"
-						<?php $this->print_name( $this->field_name( 'style' ), $locked ); ?>
-						<?php checked( $current === $style ); ?>
+					<input type="radio" id="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>"
+						<?php $this->print_name( $this->field_name( $key ), $locked ); ?>
+						<?php checked( $current === $value ); ?>
 						<?php disabled( $locked ); ?>>
 					<strong><?php echo esc_html( $texts[0] ); ?></strong>
 					<span class="description"><?php echo esc_html( $texts[1] ); ?></span>
 				</label><br>
 			<?php endforeach; ?>
 		</fieldset>
+		<?php if ( '' !== $description ) : ?>
+			<p class="description"><?php echo esc_html( $description ); ?></p>
+		<?php endif; ?>
 		<?php
 		$this->render_locked_note( $locked );
 	}
@@ -749,7 +820,7 @@ final class JGOR_FLCF7_Admin {
 		<pre><code><?php echo esc_html( $this->example_additional_settings() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per placement', 'floating-labels-for-cf7' ); ?></strong><br>
-		<?php esc_html_e( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages. The panels "Floating labels: colours", "Floating labels: sizes" and "Floating labels: animation" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:', 'floating-labels-for-cf7' ); ?></p>
+		<?php echo esc_html( $this->text_per_placement() ); ?></p>
 		<pre><code><?php echo esc_html( $this->example_html_classes() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per field', 'floating-labels-for-cf7' ); ?></strong><br>
@@ -792,6 +863,8 @@ final class JGOR_FLCF7_Admin {
 				return __( 'Sizes', 'floating-labels-for-cf7' );
 			case 'design_motion':
 				return __( 'Floated label and animation', 'floating-labels-for-cf7' );
+			case 'design_effect':
+				return __( 'Glow and running light', 'floating-labels-for-cf7' );
 		}
 
 		return $group;
@@ -825,6 +898,10 @@ final class JGOR_FLCF7_Admin {
 			'radius'                  => __( 'Corner radius', 'floating-labels-for-cf7' ),
 			'label-scale'             => __( 'Scale of the floated label', 'floating-labels-for-cf7' ),
 			'duration'                => __( 'Transition duration', 'floating-labels-for-cf7' ),
+			'effect-color'            => __( 'Colour of the focus effect', 'floating-labels-for-cf7' ),
+			'effect-size'             => __( 'Size of the glow', 'floating-labels-for-cf7' ),
+			'effect-width'            => __( 'Width of the running light', 'floating-labels-for-cf7' ),
+			'effect-duration'         => __( 'Duration of one pulse or round', 'floating-labels-for-cf7' ),
 		);
 
 		return $labels[ $key ] ?? $key;

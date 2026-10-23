@@ -12,7 +12,7 @@
  * components such as the colour rows are expanded by calling them), the
  * filter registration is recorded instead of applied, and useSettings hands
  * over a small colour palette. The design properties the server hands over
- * (window.jgorFlcf7EditorData) are stubbed with the same 18 properties and
+ * (window.jgorFlcf7EditorData) are stubbed with the same 22 properties and
  * groups as the settings screen. Covered: the class helpers, the shortcode
  * attribute helpers (html_class, jgor_flcf7_design), the design helpers,
  * the palette groups, the panels on the Contact Form 7 block and on a
@@ -102,7 +102,7 @@ function findAll( node, type ) {
 }
 
 /**
- * Builds the server data: the 18 design properties in the groups and the
+ * Builds the server data: the 22 design properties in the groups and the
  * order of the settings screen (JGOR_FLCF7_Admin::DESIGN_GROUPS).
  *
  * @return {Object} Data as JGOR_FLCF7_Editor::inline_data() prints it.
@@ -112,9 +112,10 @@ function serverData() {
 		colors: [ 'label-color', 'label-color-active', 'label-color-error', 'border-color', 'border-color-active', 'border-color-error', 'background', 'background-filled', 'submit-error-background', 'submit-error-color' ],
 		sizes: [ 'font-size', 'label-size', 'padding-x', 'padding-y', 'border-width', 'radius' ],
 		motion: [ 'label-scale', 'duration' ],
+		effect: [ 'effect-color', 'effect-size', 'effect-width', 'effect-duration' ],
 	};
-	const types = { 'label-scale': 'number', duration: 'time' };
-	const placeholders = { 'label-color': '#5f6368', 'font-size': '1em', 'label-scale': '0.75', duration: '0.15s' };
+	const types = { 'label-scale': 'number', duration: 'time', 'effect-color': 'color', 'effect-duration': 'time' };
+	const placeholders = { 'label-color': '#5f6368', 'font-size': '1em', 'label-scale': '0.75', duration: '0.15s', 'effect-color': '#1a73e8', 'effect-duration': '1.5s' };
 	const design = [];
 	for ( const [ group, keys ] of Object.entries( groups ) ) {
 		for ( const key of keys ) {
@@ -189,14 +190,15 @@ check( 'filter: editor.BlockEdit registered once under jgor-flcf7/block-editor',
 // Groups and classes (concept, section 7.4).
 const groups = api.GROUPS;
 const byKey = Object.fromEntries( groups.map( ( group ) => [ group.key, group ] ) );
-check( 'groups: enabled, mode, style, marker', groups.map( ( group ) => group.key ).join( ',' ) === 'enabled,mode,style,marker' );
+check( 'groups: enabled, mode, style, effect, marker', groups.map( ( group ) => group.key ).join( ',' ) === 'enabled,mode,style,effect,marker' );
 check( 'groups: first option of every group is the empty default', groups.every( ( group ) => group.options[ 0 ].value === '' && group.options[ 0 ].label === 'Default' ) );
 const classes = groups.flatMap( ( group ) => group.options.map( ( option ) => option.value ) ).filter( ( value ) => value !== '' ).sort();
 const expected = [
+	'jgor-flcf7-effect-glow', 'jgor-flcf7-effect-none', 'jgor-flcf7-effect-pulse', 'jgor-flcf7-effect-sweep',
 	'jgor-flcf7-marker-off', 'jgor-flcf7-marker-on', 'jgor-flcf7-mode-label', 'jgor-flcf7-mode-placeholder',
 	'jgor-flcf7-off', 'jgor-flcf7-on', 'jgor-flcf7-style-filled', 'jgor-flcf7-style-minimal', 'jgor-flcf7-style-outlined',
 ];
-check( 'groups: exactly the nine placement classes', classes.join( ' ' ) === expected.join( ' ' ), classes.join( ' ' ) );
+check( 'groups: exactly the thirteen placement classes', classes.join( ' ' ) === expected.join( ' ' ), classes.join( ' ' ) );
 
 // Helpers.
 check( 'splitClasses: trims and splits on whitespace', api.splitClasses( '  a \t b\n' ).join( ',' ) === 'a,b' );
@@ -210,6 +212,7 @@ check( 'withGroupValue: drops duplicates of the group', api.withGroupValue( 'jgo
 check( 'withGroupValue: empty value removes the group, other classes stay', api.withGroupValue( 'a jgor-flcf7-off b jgor-flcf7-style-filled', byKey.enabled, '' ) === 'a b jgor-flcf7-style-filled' );
 check( 'withGroupValue: empty attribute and empty value -> empty string', api.withGroupValue( undefined, byKey.marker, '' ) === '' );
 check( 'withGroupValue: other groups untouched', api.withGroupValue( 'jgor-flcf7-mode-label', byKey.marker, 'jgor-flcf7-marker-on' ) === 'jgor-flcf7-mode-label jgor-flcf7-marker-on' );
+check( 'withGroupValue: effect classes form one group', api.withGroupValue( 'jgor-flcf7-effect-glow jgor-flcf7-style-filled', byKey.effect, 'jgor-flcf7-effect-sweep' ) === 'jgor-flcf7-effect-sweep jgor-flcf7-style-filled' && api.currentValue( 'jgor-flcf7-effect-none', byKey.effect ) === 'jgor-flcf7-effect-none' );
 
 // Shortcode helpers (html_class).
 const sc = '[contact-form-7 id="123" title="Contact form 1"]';
@@ -228,7 +231,7 @@ check( 'withShortcodeHtmlClass: self-closing shortcode', api.withShortcodeHtmlCl
 check( 'withShortcodeHtmlClass: text without shortcode unchanged', api.withShortcodeHtmlClass( '[gallery]', 'a' ) === '[gallery]' && api.withShortcodeHtmlClass( undefined, 'a' ) === undefined );
 
 // Design helpers.
-check( 'design: 18 properties from the server data', api.DESIGN.length === 18 && api.DESIGN[ 0 ].key === 'label-color' && api.DESIGN[ 17 ].key === 'duration' );
+check( 'design: 22 properties from the server data', api.DESIGN.length === 22 && api.DESIGN[ 0 ].key === 'label-color' && api.DESIGN[ 17 ].key === 'duration' && api.DESIGN[ 21 ].key === 'effect-duration' );
 check( 'cleanDesign: known keys with non-empty strings only, trimmed, in server order', JSON.stringify( api.cleanDesign( { 'font-size': ' 1.2em ', 'label-color': '#123456', bogus: '1px', radius: '', duration: 7 } ) ) === '{"label-color":"#123456","font-size":"1.2em"}' );
 check( 'cleanDesign: characters that would break a shortcode removed', api.cleanDesign( { 'font-size': '1.2em;" x]' } )[ 'font-size' ] === '1.2em x' );
 check( 'cleanDesign: non-object -> {}', Object.keys( api.cleanDesign( undefined ) ).length === 0 && Object.keys( api.cleanDesign( 'x' ) ).length === 0 );
@@ -269,9 +272,9 @@ const panelBodies = findAll( inspector, 'PanelBody' );
 const panelBody = panelBodies[ 0 ];
 check( 'panel: InspectorControls with PanelBody "Floating Labels" first, open by default', !! panelBody && panelBody.props.title === 'Floating Labels' && panelBody.props.initialOpen === true );
 const selects = findAll( panelBody, 'SelectControl' );
-check( 'panel: four selects directly in the panel, no Flex wrapper (spacing of the inspector)', selects.length === 4 && find( panelBody, 'Flex' ) === null && panelBody.children[ 0 ].length === 5 );
-check( 'panel: labels', selects.map( ( select ) => select.props.label ).join( '|' ) === 'Floating labels|Label source|Variant|Required fields' );
-check( 'panel: values read from htmlClass', selects.map( ( select ) => select.props.value ).join( '|' ) === '||jgor-flcf7-style-filled|' );
+check( 'panel: five selects directly in the panel, no Flex wrapper (spacing of the inspector)', selects.length === 5 && find( panelBody, 'Flex' ) === null && panelBody.children[ 0 ].length === 6 );
+check( 'panel: labels', selects.map( ( select ) => select.props.label ).join( '|' ) === 'Floating labels|Label source|Variant|Focus effect|Required fields' );
+check( 'panel: values read from htmlClass', selects.map( ( select ) => select.props.value ).join( '|' ) === '||jgor-flcf7-style-filled||' );
 check( 'panel: keys set on the selects', selects.every( ( select, index ) => select.props.key === groups[ index ].key ) );
 check( 'panel: help text names the "Class" field', !! find( panelBody, 'p' ) && String( find( panelBody, 'p' ).children[ 0 ] ).includes( '"Class"' ) );
 
@@ -279,11 +282,13 @@ selects[ 2 ].props.onChange( 'jgor-flcf7-style-minimal' );
 check( 'change: variant -> setAttributes({ htmlClass }) with the class replaced', saved !== null && saved.htmlClass === 'custom jgor-flcf7-style-minimal' );
 selects[ 0 ].props.onChange( 'jgor-flcf7-off' );
 check( 'change: on/off -> class appended, others kept', saved.htmlClass === 'custom jgor-flcf7-style-filled jgor-flcf7-off' );
+selects[ 3 ].props.onChange( 'jgor-flcf7-effect-glow' );
+check( 'change: focus effect -> class appended', saved.htmlClass === 'custom jgor-flcf7-style-filled jgor-flcf7-effect-glow' );
 selects[ 2 ].props.onChange( '' );
 check( 'change: default -> class removed', saved.htmlClass === 'custom' );
 
 // Design panels on the Contact Form 7 block: collapsible PanelBody each.
-check( 'design: four PanelBody panels: "Floating Labels", colours, sizes, animation; the design panels closed', panelBodies.length === 4 && panelBodies.slice( 1 ).map( ( body ) => body.props.title ).join( '|' ) === 'Floating labels: colours|Floating labels: sizes|Floating labels: animation' && panelBodies.slice( 1 ).every( ( body ) => body.props.initialOpen === false ) );
+check( 'design: five PanelBody panels: "Floating Labels", colours, sizes, animation, focus effect; the design panels closed', panelBodies.length === 5 && panelBodies.slice( 1 ).map( ( body ) => body.props.title ).join( '|' ) === 'Floating labels: colours|Floating labels: sizes|Floating labels: animation|Floating labels: focus effect' && panelBodies.slice( 1 ).every( ( body ) => body.props.initialOpen === false ) );
 check( 'design: PanelColorSettings (ToolsPanel, not collapsible) no longer used', find( inspector, 'PanelColorSettings' ) === null );
 const colorRows = findAll( panelBodies[ 1 ], 'Dropdown' );
 check( 'design: ten colour rows (Dropdown) with popover next to the sidebar, no Flex wrapper', colorRows.length === 10 && find( panelBodies[ 1 ], 'Flex' ) === null && colorRows.every( ( row ) => row.props.popoverProps.placement === 'left-start' && row.props.className === 'jgor-flcf7-color' ) );
@@ -299,6 +304,9 @@ const motionControls = findAll( panelBodies[ 3 ], 'TextControl' );
 check( 'design: six size controls with placeholder, value from jgorFlcf7Design, no Flex wrapper', sizeControls.length === 6 && find( panelBodies[ 2 ], 'Flex' ) === null && sizeControls[ 0 ].props.label === 'Label of font-size' && sizeControls[ 0 ].props.value === '1.2em' && sizeControls[ 0 ].props.placeholder === '1em' && sizeControls[ 1 ].props.value === '' && sizeControls[ 0 ].props.type === undefined );
 check( 'design: two animation controls, the scale as number input 0.5 to 1', motionControls.length === 2 && motionControls[ 0 ].props.type === 'number' && motionControls[ 0 ].props.min === 0.5 && motionControls[ 0 ].props.max === 1 && motionControls[ 0 ].props.step === 0.01 && motionControls[ 0 ].props.placeholder === '0.75' && motionControls[ 1 ].props.type === undefined );
 check( 'design: format notes under sizes and animation', String( find( panelBodies[ 2 ], 'p' ).children[ 0 ] ).includes( 'px, em, rem or %' ) && String( find( panelBodies[ 3 ], 'p' ).children[ 0 ] ).includes( '0.5 and 1' ) );
+const effectRows = findAll( panelBodies[ 4 ], 'Dropdown' );
+const effectControls = findAll( panelBodies[ 4 ], 'TextControl' );
+check( 'design: focus effect panel with one colour row and three text controls, note names the panel "Floating Labels"', effectRows.length === 1 && String( find( toggleOf( effectRows[ 0 ] ), 'span' ).children[ 0 ] ) === 'Label of effect-color' && effectControls.length === 3 && effectControls.map( ( control ) => control.props.key ).join( ',' ) === 'effect-size,effect-width,effect-duration' && effectControls[ 2 ].props.placeholder === '1.5s' && effectControls.every( ( control ) => control.props.type === undefined ) && String( find( panelBodies[ 4 ], 'p' ).children[ 0 ] ).includes( '"Floating Labels"' ) );
 
 paletteOf( colorRows[ 3 ] ).props.onChange( '#00FF00' );
 check( 'design change: colour -> setAttributes({ jgorFlcf7Design }) with the hex colour added, unknown key dropped', JSON.stringify( saved.jgorFlcf7Design ) === '{"label-color":"#abcdef","border-color":"#00ff00","font-size":"1.2em"}' );
@@ -308,6 +316,9 @@ paletteOf( colorRows[ 0 ] ).props.onChange( 'rgb(1,2,3)' );
 check( 'design change: non-hex colour -> key removed', JSON.stringify( saved.jgorFlcf7Design ) === '{"font-size":"1.2em"}' );
 sizeControls[ 2 ].props.onChange( '2em' );
 check( 'design change: size typed -> added', JSON.stringify( saved.jgorFlcf7Design ) === '{"label-color":"#abcdef","font-size":"1.2em","padding-x":"2em"}' );
+paletteOf( effectRows[ 0 ] ).props.onChange( '#ff8800' );
+effectControls[ 2 ].props.onChange( '2s' );
+check( 'design change: effect colour and duration -> added in server order', JSON.stringify( saved.jgorFlcf7Design ) === '{"label-color":"#abcdef","font-size":"1.2em","effect-duration":"2s"}' );
 const onlyOne = Wrapped( {
 	name: api.BLOCK_NAME,
 	attributes: { id: 123, jgorFlcf7Design: { 'font-size': '1.2em' } },
@@ -327,7 +338,7 @@ const shortcodeTree = Wrapped( {
 } );
 const shortcodePanel = find( shortcodeTree, 'PanelBody' );
 const shortcodeSelects = findAll( shortcodePanel, 'SelectControl' );
-check( 'shortcode block: panel with four selects, values read from html_class', !! shortcodePanel && shortcodeSelects.length === 4 && shortcodeSelects.map( ( select ) => select.props.value ).join( '|' ) === 'jgor-flcf7-off|||' );
+check( 'shortcode block: panel with five selects, values read from html_class', !! shortcodePanel && shortcodeSelects.length === 5 && shortcodeSelects.map( ( select ) => select.props.value ).join( '|' ) === 'jgor-flcf7-off||||' );
 check( 'shortcode block: help text names html_class', String( find( shortcodePanel, 'p' ).children[ 0 ] ).includes( 'html_class attribute' ) );
 shortcodeSelects[ 2 ].props.onChange( 'jgor-flcf7-style-filled' );
 check( 'shortcode block: change -> setAttributes({ text }) with the attribute rewritten', savedText !== null && savedText.text === 'Intro [contact-form-7 id="123" title="Contact form 1" html_class="custom jgor-flcf7-off jgor-flcf7-style-filled"]' );
@@ -351,7 +362,7 @@ const shortcodeInspector = find( shortcodeDesignTree, 'InspectorControls' );
 const shortcodeBodies = findAll( shortcodeInspector, 'PanelBody' );
 const shortcodeColors = findAll( shortcodeBodies[ 1 ], 'Dropdown' );
 const shortcodeSizes = findAll( shortcodeBodies[ 2 ], 'TextControl' );
-check( 'shortcode block: design panels present, value read from jgor_flcf7_design', shortcodeBodies.length === 4 && shortcodeColors.length === 10 && shortcodeSizes.length === 6 && shortcodeSizes[ 0 ].props.value === '1.2em' );
+check( 'shortcode block: design panels present, value read from jgor_flcf7_design', shortcodeBodies.length === 5 && shortcodeColors.length === 10 && shortcodeSizes.length === 6 && shortcodeSizes[ 0 ].props.value === '1.2em' );
 check( 'shortcode block: storage note names jgor_flcf7_design', String( find( shortcodeBodies[ 1 ], 'p' ).children[ 0 ] ).includes( 'jgor_flcf7_design attribute' ) );
 paletteOf( shortcodeColors[ 0 ] ).props.onChange( '#123456' );
 check( 'shortcode block: colour -> attribute rewritten in place, html_class untouched', savedText.text === '[contact-form-7 id="5" jgor_flcf7_design="label-color:#123456;font-size:1.2em" html_class="a"]' );

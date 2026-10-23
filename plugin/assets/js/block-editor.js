@@ -6,15 +6,17 @@
  * (core/shortcode) whose text holds a [contact-form-7 ...] shortcode:
  *
  * - "Floating Labels": one select per group of placement classes of the
- *   plugin (on/off, label source, variant, required marker). The chosen
+ *   plugin (on/off, label source, variant, required marker, focus effect).
+ *   The chosen
  *   class is stored where Contact Form 7 reads it anyway: in the block
  *   attribute htmlClass of the Contact Form 7 block (shown as "Class" in its
  *   panel "Form attributes"), or in the html_class attribute of the
  *   shortcode text of a Shortcode block. Classes the panel does not know are
  *   kept untouched.
- * - "Floating labels: colours", "Floating labels: sizes" and "Floating
- *   labels: animation": design values for this placement only, one control
- *   per CSS custom property of the stylesheet; an empty control keeps the
+ * - "Floating labels: colours", "Floating labels: sizes", "Floating
+ *   labels: animation" and "Floating labels: focus effect": design values
+ *   for this placement only, one control per CSS custom property of the
+ *   stylesheet; an empty control keeps the
  *   value of the settings screen. Stored in the block attribute
  *   jgorFlcf7Design (declared by the plugin on the server, the saved
  *   shortcode stays untouched) or in the jgor_flcf7_design attribute of the
@@ -158,6 +160,11 @@
 			group: 'motion',
 			title: __( 'Floating labels: animation', 'floating-labels-for-cf7' ),
 			help: __( 'Scale of the floated label between 0.5 and 1; duration of the transitions with s or ms.', 'floating-labels-for-cf7' )
+		},
+		{
+			group: 'effect',
+			title: __( 'Floating labels: focus effect', 'floating-labels-for-cf7' ),
+			help: __( 'Colour of the glow and of the running light; size of the glow and width of the running light with px, em, rem or %; duration of one pulse or one round with s or ms. The effect itself is chosen in the panel "Floating Labels".', 'floating-labels-for-cf7' )
 		}
 	];
 
@@ -197,6 +204,17 @@
 				{ value: 'jgor-flcf7-style-outlined', label: __( 'Outlined', 'floating-labels-for-cf7' ) },
 				{ value: 'jgor-flcf7-style-filled', label: __( 'Filled', 'floating-labels-for-cf7' ) },
 				{ value: 'jgor-flcf7-style-minimal', label: __( 'Minimal', 'floating-labels-for-cf7' ) }
+			]
+		},
+		{
+			key: 'effect',
+			label: __( 'Focus effect', 'floating-labels-for-cf7' ),
+			options: [
+				{ value: '', label: __( 'Default', 'floating-labels-for-cf7' ) },
+				{ value: 'jgor-flcf7-effect-none', label: __( 'None', 'floating-labels-for-cf7' ) },
+				{ value: 'jgor-flcf7-effect-glow', label: __( 'Glow', 'floating-labels-for-cf7' ) },
+				{ value: 'jgor-flcf7-effect-pulse', label: __( 'Pulsing glow', 'floating-labels-for-cf7' ) },
+				{ value: 'jgor-flcf7-effect-sweep', label: __( 'Running light', 'floating-labels-for-cf7' ) }
 			]
 		},
 		{

@@ -85,6 +85,14 @@ final class JGOR_FLCF7_Markup {
 	public const HTML_CLASS_STYLE_PREFIX = 'jgor-flcf7-style-';
 
 	/**
+	 * Prefix of the html_class classes that pick a focus effect for one
+	 * placement (jgor-flcf7-effect-none, -glow, -pulse, -sweep). The wrap
+	 * gets the class jgor-flcf7-<effect>, like the variant, unless the
+	 * effect is "none".
+	 */
+	public const HTML_CLASS_EFFECT_PREFIX = 'jgor-flcf7-effect-';
+
+	/**
 	 * Id of the wrapper element the HTML fragment is parsed into.
 	 */
 	private const ROOT_ID = 'jgor-flcf7-root';
@@ -176,16 +184,17 @@ final class JGOR_FLCF7_Markup {
 	 * Determines the settings that apply to one rendering of a form.
 	 *
 	 * Layers, lowest first: the plugin settings; the additional settings of
-	 * the form (floating_labels, floating_labels_style, floating_labels_marker,
-	 * floating_labels_types); the classes in the html_class attribute of the
-	 * shortcode or block (jgor-flcf7-off, jgor-flcf7-on, jgor-flcf7-mode-*,
-	 * jgor-flcf7-style-*, jgor-flcf7-marker-on, jgor-flcf7-marker-off); the
-	 * filter jgor_flcf7_form_settings; the filters jgor_flcf7_enabled and
+	 * the form (floating_labels, floating_labels_style, floating_labels_effect,
+	 * floating_labels_marker, floating_labels_types); the classes in the
+	 * html_class attribute of the shortcode or block (jgor-flcf7-off,
+	 * jgor-flcf7-on, jgor-flcf7-mode-*, jgor-flcf7-style-*, jgor-flcf7-effect-*,
+	 * jgor-flcf7-marker-on, jgor-flcf7-marker-off); the filter
+	 * jgor_flcf7_form_settings; the filters jgor_flcf7_enabled and
 	 * jgor_flcf7_submit_error_text. Returns null when the form is skipped:
 	 * disabled, no mode active or no field type allowed.
 	 *
 	 * @param WPCF7_ContactForm $form The contact form being rendered.
-	 * @return array{placeholder: bool, label: bool, types: string[], style: string, marker: bool, submit_error: string}|null
+	 * @return array{placeholder: bool, label: bool, types: string[], style: string, effect: string, marker: bool, submit_error: string}|null
 	 */
 	private function form_settings( WPCF7_ContactForm $form ): ?array {
 		$known = $this->settings->field_types();
@@ -203,6 +212,7 @@ final class JGOR_FLCF7_Markup {
 			'mode_label'        => (bool) $this->settings->get( 'mode_label' ),
 			'types'             => is_array( $types ) ? array_values( array_intersect( $known, $types ) ) : array(),
 			'style'             => (string) $this->settings->get( 'style' ),
+			'effect'            => (string) $this->settings->get( 'effect' ),
 			'required_marker'   => (bool) $this->settings->get( 'required_marker' ),
 			'submit_error_text' => $submit_error,
 		);
@@ -217,8 +227,9 @@ final class JGOR_FLCF7_Markup {
 		 * the shortcode or block have been read. Keys: enabled (bool),
 		 * mode_placeholder (bool), mode_label (bool), types (string[] of
 		 * Contact Form 7 base types), style ("outlined", "filled" or
-		 * "minimal"), required_marker (bool) and submit_error_text (string,
-		 * empty for colour only). Invalid values are ignored.
+		 * "minimal"), effect ("none", "glow", "pulse" or "sweep"),
+		 * required_marker (bool) and submit_error_text (string, empty for
+		 * colour only). Invalid values are ignored.
 		 *
 		 * @param array<string, mixed> $settings     Effective settings for this rendering.
 		 * @param WPCF7_ContactForm    $contact_form The contact form being rendered.
@@ -260,6 +271,7 @@ final class JGOR_FLCF7_Markup {
 			'label'        => $current['mode_label'],
 			'types'        => $current['types'],
 			'style'        => $current['style'],
+			'effect'       => $current['effect'],
 			'marker'       => $current['required_marker'],
 			'submit_error' => is_string( $submit_error ) ? sanitize_text_field( $submit_error ) : '',
 		);
@@ -271,6 +283,7 @@ final class JGOR_FLCF7_Markup {
 	 * Lines: "floating_labels: off" (also false, no, 0), "floating_labels:
 	 * placeholder" or "floating_labels: label" (only that mode),
 	 * "floating_labels_style: outlined|filled|minimal",
+	 * "floating_labels_effect: none|glow|pulse|sweep",
 	 * "floating_labels_marker: on|off" and "floating_labels_types: text email"
 	 * (space or comma separated base types; an empty list switches every
 	 * type off). Unknown values are ignored.
@@ -311,6 +324,14 @@ final class JGOR_FLCF7_Markup {
 			}
 		}
 
+		$pref = $form->pref( 'floating_labels_effect' );
+		if ( is_string( $pref ) ) {
+			$effect = sanitize_key( $pref );
+			if ( in_array( $effect, JGOR_FLCF7_Settings::EFFECTS, true ) ) {
+				$current['effect'] = $effect;
+			}
+		}
+
 		$pref = $form->pref( 'floating_labels_marker' );
 		if ( is_string( $pref ) ) {
 			$marker = $this->to_bool( $pref );
@@ -334,7 +355,9 @@ final class JGOR_FLCF7_Markup {
 	 * "Form attributes"; the shortcode takes html_class="...". Recognised
 	 * classes: jgor-flcf7-off, jgor-flcf7-on, jgor-flcf7-mode-placeholder,
 	 * jgor-flcf7-mode-label, jgor-flcf7-style-outlined, jgor-flcf7-style-filled,
-	 * jgor-flcf7-style-minimal, jgor-flcf7-marker-on, jgor-flcf7-marker-off.
+	 * jgor-flcf7-style-minimal, jgor-flcf7-effect-none, jgor-flcf7-effect-glow,
+	 * jgor-flcf7-effect-pulse, jgor-flcf7-effect-sweep, jgor-flcf7-marker-on,
+	 * jgor-flcf7-marker-off.
 	 * They differ from the classes the rebuild puts on the wrap on purpose:
 	 * Contact Form 7 prints html_class on the <form>, where a wrap class
 	 * would match the variant rules of the stylesheet for every field.
@@ -389,6 +412,11 @@ final class JGOR_FLCF7_Markup {
 						if ( in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ) {
 							$current['style'] = $style;
 						}
+					} elseif ( str_starts_with( $token, self::HTML_CLASS_EFFECT_PREFIX ) ) {
+						$effect = substr( $token, strlen( self::HTML_CLASS_EFFECT_PREFIX ) );
+						if ( in_array( $effect, JGOR_FLCF7_Settings::EFFECTS, true ) ) {
+							$current['effect'] = $effect;
+						}
 					}
 			}
 		}
@@ -422,6 +450,13 @@ final class JGOR_FLCF7_Markup {
 			$style = sanitize_key( $filtered['style'] );
 			if ( in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ) {
 				$current['style'] = $style;
+			}
+		}
+
+		if ( isset( $filtered['effect'] ) && is_string( $filtered['effect'] ) ) {
+			$effect = sanitize_key( $filtered['effect'] );
+			if ( in_array( $effect, JGOR_FLCF7_Settings::EFFECTS, true ) ) {
+				$current['effect'] = $effect;
 			}
 		}
 
@@ -569,7 +604,7 @@ final class JGOR_FLCF7_Markup {
 	 * @param array<string, mixed>                           $config Settings for this rendering, see form_settings().
 	 * @return string|null Rebuilt HTML, or null when nothing changed or parsing failed.
 	 *
-	 * @phpstan-param array{placeholder: bool, label: bool, types: string[], style: string, marker: bool, submit_error: string} $config
+	 * @phpstan-param array{placeholder: bool, label: bool, types: string[], style: string, effect: string, marker: bool, submit_error: string} $config
 	 */
 	private function rebuild( string $html, WPCF7_ContactForm $form, array $fields, array $config ): ?string {
 		$loaded = $this->load( $html );
@@ -660,7 +695,7 @@ final class JGOR_FLCF7_Markup {
 				continue;
 			}
 
-			$this->apply( $dom, $wrap, $control, $name, $unit_tag, $config['style'], $config['marker'], $filtered, $text, $label, $enclosing );
+			$this->apply( $dom, $wrap, $control, $name, $unit_tag, $config['style'], $config['effect'], $config['marker'], $filtered, $text, $label, $enclosing );
 			++$changed;
 		}
 
@@ -730,6 +765,7 @@ final class JGOR_FLCF7_Markup {
 	 * @param string          $name          Field name.
 	 * @param string          $unit_tag      Unit-tag of the form instance.
 	 * @param string          $style         CSS variant for this rendering.
+	 * @param string          $effect        Focus effect for this rendering ("none" for no class).
 	 * @param bool            $marker        Whether required fields get the marker class.
 	 * @param string          $text          Label text after the filter.
 	 * @param string          $original_text Label text before the filter.
@@ -737,7 +773,7 @@ final class JGOR_FLCF7_Markup {
 	 * @param DOMElement|null $enclosing     Enclosing <label> of the template to replace, if any.
 	 * @return void
 	 */
-	private function apply( DOMDocument $dom, DOMElement $wrap, DOMElement $control, string $name, string $unit_tag, string $style, bool $marker, string $text, string $original_text, ?DOMElement $label, ?DOMElement $enclosing ): void {
+	private function apply( DOMDocument $dom, DOMElement $wrap, DOMElement $control, string $name, string $unit_tag, string $style, string $effect, bool $marker, string $text, string $original_text, ?DOMElement $label, ?DOMElement $enclosing ): void {
 		$id = $control->getAttribute( 'id' );
 		if ( '' === $id ) {
 			$id = $this->unique_id( $unit_tag . '-fl-' . $name );
@@ -754,6 +790,9 @@ final class JGOR_FLCF7_Markup {
 		}
 		if ( $marker ) {
 			$this->add_class( $wrap, self::MARKER_CLASS );
+		}
+		if ( 'none' !== $effect && in_array( $effect, JGOR_FLCF7_Settings::EFFECTS, true ) ) {
+			$this->add_class( $wrap, 'jgor-flcf7-' . $effect );
 		}
 
 		$former_parent = null;
