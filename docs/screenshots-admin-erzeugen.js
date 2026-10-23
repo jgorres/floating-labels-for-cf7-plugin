@@ -208,6 +208,7 @@ async function shootEditor( page, pageId, form ) {
 		prefs.set( 'core', 'welcomeGuide', false );
 		prefs.set( 'core/edit-post', 'fullscreenMode', true );
 		prefs.set( 'core', 'fullscreenMode', true );
+		prefs.set( 'core', 'enableChoosePatternModal', false );
 		const block = wp.blocks.createBlock( args.blockName, { id: args.id, hash: args.hash, title: args.title } );
 		wp.data.dispatch( 'core/block-editor' ).resetBlocks( [ block ] );
 		wp.data.dispatch( 'core/block-editor' ).selectBlock( block.clientId );
@@ -226,6 +227,17 @@ async function shootEditor( page, pageId, form ) {
 		await guide.first().click();
 		await page.waitForTimeout( 400 );
 	}
+	// A new page may open the "Choose a pattern" modal (or another one);
+	// its overlay would swallow every click in the sidebar.
+	for ( let i = 0; i < 3 && ( await page.locator( '.components-modal__screen-overlay' ).count() ); i++ ) {
+		const close = page.locator( '.components-modal__screen-overlay button[aria-label="Close"]' );
+		if ( await close.count() ) {
+			await close.first().click();
+		} else {
+			await page.keyboard.press( 'Escape' );
+		}
+		await page.waitForTimeout( 400 );
+	}
 	// Leave the combobox, otherwise its list stays open in the shot.
 	await page.keyboard.press( 'Escape' );
 	await page.evaluate( () => document.activeElement && document.activeElement.blur() );
@@ -235,6 +247,12 @@ async function shootEditor( page, pageId, form ) {
 	const cf7Panel = page.locator( '.components-panel__body-toggle', { hasText: FORM_TITLE } ).first();
 	if ( ( await cf7Panel.count() ) && ( await cf7Panel.getAttribute( 'aria-expanded' ) ) === 'true' ) {
 		await cf7Panel.click();
+		await page.waitForTimeout( 300 );
+	}
+	// Open the colours panel (closed by default) so its rows are in the shot.
+	const coloursPanel = page.locator( '.components-panel__body-toggle', { hasText: 'Floating labels: colours' } ).first();
+	if ( ( await coloursPanel.count() ) && ( await coloursPanel.getAttribute( 'aria-expanded' ) ) !== 'true' ) {
+		await coloursPanel.click();
 		await page.waitForTimeout( 300 );
 	}
 	await page.evaluate( () => {
@@ -258,6 +276,8 @@ async function shootEditor( page, pageId, form ) {
 			document.activeElement.blur();
 		}
 	} );
+	// Park the pointer over the canvas so no sidebar row shows a hover state.
+	await page.mouse.move( 40, 600 );
 	await page.waitForTimeout( 400 );
 	await page.addStyleTag( { content: HIDE_CSS } );
 	const file = path.join( OUT_DIR, 'screenshot-6.png' );
