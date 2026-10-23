@@ -26,7 +26,7 @@ Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server
 * Accessible: every rebuilt field gets a real `<label for>` with a matching `id`; the placeholder is replaced so screen readers do not hear two names. Contact Form 7's `aria-*` attributes stay untouched.
 * Clear error state: the label of an invalid field floats up in the error colour, Contact Form 7's message appears inside the field (no layout jump), and the submit button turns red with a text of your choice until the next attempt.
 * Control at every level: for the whole site, per form, per placement (page) and per field.
-* Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get "Floating Labels" panels in the sidebar: the placement settings, and colours, sizes, animation and focus effect for that placement only; no classes to type.
+* Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get "Floating labels" panels in the sidebar: the placement settings, and colours, sizes, animation and focus effect for that placement only; no classes to type.
 * Design settings: colours with the WordPress colour picker, font size, padding, border, corner radius, the animation and the focus effect on the settings screen, or per placement in the block editor; every value is also a CSS custom property, so themes can set them too.
 * Lightweight: one option, one stylesheet, no database tables, no cron, no external requests, no tracking.
 
@@ -50,7 +50,7 @@ floating_labels_types: text email textarea
 
 = Per placement =
 
-The same form can look different on different pages. Select the Contact Form 7 block, or a Shortcode block with the `[contact-form-7]` shortcode, and open the panel "Floating Labels" in the block sidebar: it offers on/off, the label source, the variant, the focus effect and the required marker for this placement. The choice is stored as classes in the block's "Class" field (panel "Form attributes") or in the `html_class` attribute of the shortcode, which you can also write by hand:
+The same form can look different on different pages. Select the Contact Form 7 block, or a Shortcode block with the `[contact-form-7]` shortcode, and open the panel "Floating labels" in the block sidebar: it offers on/off, the label source, the variant, the focus effect and the required marker for this placement. The choice is stored as classes in the block's "Class" field (panel "Form attributes") or in the `html_class` attribute of the shortcode, which you can also write by hand:
 
 `
 jgor-flcf7-off  jgor-flcf7-on
@@ -132,7 +132,7 @@ On the settings screen under Design: pick the colours with the colour picker, en
 
 = Does it work with the block editor? =
 
-Yes. The Contact Form 7 block, and a Shortcode block that holds the `[contact-form-7]` shortcode, get the panel "Floating Labels" (placement settings) and the panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" (design values for this placement) in the sidebar. The choices are stored as classes in the block's "Class" field (panel "Form attributes") or in the `html_class` attribute of the shortcode, the design values with the block or in the `jgor_flcf7_design` attribute of the shortcode, so the content stays valid without the plugin.
+Yes. The Contact Form 7 block, and a Shortcode block that holds the `[contact-form-7]` shortcode, get the panel "Floating labels" (placement settings) and the panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" (design values for this placement) in the sidebar. The choices are stored as classes in the block's "Class" field (panel "Form attributes") or in the `html_class` attribute of the shortcode, the design values with the block or in the `jgor_flcf7_design` attribute of the shortcode, so the content stays valid without the plugin.
 
 = Does the plugin load JavaScript? =
 
@@ -161,7 +161,7 @@ Every rebuilt field keeps or gets an `id` and a real `<label for>` pointing at i
 3. Minimal variant with the theme's own field styling.
 4. Validation error: label and border in the error colour, message below the field.
 5. Settings screen under Contact > Floating Labels.
-6. The panels "Floating Labels" in the sidebar of the Contact Form 7 block (also shown for a Shortcode block with the shortcode).
+6. The panels "Floating labels" in the sidebar of the Contact Form 7 block (also shown for a Shortcode block with the shortcode).
 
 == Changelog ==
 

@@ -7,7 +7,7 @@
  * admin menu, from the page title down to the end of the colour fields,
  * with the colour picker of the first field open.
  * Screenshot 6: the block editor with a Contact Form 7 block selected and
- * the block sidebar scrolled to the panels "Floating Labels" and
+ * the block sidebar scrolled to the panels "Floating labels" and
  * "Floating labels: colours".
  *
  * The script creates a temporary administrator (locale en_US, display name
@@ -243,7 +243,7 @@ async function shootEditor( page, pageId, form ) {
 	await page.evaluate( () => document.activeElement && document.activeElement.blur() );
 	await page.waitForTimeout( 400 );
 	// Collapse CF7's own panel (titled like the form) and scroll the sidebar
-	// so that "Floating Labels" sits right below the sticky tab row.
+	// so that "Floating labels" sits right below the sticky tab row.
 	const cf7Panel = page.locator( '.components-panel__body-toggle', { hasText: FORM_TITLE } ).first();
 	if ( ( await cf7Panel.count() ) && ( await cf7Panel.getAttribute( 'aria-expanded' ) ) === 'true' ) {
 		await cf7Panel.click();
@@ -265,7 +265,7 @@ async function shootEditor( page, pageId, form ) {
 				break;
 			}
 		}
-		const toggle = Array.from( sidebar.querySelectorAll( '.components-panel__body-toggle' ) ).find( ( b ) => b.textContent.trim() === 'Floating Labels' );
+		const toggle = Array.from( sidebar.querySelectorAll( '.components-panel__body-toggle' ) ).find( ( b ) => b.textContent.trim() === 'Floating labels' );
 		const panel = toggle && toggle.closest( '.components-panel__body' );
 		const tabs = scroller.querySelector( '[role="tablist"]' );
 		const offset = tabs ? tabs.getBoundingClientRect().height : 0;

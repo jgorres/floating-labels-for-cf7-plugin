@@ -5,7 +5,7 @@
  * (contact-form-7/contact-form-selector) and of a Shortcode block
  * (core/shortcode) whose text holds a [contact-form-7 ...] shortcode:
  *
- * - "Floating Labels": one select per group of placement classes of the
+ * - "Floating labels": one select per group of placement classes of the
  *   plugin (on/off, label source, variant, required marker, focus effect).
  *   The chosen
  *   class is stored where Contact Form 7 reads it anyway: in the block
@@ -164,7 +164,7 @@
 		{
 			group: 'effect',
 			title: __( 'Floating labels: focus effect', 'floating-labels-for-cf7' ),
-			help: __( 'Colour of the glow and of the running light; size of the glow and width of the running light with px, em, rem or %; duration of one pulse or one round with s or ms. The effect itself is chosen in the panel "Floating Labels".', 'floating-labels-for-cf7' )
+			help: __( 'Colour of the glow and of the running light; size of the glow and width of the running light with px, em, rem or %; duration of one pulse or one round with s or ms. The effect itself is chosen in the panel "Floating labels".', 'floating-labels-for-cf7' )
 		}
 	];
 
@@ -803,7 +803,7 @@
 		controls.push( helpElement( store.help ) );
 
 		var panels = [
-			el( wp.components.PanelBody, { key: 'main', title: __( 'Floating Labels', 'floating-labels-for-cf7' ), initialOpen: true }, controls )
+			el( wp.components.PanelBody, { key: 'main', title: __( 'Floating labels', 'floating-labels-for-cf7' ), initialOpen: true }, controls )
 		].concat( designPanels( store ) );
 
 		return el( wp.blockEditor.InspectorControls, null, panels );

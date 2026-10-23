@@ -60,6 +60,19 @@ final class JGOR_FLCF7_Admin {
 	public const COLUMNS_CLASS = 'jgor-flcf7-columns';
 
 	/**
+	 * Modifier class that lets a column group grow to four columns; the
+	 * other groups stop at three.
+	 */
+	public const COLUMNS_FOUR_CLASS = 'jgor-flcf7-columns--4';
+
+	/**
+	 * Design groups laid out in up to four columns (one per property).
+	 *
+	 * @var string[]
+	 */
+	private const FOUR_COLUMN_GROUPS = array( 'design_effect' );
+
+	/**
 	 * Parent menu slugs of Contact Form 7, newest first: "wpcf7-dashboard"
 	 * since the dashboard was introduced, "wpcf7" before. The first one that
 	 * is registered wins; without either, the page goes under Settings.
@@ -277,7 +290,7 @@ final class JGOR_FLCF7_Admin {
 	 * @return string Plain text.
 	 */
 	private function text_per_placement(): string {
-		return __( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating Labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages. The panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:', 'floating-labels-for-cf7' );
+		return __( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages. The panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:', 'floating-labels-for-cf7' );
 	}
 
 	/**
@@ -725,7 +738,8 @@ final class JGOR_FLCF7_Admin {
 
 	/**
 	 * Renders one group of design fields (a row of the section "Design"),
-	 * laid out in columns.
+	 * laid out in columns: three at most, four for the groups in
+	 * FOUR_COLUMN_GROUPS.
 	 *
 	 * Colour fields carry the class jgor-flcf7-color for the colour picker
 	 * and the default as data-default-color (hex defaults only); size and
@@ -742,8 +756,9 @@ final class JGOR_FLCF7_Admin {
 		$stored = $this->settings->get( 'design' );
 		$stored = is_array( $stored ) ? $stored : array();
 		$keys   = self::DESIGN_GROUPS[ $group ] ?? array();
+		$class  = self::COLUMNS_CLASS . ( in_array( $group, self::FOUR_COLUMN_GROUPS, true ) ? ' ' . self::COLUMNS_FOUR_CLASS : '' );
 		?>
-		<fieldset class="<?php echo esc_attr( self::COLUMNS_CLASS ); ?>" <?php disabled( $locked ); ?>>
+		<fieldset class="<?php echo esc_attr( $class ); ?>" <?php disabled( $locked ); ?>>
 			<legend class="screen-reader-text"><?php echo esc_html( $this->design_group_label( $group ) ); ?></legend>
 			<?php foreach ( $keys as $key ) : ?>
 				<?php

@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.6 · Stand: 23.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.7 · Stand: 23.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -80,7 +80,7 @@ floating-labels-for-cf7/
 │   ├── assets/css/floating-labels.css     Frontend (eine Datei, alle Varianten, Fokus-Effekte)
 │   ├── assets/css/admin.css               Einstellungsseite: Spalten der Feld-Gruppen (9)
 │   ├── assets/css/editor.css              Block-Editor: Farbzeilen der Design-Panels (10.1)
-│   ├── assets/js/block-editor.js          Panels „Floating Labels“ (Platzierung und Design) im CF7- und Shortcode-Block, ohne Build-Schritt
+│   ├── assets/js/block-editor.js          Panels „Floating labels“ (Platzierung und Design) im CF7- und Shortcode-Block, ohne Build-Schritt
 │   ├── assets/js/admin.js                 Farbwähler auf der Einstellungsseite
 │   └── languages/floating-labels-for-cf7.pot  Übersetzungsvorlage (wp i18n make-pot)
 ├── tests/
@@ -138,7 +138,7 @@ WordPress (Abschnitt 13).
 - **CF7-Konventionen:** Die Steuerung je Formular läuft über die Additional
   Settings (`floating_labels: off`, `floating_labels_style: filled`, …), je
   Platzierung über das Shortcode-/Block-Attribut `html_class` (im
-  Block-Editor per Panel „Floating Labels“, Modul 5), je Feld über
+  Block-Editor per Panel „Floating labels“, Modul 5), je Feld über
   eine Form-Tag-Option (`nofloat`); Rangfolge in 7.4. Das CSS folgt der
   Ladepolitik von CF7 über die Action `wpcf7_enqueue_styles`.
 - **Theme-freundlich:** Farben, Maße, Dauer und die Werte des
@@ -404,7 +404,7 @@ Schicht übersteuert die frühere, ungültige Werte werden ignoriert:
 3. **`html_class` der Platzierung** (Shortcode `[contact-form-7 id="…"
    html_class="…"]`, im CF7-Block das Feld „Class“ im Panel „Form
    attributes“; gelesen per `shortcode_attr( 'html_class' )`). Im
-   Block-Editor setzt das Panel „Floating Labels“ (Modul 5, 10) diese
+   Block-Editor setzt das Panel „Floating labels“ (Modul 5, 10) diese
    Klassen per Auswahlfeld. Erkannte Klassen: `jgor-flcf7-off`, `jgor-flcf7-on`, `jgor-flcf7-mode-placeholder`,
    `jgor-flcf7-mode-label`, `jgor-flcf7-style-outlined`,
    `jgor-flcf7-style-filled`, `jgor-flcf7-style-minimal`,
@@ -675,7 +675,11 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
   Maße, Floated Label/Animation, Glow/Running light) sind ein Grid
   `repeat(auto-fill, 16em)` mit `max-width: 51em`: jede Spalte ist 16em
   breit, bei zwei wie bei drei Spalten, höchstens drei nebeneinander,
-  schmale Fenster bekommen zwei oder eine. Die Typen-Checkboxen stehen
+  schmale Fenster bekommen zwei oder eine. Die Zeile „Glow and running
+  light“ trägt zusätzlich `jgor-flcf7-columns--4` (`max-width: 68.5em`),
+  damit ihre vier Felder bei genug Breite in einer Reihe stehen (ab etwa
+  1400 px Fensterbreite; darunter brechen sie wie die anderen auf drei
+  Spalten um). Die Typen-Checkboxen stehen
   ohne `<br>` als Grid-Elemente. Das einzige Admin-Script ist der
   Farbwähler der Design-Felder (9.2).
 
@@ -771,7 +775,7 @@ einem Klassenfeld oder im Shortcode-Text.
   `wp.hooks.addFilter( 'editor.BlockEdit', 'jgor-flcf7/block-editor', … )`
   mit einer Higher-Order-Component an alle Blöcke, gibt für fremde Blöcke
   die Original-Komponente zurück und ergänzt ein `InspectorControls`-Panel
-  „Floating Labels“ (`PanelBody`, offen; die Felder stehen direkt im Panel
+  „Floating labels“ (`PanelBody`, offen; die Felder stehen direkt im Panel
   und bekommen den Abstand des Block-Inspectors von 16 px wie die Panels
   der Core-Blöcke; eine `Flex`-Hülle mit eigenem Gap hatte den Abstand bis
   2.5 verdoppelt)
@@ -821,14 +825,15 @@ Ergänzt am 22.10.2026 (Commit cbc7ca7): Farben, Maße und Animation (9.2)
 sollen auch je Platzierung im Block-Panel einstellbar sein, nicht nur
 global.
 
-- Vier weitere Panels unter „Floating Labels“, alle `PanelBody` und
+- Vier weitere Panels unter „Floating labels“, alle `PanelBody` und
   geschlossen (einklappbar): „Floating labels: colours“ (zehn Farbzeilen),
   „Floating labels: sizes“ (sechs `TextControl`-Felder), „Floating labels:
   animation“ (`label-scale` als Zahlenfeld 0,5–1, `duration` als
   Textfeld) und seit 2.6 „Floating labels: focus effect“ (eine Farbzeile,
   zwei Größenfelder, Dauer). Eine Farbzeile ist die Komponente
   `ColorControl` des Scripts: ein `Button` über die ganze Breite mit
-  `ColorIndicator` (schraffiert, solange nichts gesetzt ist) und dem Namen
+  `ColorIndicator` (schraffiert, solange nichts gesetzt ist), 8 px Abstand
+  (`editor.css`) und dem Namen
   der Property, der per `Dropdown` (Popover links neben der Seitenleiste)
   die `ColorPalette` der Komponenten öffnet, mit den Gruppen Theme,
   Default und Custom aus `wp.blockEditor.useSettings( 'color.palette.*',
@@ -1029,7 +1034,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Label rot oben, Tip im Feld, Senden-Button rot mit Fehlertext), Versand
   mit `skip_mail: on` → Labels sinken zurück, Einstellungsseite speichern
   und Hilfe-Reiter öffnen, Block-Editor: CF7-Block markieren, Panel
-  „Floating Labels“ unter „Block“, Auswahl ändern, Feld „Class“ unter „Form
+  „Floating labels“ unter „Block“, Auswahl ändern, Feld „Class“ unter „Form
   attributes“ zeigt die Klasse; Shortcode-Block mit `[contact-form-7 …]`
   markieren, Auswahl ändern, `html_class` erscheint im Shortcode-Text; Seite
   speichern und Frontend prüfen; Design: Farbe wählen, Größe eintragen,
@@ -1062,7 +1067,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Farbwähler (Screenshot 5, 1280×1881) sowie den Block-Editor mit per
   `wp.blocks.createBlock()` eingefügtem CF7-Block, eingeklapptem CF7-Panel,
   geöffnetem Panel „Floating labels: colours“, geparktem Mauszeiger
-  und zur Seitenleiste „Floating Labels“ gescrollt (Screenshot 6,
+  und zur Seitenleiste „Floating labels“ gescrollt (Screenshot 6,
   1280×1400); gespeichert wird nichts, danach entfernt es Seite, Konto und
   ein selbst angelegtes Formular wieder. playwright-core kommt aus einer
   globalen Installation oder aus dem npx-Cache des Playwright-MCP.
@@ -1210,3 +1215,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.4 | 22.10.2026 | Design je Platzierung im Block-Panel (Commit cbc7ca7): neuer Abschnitt 10.1 (Panels „Floating labels: colours/sizes/animation“, Block-Attribut `jgorFlcf7Design` per `register_block_type_args`, Shortcode-Attribut `jgor_flcf7_design`, `render_block_…` und `do_shortcode_tag`, `style` am Wrapper, neue Klasse `JGOR_FLCF7_Placement_Design`); §3 Dateien, §4, §5 Block-Rendering und Shortcode-Attribute, §6 Bootstrap, §7.4, §9.2, §10 Inline-Daten, §13 (`verify-markup.php` 82, `verify-editor.php` 23, `verify-editor-js.mjs` 76, ZIP 14 Dateien 52 KB, Browser-Matrix), §14 Schritt 8; readme, Kontexthilfe; `.pot` 120 Texte |
 | 2.5 | 23.10.2026 | Screenshots 5 und 6 per `docs/screenshots-admin-erzeugen.js` (playwright-core + System-Chromium, temporäres Konto, Entwurfsseite, Aufräumen): §3 Verzeichnisbaum, §13 Assets und Hinweis zu Playwright auf Bodhran, §14 Schritte 5.4 (erledigt), 6, 7 und 8 |
 | 2.6 | 23.10.2026 | Nachbesserungen aus der Sichtprüfung (Commits a89fbe0, b655073, 87c17f9): Block-Panels ohne `Flex`-Hüllen (Abstand des Inspectors), „Floating labels: colours“ als einklappbares `PanelBody` mit eigenen Farbzeilen (`useSettings`, `Dropdown`, `ColorPalette`) statt `PanelColorSettings` (ToolsPanel in WP 7.1), `assets/css/editor.css` (10, 10.1); Einstellungsseite mit `assets/css/admin.css` und 16em-Spalten für Typen, Farben, Maße, Animation und Effekt (9); `required_marker` Default true (6); Fokus-Effekte: Option `effect`, `floating_labels_effect`, `jgor-flcf7-effect-*`, Wrap-Klasse `jgor-flcf7-<effect>`, Properties `effect-color/-size/-width/-duration`, CSS mit `box-shadow`, Keyframes, `conic-gradient` + `@property`, Reduced Motion stehend (6, 7.4, 7.6, 8, 9.2, 10); §3, §4, §13 (Prüfungen 88/54/29/27/86, ZIP 16 Dateien 60 KB, Screenshots 5/6), §14 Schritt 9, §15; readme, Kontexthilfe; `.pot` 140 Texte |
+| 2.7 | 23.10.2026 | Zweite Sichtprüfung: Zeile „Glow and running light“ mit vier Spalten (`jgor-flcf7-columns--4`, 9), 8 px Abstand zwischen Farbindikator und Name in den Farbzeilen (10.1), Panel „Floating labels“ statt „Floating Labels“ (10, readme, Kontexthilfe, Screenshot-Script); `.pot` neu |

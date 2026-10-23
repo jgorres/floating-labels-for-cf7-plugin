@@ -4,10 +4,11 @@
  * Loaded on the settings screen only (module 4). Lays out the groups of
  * small controls in columns of equal width: the field types and, in the
  * section "Design", the colours, the sizes and the floated-label values.
- * Every column is 16em wide whether one, two or three of them fit next to
- * each other; the width limit allows three at most, narrower screens get
- * two or one. Everything else on the screen uses the WordPress admin
- * classes.
+ * Every column is 16em wide whether one, two, three or four of them fit
+ * next to each other; the width limit allows three at most, four for a
+ * group with the modifier class (the focus effect values), and narrower
+ * screens get fewer columns. Everything else on the screen uses the
+ * WordPress admin classes.
  */
 
 .form-table .jgor-flcf7-columns {
@@ -19,6 +20,10 @@
 	margin: 0;
 	padding: 0;
 	border: 0;
+}
+
+.form-table .jgor-flcf7-columns.jgor-flcf7-columns--4 {
+	max-width: 68.5em;
 }
 
 .form-table .jgor-flcf7-columns > p {

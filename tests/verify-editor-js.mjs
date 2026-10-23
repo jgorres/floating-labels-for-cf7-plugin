@@ -270,7 +270,7 @@ check( 'hoc: original edit component kept', find( tree, BlockEdit ) !== null );
 const inspector = find( tree, 'InspectorControls' );
 const panelBodies = findAll( inspector, 'PanelBody' );
 const panelBody = panelBodies[ 0 ];
-check( 'panel: InspectorControls with PanelBody "Floating Labels" first, open by default', !! panelBody && panelBody.props.title === 'Floating Labels' && panelBody.props.initialOpen === true );
+check( 'panel: InspectorControls with PanelBody "Floating labels" first, open by default', !! panelBody && panelBody.props.title === 'Floating labels' && panelBody.props.initialOpen === true );
 const selects = findAll( panelBody, 'SelectControl' );
 check( 'panel: five selects directly in the panel, no Flex wrapper (spacing of the inspector)', selects.length === 5 && find( panelBody, 'Flex' ) === null && panelBody.children[ 0 ].length === 6 );
 check( 'panel: labels', selects.map( ( select ) => select.props.label ).join( '|' ) === 'Floating labels|Label source|Variant|Focus effect|Required fields' );
@@ -288,7 +288,7 @@ selects[ 2 ].props.onChange( '' );
 check( 'change: default -> class removed', saved.htmlClass === 'custom' );
 
 // Design panels on the Contact Form 7 block: collapsible PanelBody each.
-check( 'design: five PanelBody panels: "Floating Labels", colours, sizes, animation, focus effect; the design panels closed', panelBodies.length === 5 && panelBodies.slice( 1 ).map( ( body ) => body.props.title ).join( '|' ) === 'Floating labels: colours|Floating labels: sizes|Floating labels: animation|Floating labels: focus effect' && panelBodies.slice( 1 ).every( ( body ) => body.props.initialOpen === false ) );
+check( 'design: five PanelBody panels: "Floating labels", colours, sizes, animation, focus effect; the design panels closed', panelBodies.length === 5 && panelBodies.slice( 1 ).map( ( body ) => body.props.title ).join( '|' ) === 'Floating labels: colours|Floating labels: sizes|Floating labels: animation|Floating labels: focus effect' && panelBodies.slice( 1 ).every( ( body ) => body.props.initialOpen === false ) );
 check( 'design: PanelColorSettings (ToolsPanel, not collapsible) no longer used', find( inspector, 'PanelColorSettings' ) === null );
 const colorRows = findAll( panelBodies[ 1 ], 'Dropdown' );
 check( 'design: ten colour rows (Dropdown) with popover next to the sidebar, no Flex wrapper', colorRows.length === 10 && find( panelBodies[ 1 ], 'Flex' ) === null && colorRows.every( ( row ) => row.props.popoverProps.placement === 'left-start' && row.props.className === 'jgor-flcf7-color' ) );
@@ -306,7 +306,7 @@ check( 'design: two animation controls, the scale as number input 0.5 to 1', mot
 check( 'design: format notes under sizes and animation', String( find( panelBodies[ 2 ], 'p' ).children[ 0 ] ).includes( 'px, em, rem or %' ) && String( find( panelBodies[ 3 ], 'p' ).children[ 0 ] ).includes( '0.5 and 1' ) );
 const effectRows = findAll( panelBodies[ 4 ], 'Dropdown' );
 const effectControls = findAll( panelBodies[ 4 ], 'TextControl' );
-check( 'design: focus effect panel with one colour row and three text controls, note names the panel "Floating Labels"', effectRows.length === 1 && String( find( toggleOf( effectRows[ 0 ] ), 'span' ).children[ 0 ] ) === 'Label of effect-color' && effectControls.length === 3 && effectControls.map( ( control ) => control.props.key ).join( ',' ) === 'effect-size,effect-width,effect-duration' && effectControls[ 2 ].props.placeholder === '1.5s' && effectControls.every( ( control ) => control.props.type === undefined ) && String( find( panelBodies[ 4 ], 'p' ).children[ 0 ] ).includes( '"Floating Labels"' ) );
+check( 'design: focus effect panel with one colour row and three text controls, note names the panel "Floating labels"', effectRows.length === 1 && String( find( toggleOf( effectRows[ 0 ] ), 'span' ).children[ 0 ] ) === 'Label of effect-color' && effectControls.length === 3 && effectControls.map( ( control ) => control.props.key ).join( ',' ) === 'effect-size,effect-width,effect-duration' && effectControls[ 2 ].props.placeholder === '1.5s' && effectControls.every( ( control ) => control.props.type === undefined ) && String( find( panelBodies[ 4 ], 'p' ).children[ 0 ] ).includes( '"Floating labels"' ) );
 
 paletteOf( colorRows[ 3 ] ).props.onChange( '#00FF00' );
 check( 'design change: colour -> setAttributes({ jgorFlcf7Design }) with the hex colour added, unknown key dropped', JSON.stringify( saved.jgorFlcf7Design ) === '{"label-color":"#abcdef","border-color":"#00ff00","font-size":"1.2em"}' );
@@ -374,7 +374,7 @@ delete globalThis.jgorFlcf7EditorData;
 vm.runInThisContext( source, { filename: file } );
 const bare = globalThis.jgorFlcf7BlockEditor;
 const bareTree = filters[ 1 ].callback( BlockEdit )( { name: bare.BLOCK_NAME, attributes: { id: 1, jgorFlcf7Design: { 'font-size': '1.2em' } }, setAttributes: noop } );
-check( 'without data: no design properties, only the panel "Floating Labels"', bare.DESIGN.length === 0 && findAll( find( bareTree, 'InspectorControls' ), 'PanelBody' ).length === 1 && find( bareTree, 'Dropdown' ) === null );
+check( 'without data: no design properties, only the panel "Floating labels"', bare.DESIGN.length === 0 && findAll( find( bareTree, 'InspectorControls' ), 'PanelBody' ).length === 1 && find( bareTree, 'Dropdown' ) === null );
 
 if ( failed > 0 ) {
 	console.error( failed + ' check(s) failed.' );

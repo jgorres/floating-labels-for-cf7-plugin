@@ -1,13 +1,13 @@
 <?php
 /**
- * Module 5: the panels "Floating Labels" in the sidebar of the Contact Form 7
+ * Module 5: the panels "Floating labels" in the sidebar of the Contact Form 7
  * block and of a Shortcode block with the shortcode.
  *
  * Enqueues a small editor script (assets/js/block-editor.js, no build step)
  * and its stylesheet (assets/css/editor.css) on enqueue_block_editor_assets.
  * The script hooks into the filter editor.BlockEdit and adds the panel
- * "Floating Labels" with four selects (on/off, label source, variant,
- * required marker), stored as placement classes of the concept (section
+ * "Floating labels" with five selects (on/off, label source, variant,
+ * focus effect, required marker), stored as placement classes of the concept (section
  * 7.4) in the block attribute htmlClass or the shortcode attribute
  * html_class, and the panels "Floating labels: colours", "sizes" and
  * "animation" with the design values of this placement, stored in the block
