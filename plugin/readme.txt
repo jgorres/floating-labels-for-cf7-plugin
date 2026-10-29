@@ -15,11 +15,11 @@ Turns placeholders and labels of Contact Form 7 fields into floating labels. Pur
 
 A floating label sits inside the empty field like a placeholder and moves to the top edge, smaller, as soon as the field is focused or filled. The label stays visible the whole time and is a real `<label for>` linked to the field, so screen readers and the browser's autofill know what the field is for.
 
-Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server and ships the stylesheet for it. Nothing in your forms has to change: the plugin recognises the default Contact Form 7 template (`<label> Your name [text* your-name] </label>`) as well as fields with a `placeholder` option, and it leaves everything else exactly as Contact Form 7 renders it.
+Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server and ships the stylesheet for it. Nothing in your forms has to change: the plugin recognises the default Contact Form 7 template (`<label> Your name [text* your-name] </label>`) as well as fields with a `placeholder` option, and it leaves everything else exactly as Contact Form 7 renders it. Forms built with older Contact Form 7 versions, with loose text in front of the fields instead of labels or placeholders, get floating labels too once you switch on the option "Text before the field".
 
 = Features =
 
-* Works with existing forms: labels of the form template and placeholder options become floating labels automatically.
+* Works with existing forms: labels of the form template and placeholder options become floating labels automatically. Older templates with loose text in front of the fields (`<p>Your Name<br />[text* your-name]</p>`) are covered by the option "Text before the field".
 * Three variants: Outlined (label floats onto the border), Filled (tinted box) and Minimal (your theme styles the field, the label floats above it).
 * Focus effects: a glow, a pulsing glow or a light running around the border of the focused field, in a colour of your choice. Pure CSS; visitors who prefer reduced motion see them without movement.
 * Pure CSS on the front end: focus, filled, autofill and error states come from CSS pseudo-classes. No JavaScript on your pages; the only inline styles are the design values you change (one short rule after the stylesheet, and a style attribute on forms with their own design values).
@@ -42,6 +42,7 @@ Add lines to the "Additional Settings" tab of a form:
 floating_labels: off
 floating_labels: placeholder
 floating_labels: label
+floating_labels: text
 floating_labels_style: filled
 floating_labels_effect: glow
 floating_labels_marker: on
@@ -54,7 +55,7 @@ The same form can look different on different pages. Select the Contact Form 7 b
 
 `
 jgor-flcf7-off  jgor-flcf7-on
-jgor-flcf7-mode-placeholder  jgor-flcf7-mode-label
+jgor-flcf7-mode-placeholder  jgor-flcf7-mode-label  jgor-flcf7-mode-text
 jgor-flcf7-style-outlined  jgor-flcf7-style-filled  jgor-flcf7-style-minimal
 jgor-flcf7-effect-none  jgor-flcf7-effect-glow  jgor-flcf7-effect-pulse  jgor-flcf7-effect-sweep
 jgor-flcf7-marker-on  jgor-flcf7-marker-off
@@ -106,13 +107,17 @@ Contact Form 7 is a trademark of Rock Lobster, Inc. This plugin is an independen
 1. Install and activate Contact Form 7.
 2. Upload the plugin folder to `wp-content/plugins/` or install the ZIP via Plugins > Add New > Upload Plugin.
 3. Activate the plugin under Plugins.
-4. Open Contact > Floating Labels to choose the variant, the focus effect, the field types, the text of the submit button on errors and, under Design, colours and sizes. The defaults work out of the box: every text-like field of every form gets a floating label, required fields an asterisk.
+4. Open Contact > Floating Labels to choose the variant, the focus effect, the field types, the text of the submit button on errors and, under Design, colours and sizes. The defaults work out of the box: every text-like field of every form gets a floating label, required fields an asterisk. Forms without labels and placeholders (older templates) need the option "Text before the field" under "Label sources".
 
 == Frequently Asked Questions ==
 
 = A field does not get a floating label. Why? =
 
-Check these points in order: the field type is one of text, email, URL, telephone, number or textarea and ticked in the settings; the form-tag has no `nofloat` option; the form has no `floating_labels: off` line in its Additional Settings; the field has a label text, either a `<label>` that encloses the field or points at its `id`, or a `placeholder` option. Labels that contain more than one field or block-level HTML are left alone on purpose.
+Check these points in order: the field type is one of text, email, URL, telephone, number or textarea and ticked in the settings; the form-tag has no `nofloat` option; the form has no `floating_labels: off` line in its Additional Settings; the field has a label text, either a `<label>` that encloses the field or points at its `id`, or a `placeholder` option, or, with the option "Text before the field" switched on, loose text right in front of the field or in the paragraph just before it. Labels that contain more than one field or block-level HTML are left alone on purpose.
+
+= My forms come from an older Contact Form 7 and have neither labels nor placeholders. =
+
+The default template of Contact Form 7 before version 5.4 put the field name as loose text in front of the field: `<p>Your Name (required)<br />[text* your-name]</p>`. Switch on "Text before the field" under Contact > Floating Labels, section "Label sources", or add `floating_labels: text` to the Additional Settings of that form, or choose "Text before the field only" in the block sidebar for one placement. The text right in front of the field, or the paragraph just before it, becomes the floating label; the stored form is not changed. It is a heuristic, which is why it is off by default: check the result, add `nofloat` to fields that should keep their text, and use the filter `jgor_flcf7_label_text` to strip additions such as "(required)" from the label.
 
 = How do I switch floating labels off for one form? =
 
