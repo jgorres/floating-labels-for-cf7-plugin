@@ -7,7 +7,8 @@
  * Every column is 16em wide whether one, two, three or four of them fit
  * next to each other; the width limit allows three at most, four for a
  * group with the modifier class (the focus effect values), and narrower
- * screens get fewer columns. Everything else on the screen uses the
+ * screens get fewer columns. The box "Sample page" (module 6) gets room
+ * between its heading and its text. Everything else on the screen uses the
  * WordPress admin classes.
  */
 
@@ -28,4 +29,13 @@
 
 .form-table .jgor-flcf7-columns > p {
 	margin: 0;
+}
+
+/* The box "Sample page": its heading must not carry the WordPress class
+ * "title", which floats a heading next to a button; the text would flow
+ * around it. */
+.jgor-flcf7-samples__title {
+	margin: 0 0 0.75em;
+	padding: 0;
+	float: none;
 }

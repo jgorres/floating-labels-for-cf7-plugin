@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.19 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.20 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -776,8 +776,12 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
   damit ihre vier Felder bei genug Breite in einer Reihe stehen (ab etwa
   1400 px Fensterbreite; darunter brechen sie wie die anderen auf drei
   Spalten um). Die Typen-Checkboxen stehen
-  ohne `<br>` als Grid-Elemente. Das einzige Admin-Script ist der
-  Farbwähler der Design-Felder (9.2).
+  ohne `<br>` als Grid-Elemente. Seit 2.20 trägt die Überschrift der Box
+  „Sample page“ (9.3) die Klasse `jgor-flcf7-samples__title` mit `margin:
+  0 0 0.75em` statt der WordPress-Klasse `title`: die floatet eine
+  Überschrift nach links (für „Titel + Button“), der Text floss daneben
+  (Sichtprüfung des Nutzers). Das einzige
+  Admin-Script ist der Farbwähler der Design-Felder (9.2).
 
 ### 9.1 Konfiguration aus Code (`jgor_flcf7_settings`)
 
@@ -1462,8 +1466,11 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     1 = 17 Dateien, Plugin Check ohne Befund. Hostsharing am 29.10.2026 mit
     `dateien --ueberschreiben --ja` nachgezogen (Sicherung vorher, 1 neue
     und 7 geänderte Dateien, 17 Plugin-Dateien md5-identisch, Plugin Check
-    remote ohne Befund, Basic-Auth erhalten); die Beispielseite dort nur bei
-    Bedarf über die Box anlegen. Offen: Sichtprüfung (Nutzer: Box, Notice
+    remote ohne Befund, Basic-Auth erhalten); die Beispielseite kam am
+    29.10.2026 per `datenbank --ueberschreiben --ja` mit (Workflow: Inhalte
+    lokal anlegen, per `datenbank` übertragen, nichts per Hand auf dem
+    Server; Seite 239 privat, Formulare 232–238). Offen: Sichtprüfung
+    (Nutzer: Box, Notice
     nach erneuter Aktivierung, Beispielseite im Frontend und im
     Block-Editor).
 13. Nachbesserung der Fokus-Effekte nach der Sichtprüfung des Nutzers auf
@@ -1562,3 +1569,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.17 | 29.10.2026 | Hostsharing nach Schritt 11 und 12 mit `dateien` nachgezogen (§13, §14); offen nur noch Sichtprüfungen des Nutzers, Browser-Matrix, Push und Veröffentlichung |
 | 2.18 | 29.10.2026 | Fokus-Effekte nachgebessert (8, §14 Schritt 13): Ring über Steuerelement und Theme-Outline (`z-index`), Label `z-index: 2`, Effektfarbe Default `#dc3232`, Glow mit Spread, Puls doppelt so stark |
 | 2.19 | 29.10.2026 | Lauflicht auffälliger (8, §14 Schritt 13): geschlossener Ring in 30 % der Effektfarbe mit hellem Kometen, Theme-Outline beim Lauflicht auf 30 % gedimmt, Ringbreite Default 3 px; Hostsharing nach 2.18 nachgezogen |
+| 2.20 | 29.10.2026 | Box „Sample page“: Überschrift ohne WordPress-Klasse `title` (floatete links), eigene Klasse mit Abstand per `admin.css` (9); Beispielseite per `datenbank` nach Hostsharing, Workflow-Hinweis (§14 Schritt 12) |

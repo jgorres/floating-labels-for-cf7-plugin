@@ -317,7 +317,7 @@ final class JGOR_FLCF7_Samples {
 		$page_id = $this->page_id();
 		?>
 		<div class="card jgor-flcf7-samples">
-			<h2 class="title"><?php esc_html_e( 'Sample page', 'floating-labels-for-cf7' ); ?></h2>
+			<h2 class="jgor-flcf7-samples__title"><?php esc_html_e( 'Sample page', 'floating-labels-for-cf7' ); ?></h2>
 			<p><?php esc_html_e( 'A private page "Testpage Floating Labels for CF7" with forms that show the options: the default form of Contact Form 7, placeholders, an old template, the variants and focus effects, the limits of the rebuild, a form switched off, and two placements with settings of their own. The forms are named "FL Test ... - may be deleted" and send no mail. Only logged-in users who may read private pages see the page.', 'floating-labels-for-cf7' ); ?></p>
 			<?php if ( ! class_exists( 'WPCF7_ContactForm' ) ) : ?>
 				<p><em><?php esc_html_e( 'Contact Form 7 is not active.', 'floating-labels-for-cf7' ); ?></em></p>
