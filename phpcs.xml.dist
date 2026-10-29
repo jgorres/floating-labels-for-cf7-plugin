@@ -64,6 +64,16 @@
 		</properties>
 	</rule>
 
+	<!-- Capabilities of Contact Form 7, mapped to publish_pages by Contact Form 7 (module 6) -->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="wpcf7_edit_contact_forms"/>
+				<element value="wpcf7_delete_contact_forms"/>
+			</property>
+		</properties>
+	</rule>
+
 	<!-- Text domain check: plugin slug -->
 	<rule ref="WordPress.WP.I18n">
 		<properties>

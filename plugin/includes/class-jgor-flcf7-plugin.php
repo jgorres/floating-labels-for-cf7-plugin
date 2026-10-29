@@ -96,6 +96,10 @@ final class JGOR_FLCF7_Plugin {
 		if ( is_admin() ) {
 			( new JGOR_FLCF7_Admin( $settings ) )->init();
 			( new JGOR_FLCF7_Editor( $settings ) )->init();
+
+			// Module 6: the sample page (box on the settings screen, notice
+			// after the activation, admin-post handler).
+			( new JGOR_FLCF7_Samples() )->init();
 		}
 	}
 

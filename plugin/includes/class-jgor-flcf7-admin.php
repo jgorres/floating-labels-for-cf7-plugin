@@ -440,11 +440,26 @@ final class JGOR_FLCF7_Admin {
 		if ( isset( $_GET['settings-updated'] ) && self::FALLBACK_PARENT !== $this->parent ) {
 			add_settings_error( JGOR_FLCF7_Settings::GROUP, 'jgor_flcf7_saved', __( 'Settings saved.', 'floating-labels-for-cf7' ), 'success' );
 		}
+
+		// Result of the sample page actions of module 6, set by its redirect.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag, no action is taken.
+		if ( isset( $_GET['jgor_flcf7_samples'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only flag, no action is taken.
+			$this->add_samples_notice( sanitize_key( wp_unslash( $_GET['jgor_flcf7_samples'] ) ) );
+		}
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Floating Labels for CF7', 'floating-labels-for-cf7' ); ?></h1>
 			<?php settings_errors( JGOR_FLCF7_Settings::GROUP ); ?>
 			<p><?php esc_html_e( 'These are the defaults for every Contact Form 7 form on this site. Override them per form in the "Additional Settings" tab of the form, or per placement in the block editor: select the Contact Form 7 block (or a Shortcode block with the shortcode of the form) and open the panels "Floating labels" in the block sidebar. The section "Per form, per placement, per field" at the end of this screen has the details.', 'floating-labels-for-cf7' ); ?></p>
+			<?php
+			/**
+			 * Fires on the settings screen between the intro and the settings form.
+			 *
+			 * Module 6 prints the box "Sample page" here.
+			 */
+			do_action( 'jgor_flcf7_settings_page_top' );
+			?>
 			<?php if ( ! empty( $this->settings->locked_keys() ) ) : ?>
 				<div class="notice notice-info inline">
 					<p><?php esc_html_e( 'Some settings are fixed in code through the filter jgor_flcf7_settings. They are shown disabled.', 'floating-labels-for-cf7' ); ?></p>
@@ -459,6 +474,27 @@ final class JGOR_FLCF7_Admin {
 			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Turns the result of a sample page action (module 6) into a notice.
+	 *
+	 * @param string $result Result key from the redirect.
+	 * @return void
+	 */
+	private function add_samples_notice( string $result ): void {
+		$messages = array(
+			'created' => array( __( 'Sample page and forms created.', 'floating-labels-for-cf7' ), 'success' ),
+			'removed' => array( __( 'Sample page and forms removed.', 'floating-labels-for-cf7' ), 'success' ),
+			'exists'  => array( __( 'The sample page already exists.', 'floating-labels-for-cf7' ), 'info' ),
+			'absent'  => array( __( 'There is no sample page to remove.', 'floating-labels-for-cf7' ), 'info' ),
+			'missing' => array( __( 'Contact Form 7 is not active, so the sample forms cannot be created.', 'floating-labels-for-cf7' ), 'error' ),
+			'failed'  => array( __( 'The sample page could not be created. Check that you may create pages and contact forms.', 'floating-labels-for-cf7' ), 'error' ),
+		);
+
+		if ( isset( $messages[ $result ] ) ) {
+			add_settings_error( JGOR_FLCF7_Settings::GROUP, 'jgor_flcf7_samples', $messages[ $result ][0], $messages[ $result ][1] );
+		}
 	}
 
 	/**

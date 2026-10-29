@@ -107,5 +107,10 @@ function jgor_flcf7_activate() {
 	if ( class_exists( 'JGOR_FLCF7_Settings' ) ) {
 		JGOR_FLCF7_Settings::instance()->ensure_option();
 	}
+
+	// Asks once, on the next admin screen, whether to create the sample page.
+	if ( class_exists( 'JGOR_FLCF7_Samples' ) ) {
+		set_transient( JGOR_FLCF7_Samples::TRANSIENT, 1, HOUR_IN_SECONDS );
+	}
 }
 register_activation_hook( __FILE__, 'jgor_flcf7_activate' );

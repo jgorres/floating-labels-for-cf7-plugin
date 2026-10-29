@@ -133,8 +133,55 @@ if ( $jgor_flcf7_old_page instanceof WP_Post ) {
 }
 jgor_flcf7_check( 'precondition: no sample forms, no page, no option', empty( jgor_flcf7_sample_forms() ) && null === get_page_by_path( JGOR_FLCF7_Samples::PAGE_SLUG, OBJECT, 'page' ) && false === get_option( JGOR_FLCF7_Samples::OPTION, false ) && ! $jgor_flcf7_samples->is_created() );
 
-// Create.
-jgor_flcf7_check( 'create(): created', 'created' === $jgor_flcf7_samples->create() );
+// Box and notice before anything exists.
+ob_start();
+$jgor_flcf7_samples->render_box();
+$jgor_flcf7_box = (string) ob_get_clean();
+jgor_flcf7_check( 'box before creating: create button, hidden action and do=create, nonce, admin-post target', str_contains( $jgor_flcf7_box, '<div class="card jgor-flcf7-samples">' ) && str_contains( $jgor_flcf7_box, 'action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"' ) && str_contains( $jgor_flcf7_box, 'name="action" value="jgor_flcf7_samples"' ) && str_contains( $jgor_flcf7_box, 'name="do" value="create"' ) && (bool) preg_match( '#name="_wpnonce" value="[0-9a-f]+"#', $jgor_flcf7_box ) && str_contains( $jgor_flcf7_box, 'Create sample page and forms' ) && ! str_contains( $jgor_flcf7_box, 'Remove sample page' ) );
+set_transient( JGOR_FLCF7_Samples::TRANSIENT, 1, 60 );
+ob_start();
+$jgor_flcf7_samples->render_notice();
+$jgor_flcf7_notice = (string) ob_get_clean();
+jgor_flcf7_check( 'notice after activation: info notice with create and dismiss links carrying the nonce', str_contains( $jgor_flcf7_notice, 'notice-info' ) && str_contains( $jgor_flcf7_notice, 'jgor-flcf7-notice' ) && (bool) preg_match( '#admin-post\.php\?action=jgor_flcf7_samples&(?:amp;)?do=create&(?:amp;)?_wpnonce=[0-9a-f]+#', $jgor_flcf7_notice ) && (bool) preg_match( '#do=dismiss&(?:amp;)?_wpnonce=[0-9a-f]+#', $jgor_flcf7_notice ) && str_contains( $jgor_flcf7_notice, 'Not now' ) );
+wp_set_current_user( 0 );
+ob_start();
+$jgor_flcf7_samples->render_notice();
+$jgor_flcf7_notice_anon = (string) ob_get_clean();
+wp_set_current_user( (int) $jgor_flcf7_admins[0]->ID );
+jgor_flcf7_check( 'notice: nothing without manage_options', '' === $jgor_flcf7_notice_anon );
+jgor_flcf7_check( 'perform(): dismiss drops the transient, unknown action reported', 'dismissed' === $jgor_flcf7_samples->perform( 'dismiss' ) && false === get_transient( JGOR_FLCF7_Samples::TRANSIENT ) && 'unknown' === $jgor_flcf7_samples->perform( 'bogus' ) );
+
+// Handler: nonce and capability stop the request through wp_die().
+$jgor_flcf7_die = static function () {
+	return static function ( $message ) {
+		throw new RuntimeException( esc_html( wp_strip_all_tags( is_string( $message ) ? $message : 'wp_die' ) ) );
+	};
+};
+add_filter( 'wp_die_handler', $jgor_flcf7_die );
+$jgor_flcf7_died = '';
+try {
+	$jgor_flcf7_samples->handle();
+} catch ( RuntimeException $jgor_flcf7_e ) {
+	$jgor_flcf7_died = $jgor_flcf7_e->getMessage();
+}
+jgor_flcf7_check( 'handle(): dies without a nonce', str_contains( $jgor_flcf7_died, 'expired' ), $jgor_flcf7_died );
+wp_set_current_user( 0 );
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- the test supplies the nonce the handler checks.
+$_REQUEST['_wpnonce'] = wp_create_nonce( JGOR_FLCF7_Samples::ACTION );
+$jgor_flcf7_died      = '';
+try {
+	$jgor_flcf7_samples->handle();
+} catch ( RuntimeException $jgor_flcf7_e ) {
+	$jgor_flcf7_died = $jgor_flcf7_e->getMessage();
+}
+unset( $_REQUEST['_wpnonce'] );
+wp_set_current_user( (int) $jgor_flcf7_admins[0]->ID );
+jgor_flcf7_check( 'handle(): dies without manage_options even with a valid nonce', str_contains( $jgor_flcf7_died, 'not allowed' ), $jgor_flcf7_died );
+remove_filter( 'wp_die_handler', $jgor_flcf7_die );
+
+// Create through perform(): capabilities of the administrator, transient dropped.
+set_transient( JGOR_FLCF7_Samples::TRANSIENT, 1, 60 );
+jgor_flcf7_check( 'perform( create ): created, transient dropped', 'created' === $jgor_flcf7_samples->perform( 'create' ) && false === get_transient( JGOR_FLCF7_Samples::TRANSIENT ) );
 $jgor_flcf7_stored = $jgor_flcf7_samples->stored();
 $jgor_flcf7_page   = get_post( $jgor_flcf7_stored['page'] );
 jgor_flcf7_check( 'page: private, slug, title, comments closed', $jgor_flcf7_page instanceof WP_Post && 'page' === $jgor_flcf7_page->post_type && 'private' === $jgor_flcf7_page->post_status && JGOR_FLCF7_Samples::PAGE_SLUG === $jgor_flcf7_page->post_name && 'Testpage Floating Labels for CF7' === $jgor_flcf7_page->post_title && 'closed' === $jgor_flcf7_page->comment_status );
@@ -188,6 +235,18 @@ jgor_flcf7_check(
 	&& str_contains( (string) jgor_flcf7_cf( $jgor_flcf7_f_mixed )->prop( 'form' ), 'nofloat' )
 	&& str_contains( (string) jgor_flcf7_cf( $jgor_flcf7_f_placeholders )->prop( 'form' ), 'placeholder "Your name"' )
 );
+
+// Box and notice while the page exists.
+ob_start();
+$jgor_flcf7_samples->render_box();
+$jgor_flcf7_box = (string) ob_get_clean();
+jgor_flcf7_check( 'box after creating: remove button, view and edit links of the page', str_contains( $jgor_flcf7_box, 'name="do" value="remove"' ) && str_contains( $jgor_flcf7_box, 'Remove sample page and forms' ) && str_contains( $jgor_flcf7_box, esc_url( (string) get_permalink( $jgor_flcf7_stored['page'] ) ) ) && str_contains( $jgor_flcf7_box, 'post=' . $jgor_flcf7_stored['page'] . '&#038;action=edit' ) && ! str_contains( $jgor_flcf7_box, 'value="create"' ) );
+set_transient( JGOR_FLCF7_Samples::TRANSIENT, 1, 60 );
+ob_start();
+$jgor_flcf7_samples->render_notice();
+$jgor_flcf7_notice = (string) ob_get_clean();
+delete_transient( JGOR_FLCF7_Samples::TRANSIENT );
+jgor_flcf7_check( 'notice: nothing while the sample page exists', '' === $jgor_flcf7_notice );
 
 // Block content.
 $jgor_flcf7_content = (string) $jgor_flcf7_page->post_content;
@@ -243,7 +302,7 @@ $jgor_flcf7_stored2 = $jgor_flcf7_samples->stored();
 jgor_flcf7_check( 'new page and seven new forms stored', $jgor_flcf7_stored2['page'] !== $jgor_flcf7_stored['page'] && $jgor_flcf7_samples->is_created() && 7 === count( $jgor_flcf7_stored2['forms'] ) );
 
 // Remove.
-jgor_flcf7_check( 'remove(): removed, nothing left', 'removed' === $jgor_flcf7_samples->remove() && null === get_post( $jgor_flcf7_stored2['page'] ) && empty( jgor_flcf7_sample_forms() ) && false === get_option( JGOR_FLCF7_Samples::OPTION, false ) && ! $jgor_flcf7_samples->is_created() );
+jgor_flcf7_check( 'perform( remove ): removed, nothing left', 'removed' === $jgor_flcf7_samples->perform( 'remove' ) && null === get_post( $jgor_flcf7_stored2['page'] ) && empty( jgor_flcf7_sample_forms() ) && false === get_option( JGOR_FLCF7_Samples::OPTION, false ) && ! $jgor_flcf7_samples->is_created() );
 jgor_flcf7_check( 'remove() again: absent', 'absent' === $jgor_flcf7_samples->remove() );
 
 // Safety: a post of another type stored in the option is never deleted.

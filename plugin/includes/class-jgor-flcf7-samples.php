@@ -2,8 +2,9 @@
 /**
  * Module 6: the sample page with forms that show the options of the plugin.
  *
- * Created on request (settings screen or the notice after the activation)
- * and removed from the settings screen or by uninstall.php. The page is
+ * Created on request from the box on the settings screen or from the notice
+ * after the activation (both handled here through admin-post.php), removed
+ * from the same box or by uninstall.php. The page is
  * private, so a live site does not expose the test forms, and every sample
  * form carries "skip_mail: on". The ids of the page and of the forms live in
  * the option jgor_flcf7_samples, which exists only while the samples do and
@@ -57,6 +58,16 @@ final class JGOR_FLCF7_Samples {
 	 * Post type of Contact Form 7 forms.
 	 */
 	public const FORM_POST_TYPE = 'wpcf7_contact_form';
+
+	/**
+	 * Name of the admin-post action and of its nonce.
+	 */
+	public const ACTION = 'jgor_flcf7_samples';
+
+	/**
+	 * Query argument that carries the result back to the settings screen.
+	 */
+	public const RESULT_ARG = 'jgor_flcf7_samples';
 
 	/**
 	 * Post types the module may delete: only its own page and forms.
@@ -208,6 +219,187 @@ final class JGOR_FLCF7_Samples {
 		delete_option( self::OPTION );
 
 		return 'removed';
+	}
+
+	/**
+	 * Registers the hooks: the admin-post handler of the box and the notice,
+	 * the box on the settings screen (action jgor_flcf7_settings_page_top of
+	 * module 4) and the notice after the activation.
+	 *
+	 * @return void
+	 */
+	public function init(): void {
+		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle' ) );
+		add_action( 'jgor_flcf7_settings_page_top', array( $this, 'render_box' ) );
+		add_action( 'admin_notices', array( $this, 'render_notice' ) );
+	}
+
+	/**
+	 * Handles the admin-post request of the box and of the notice.
+	 *
+	 * Nonce first, then the capabilities of the action (perform()); the
+	 * result travels back to the settings screen as a query argument that
+	 * module 4 turns into a notice. "dismiss" only drops the transient and
+	 * returns to the page the notice was shown on.
+	 *
+	 * @return void
+	 */
+	public function handle(): void {
+		check_admin_referer( self::ACTION );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to do this.', 'floating-labels-for-cf7' ), 403 );
+		}
+
+		$task = '';
+		if ( isset( $_POST['do'] ) ) {
+			$task = sanitize_key( wp_unslash( $_POST['do'] ) );
+		} elseif ( isset( $_GET['do'] ) ) {
+			$task = sanitize_key( wp_unslash( $_GET['do'] ) );
+		}
+
+		$result = $this->perform( $task );
+		if ( 'unknown' === $result ) {
+			wp_die( esc_html__( 'Unknown action.', 'floating-labels-for-cf7' ), 400 );
+		}
+
+		if ( 'dismissed' === $result ) {
+			$back = wp_get_referer();
+			wp_safe_redirect( is_string( $back ) && '' !== $back ? $back : admin_url() );
+		} else {
+			wp_safe_redirect( add_query_arg( self::RESULT_ARG, $result, $this->settings_url() ) );
+		}
+
+		// The redirect is on its way; the request has to end here.
+		exit;
+	}
+
+	/**
+	 * Runs one action after checking its capabilities and returns the result.
+	 *
+	 * Creating needs the Contact Form 7 capability to edit forms and the
+	 * right to publish pages, removing the capability to delete forms and
+	 * the right to delete pages. Both drop the transient of the notice.
+	 *
+	 * @param string $task "create", "remove" or "dismiss".
+	 * @return string created|exists|missing|failed|removed|absent|dismissed|unknown
+	 */
+	public function perform( string $task ): string {
+		switch ( $task ) {
+			case 'create':
+				if ( ! current_user_can( 'wpcf7_edit_contact_forms' ) || ! current_user_can( 'publish_pages' ) ) {
+					wp_die( esc_html__( 'Sorry, you are not allowed to create contact forms and pages.', 'floating-labels-for-cf7' ), 403 );
+				}
+				delete_transient( self::TRANSIENT );
+				return $this->create();
+
+			case 'remove':
+				if ( ! current_user_can( 'wpcf7_delete_contact_forms' ) || ! current_user_can( 'delete_pages' ) ) {
+					wp_die( esc_html__( 'Sorry, you are not allowed to delete contact forms and pages.', 'floating-labels-for-cf7' ), 403 );
+				}
+				delete_transient( self::TRANSIENT );
+				return $this->remove();
+
+			case 'dismiss':
+				delete_transient( self::TRANSIENT );
+				return 'dismissed';
+		}
+
+		return 'unknown';
+	}
+
+	/**
+	 * Prints the box "Sample page" on the settings screen.
+	 *
+	 * @return void
+	 */
+	public function render_box(): void {
+		$page_id = $this->page_id();
+		?>
+		<div class="card jgor-flcf7-samples">
+			<h2 class="title"><?php esc_html_e( 'Sample page', 'floating-labels-for-cf7' ); ?></h2>
+			<p><?php esc_html_e( 'A private page "Testpage Floating Labels for CF7" with forms that show the options: the default form of Contact Form 7, placeholders, an old template, the variants and focus effects, the limits of the rebuild, a form switched off, and two placements with settings of their own. The forms are named "FL Test ... - may be deleted" and send no mail. Only logged-in users who may read private pages see the page.', 'floating-labels-for-cf7' ); ?></p>
+			<?php if ( ! class_exists( 'WPCF7_ContactForm' ) ) : ?>
+				<p><em><?php esc_html_e( 'Contact Form 7 is not active.', 'floating-labels-for-cf7' ); ?></em></p>
+			<?php else : ?>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( self::ACTION ); ?>
+					<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION ); ?>">
+					<?php if ( $page_id > 0 ) : ?>
+						<p>
+							<?php esc_html_e( 'The sample page exists.', 'floating-labels-for-cf7' ); ?>
+							<a href="<?php echo esc_url( (string) get_permalink( $page_id ) ); ?>"><?php esc_html_e( 'View page', 'floating-labels-for-cf7' ); ?></a>
+							&middot;
+							<a href="<?php echo esc_url( (string) get_edit_post_link( $page_id, 'raw' ) ); ?>"><?php esc_html_e( 'Edit page', 'floating-labels-for-cf7' ); ?></a>
+						</p>
+						<input type="hidden" name="do" value="remove">
+						<?php submit_button( __( 'Remove sample page and forms', 'floating-labels-for-cf7' ), 'secondary', 'jgor-flcf7-samples-remove', false ); ?>
+					<?php else : ?>
+						<p><?php esc_html_e( 'The sample page does not exist yet.', 'floating-labels-for-cf7' ); ?></p>
+						<input type="hidden" name="do" value="create">
+						<?php submit_button( __( 'Create sample page and forms', 'floating-labels-for-cf7' ), 'primary', 'jgor-flcf7-samples-create', false ); ?>
+					<?php endif; ?>
+				</form>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Prints the notice after the activation: while the transient exists,
+	 * for users who manage options, with Contact Form 7 active and no sample
+	 * page yet.
+	 *
+	 * @return void
+	 */
+	public function render_notice(): void {
+		if ( false === get_transient( self::TRANSIENT ) || ! current_user_can( 'manage_options' ) || ! class_exists( 'WPCF7_ContactForm' ) || $this->is_created() ) {
+			return;
+		}
+
+		$create  = $this->action_url( 'create' );
+		$dismiss = $this->action_url( 'dismiss' );
+
+		wp_admin_notice(
+			'<strong>' . esc_html__( 'Floating Labels for CF7', 'floating-labels-for-cf7' ) . '</strong> '
+			. esc_html__( 'Create a private sample page with forms that show the options? You can remove it again at any time under Contact > Floating Labels.', 'floating-labels-for-cf7' )
+			. ' <a class="button button-primary" href="' . esc_url( $create ) . '">' . esc_html__( 'Create sample page', 'floating-labels-for-cf7' ) . '</a> '
+			. '<a class="button" href="' . esc_url( $dismiss ) . '">' . esc_html__( 'Not now', 'floating-labels-for-cf7' ) . '</a>',
+			array(
+				'type'               => 'info',
+				'additional_classes' => array( 'jgor-flcf7-notice' ),
+				'paragraph_wrap'     => true,
+			)
+		);
+	}
+
+	/**
+	 * Builds the admin-post URL of one action, with the nonce.
+	 *
+	 * @param string $task "create" or "dismiss".
+	 * @return string
+	 */
+	private function action_url( string $task ): string {
+		$url = add_query_arg(
+			array(
+				'action' => self::ACTION,
+				'do'     => $task,
+			),
+			admin_url( 'admin-post.php' )
+		);
+
+		return wp_nonce_url( $url, self::ACTION );
+	}
+
+	/**
+	 * Returns the URL of the settings screen of module 4.
+	 *
+	 * @return string
+	 */
+	private function settings_url(): string {
+		$url = menu_page_url( JGOR_FLCF7_Admin::PAGE_SLUG, false );
+
+		return '' === $url ? admin_url( 'admin.php?page=' . JGOR_FLCF7_Admin::PAGE_SLUG ) : $url;
 	}
 
 	/**

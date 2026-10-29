@@ -92,7 +92,9 @@ $jgor_flcf7_settings = JGOR_FLCF7_Settings::instance();
 $jgor_flcf7_saved_option = get_option( 'jgor_flcf7_settings', false );
 update_option( 'jgor_flcf7_settings', $jgor_flcf7_settings->defaults() );
 $jgor_flcf7_settings->reset_cache();
-$jgor_flcf7_admin = new JGOR_FLCF7_Admin( $jgor_flcf7_settings );
+$jgor_flcf7_admin   = new JGOR_FLCF7_Admin( $jgor_flcf7_settings );
+$jgor_flcf7_samples = new JGOR_FLCF7_Samples();
+$jgor_flcf7_samples->init();
 
 /**
  * Pretends that a top-level menu is registered, as add_menu_page() would.
@@ -183,6 +185,11 @@ $jgor_flcf7_html = jgor_flcf7_render_page( $jgor_flcf7_admin );
 jgor_flcf7_check( 'page: posts to options.php', str_contains( $jgor_flcf7_html, '<form action="options.php" method="post">' ) );
 jgor_flcf7_check( 'page: option_page and nonce from settings_fields()', (bool) preg_match( '#name=[\'"]option_page[\'"] value=[\'"]jgor_flcf7[\'"]#', $jgor_flcf7_html ) && (bool) preg_match( '#name=[\'"]_wpnonce[\'"]#', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: submit button', str_contains( $jgor_flcf7_html, 'id="submit"' ) );
+jgor_flcf7_check( 'page: box "Sample page" of module 6 between the intro and the settings form, with its own nonce', (bool) preg_match( '#</p>\s*<div class="card jgor-flcf7-samples">.*?</div>\s*<form action="options.php"#s', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, 'name="action" value="jgor_flcf7_samples"' ) && 2 === preg_match_all( '#name=[\'"]_wpnonce[\'"]#', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, $jgor_flcf7_samples->is_created() ? 'Remove sample page and forms' : 'Create sample page and forms' ) );
+$_GET['jgor_flcf7_samples'] = 'created';
+$jgor_flcf7_html_result     = jgor_flcf7_render_page( $jgor_flcf7_admin );
+unset( $_GET['jgor_flcf7_samples'] );
+jgor_flcf7_check( 'page: result flag of module 6 becomes a notice', str_contains( $jgor_flcf7_html_result, 'Sample page and forms created.' ) && str_contains( $jgor_flcf7_html_result, 'notice-success' ) && ! str_contains( $jgor_flcf7_html, 'Sample page and forms created.' ) );
 jgor_flcf7_check( 'page: intro below the heading names the defaults, the form and the block editor', (bool) preg_match( '#</h1>\s*<p>These are the defaults for every Contact Form 7 form on this site\. Override them per form in the &quot;Additional Settings&quot; tab of the form, or per placement in the block editor:#s', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, 'open the panels &quot;Floating labels&quot; in the block sidebar' ) );
 jgor_flcf7_check( 'page: both mode checkboxes checked by default', (bool) preg_match( '#name="jgor_flcf7_settings\[mode_label\]"[^>]*checked#s', $jgor_flcf7_html ) && (bool) preg_match( '#name="jgor_flcf7_settings\[mode_placeholder\]"[^>]*checked#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: text mode checkbox present, unchecked by default, with the hint on old templates', (bool) preg_match( '#<label for="jgor-flcf7-mode-text">\s*<input type="checkbox" id="jgor-flcf7-mode-text" value="1"\s+name="jgor_flcf7_settings\[mode_text\]"\s*>#s', $jgor_flcf7_html ) && ! preg_match( '#name="jgor_flcf7_settings\[mode_text\]"[^>]*checked#s', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, 'Contact Form 7 before version 5.4' ) && str_contains( $jgor_flcf7_html, 'loose text is used only when there is neither' ) );
