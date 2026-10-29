@@ -241,7 +241,7 @@ final class JGOR_FLCF7_Admin {
 	private function help_overview(): string {
 		return '<p>' . esc_html__( 'A floating label sits inside the empty field like a placeholder and moves to the top edge, smaller, as soon as the field is focused or filled. The plugin rebuilds the markup Contact Form 7 renders and ships the stylesheet; your pages need no JavaScript for it.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'Text, email, URL, telephone, number and textarea fields get floating labels. Checkboxes, radio buttons, selects, file uploads, quizzes and CAPTCHAs keep their original markup.', 'floating-labels-for-cf7' ) . '</p>'
-			. '<p>' . esc_html__( 'The label text comes from the form template (a <label> that encloses the field or points at its id) or from the placeholder option of the form-tag. A label in the template wins over a placeholder.', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p>' . esc_html__( 'The label text comes from the form template (a <label> that encloses the field or points at its id) or from the placeholder option of the form-tag. A label in the template wins over a placeholder. With the option "Text before the field", loose text in front of the field, or in the paragraph just before it, is used when there is neither; that covers the default template of Contact Form 7 before version 5.4.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'Fields the plugin does not recognise are left exactly as Contact Form 7 renders them.', 'floating-labels-for-cf7' ) . '</p>';
 	}
 
@@ -294,26 +294,26 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
-	 * Example lines for the "Additional Settings" tab of a form (concept 7.4).
+	 * Example lines for the "Additional Settings" tab of a form (concept 7.5).
 	 *
 	 * @return string Plain text.
 	 */
 	private function example_additional_settings(): string {
-		return "floating_labels: off\nfloating_labels: placeholder\nfloating_labels: label\nfloating_labels_style: filled\nfloating_labels_effect: glow\nfloating_labels_marker: on\nfloating_labels_types: text email textarea";
+		return "floating_labels: off\nfloating_labels: placeholder\nfloating_labels: label\nfloating_labels: text\nfloating_labels_style: filled\nfloating_labels_effect: glow\nfloating_labels_marker: on\nfloating_labels_types: text email textarea";
 	}
 
 	/**
 	 * Example classes for the html_class attribute and example design values
-	 * for the jgor_flcf7_design attribute of a placement (concept 7.4, 10.1).
+	 * for the jgor_flcf7_design attribute of a placement (concept 7.5, 10.1).
 	 *
 	 * @return string Plain text.
 	 */
 	private function example_html_classes(): string {
-		return "jgor-flcf7-off  jgor-flcf7-on\njgor-flcf7-mode-placeholder  jgor-flcf7-mode-label\njgor-flcf7-style-outlined  jgor-flcf7-style-filled  jgor-flcf7-style-minimal\njgor-flcf7-effect-none  jgor-flcf7-effect-glow  jgor-flcf7-effect-pulse  jgor-flcf7-effect-sweep\njgor-flcf7-marker-on  jgor-flcf7-marker-off\n\n[contact-form-7 id=\"123\" html_class=\"jgor-flcf7-style-filled\"]\n[contact-form-7 id=\"123\" jgor_flcf7_design=\"border-color:#0a7d3e;font-size:1.1em\"]";
+		return "jgor-flcf7-off  jgor-flcf7-on\njgor-flcf7-mode-placeholder  jgor-flcf7-mode-label  jgor-flcf7-mode-text\njgor-flcf7-style-outlined  jgor-flcf7-style-filled  jgor-flcf7-style-minimal\njgor-flcf7-effect-none  jgor-flcf7-effect-glow  jgor-flcf7-effect-pulse  jgor-flcf7-effect-sweep\njgor-flcf7-marker-on  jgor-flcf7-marker-off\n\n[contact-form-7 id=\"123\" html_class=\"jgor-flcf7-style-filled\"]\n[contact-form-7 id=\"123\" jgor_flcf7_design=\"border-color:#0a7d3e;font-size:1.1em\"]";
 	}
 
 	/**
-	 * Example form-tag with the option nofloat (concept 7.4).
+	 * Example form-tag with the option nofloat (concept 7.5).
 	 *
 	 * @return string Plain text.
 	 */
@@ -387,6 +387,7 @@ final class JGOR_FLCF7_Admin {
 		add_settings_section( 'jgor_flcf7_sources', __( 'Label sources', 'floating-labels-for-cf7' ), array( $this, 'render_sources_intro' ), $page );
 		add_settings_field( 'jgor_flcf7_mode_label', __( 'Form template labels', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_sources', $this->field_args( 'mode_label' ) );
 		add_settings_field( 'jgor_flcf7_mode_placeholder', __( 'Placeholders', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_sources', $this->field_args( 'mode_placeholder' ) );
+		add_settings_field( 'jgor_flcf7_mode_text', __( 'Text before the field', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_sources', $this->field_args( 'mode_text' ) );
 
 		add_settings_section( 'jgor_flcf7_types', __( 'Field types', 'floating-labels-for-cf7' ), array( $this, 'render_types_intro' ), $page );
 		add_settings_field( 'jgor_flcf7_types', __( 'Fields with floating labels', 'floating-labels-for-cf7' ), array( $this, 'render_field' ), $page, 'jgor_flcf7_types', array( 'key' => 'types' ) );
@@ -465,7 +466,7 @@ final class JGOR_FLCF7_Admin {
 	 * @return void
 	 */
 	public function render_sources_intro(): void {
-		echo '<p>' . esc_html__( 'Where the text of a floating label comes from. Both sources can be active; a label in the form template wins over a placeholder.', 'floating-labels-for-cf7' ) . '</p>';
+		echo '<p>' . esc_html__( 'Where the text of a floating label comes from. All sources can be active: a label in the form template wins over a placeholder, and loose text is used only when there is neither.', 'floating-labels-for-cf7' ) . '</p>';
 	}
 
 	/**
@@ -509,6 +510,14 @@ final class JGOR_FLCF7_Admin {
 					$key,
 					__( 'Use the placeholder of the field', 'floating-labels-for-cf7' ),
 					__( 'The placeholder option of the form-tag becomes the label text; the placeholder itself is replaced by a single space.', 'floating-labels-for-cf7' )
+				);
+				break;
+
+			case 'mode_text':
+				$this->render_checkbox(
+					$key,
+					__( 'Use loose text in front of the field', 'floating-labels-for-cf7' ),
+					__( 'For templates without a label and without a placeholder, such as the default template of Contact Form 7 before version 5.4: the text right in front of the field, or the paragraph just before it, becomes the label text. A heuristic, off by default; check the result and add the option nofloat to fields that should keep their text.', 'floating-labels-for-cf7' )
 				);
 				break;
 
@@ -822,7 +831,7 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
-	 * Renders the section about the control layers (concept, section 7.4).
+	 * Renders the section about the control layers (concept, section 7.5).
 	 *
 	 * @return void
 	 */
