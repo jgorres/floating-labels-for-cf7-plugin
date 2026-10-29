@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.12 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.13 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -881,6 +881,15 @@ einem Klassenfeld oder im Shortcode-Text.
   Gruppe. Ein Hinweistext im Panel nennt je Block das Feld „Class“ bzw. das
   Attribut `html_class`. Serverseitig ändert sich nichts (7.5, Schicht 3);
   ohne das Plugin bleiben die Klassen wirkungslos.
+- Reset (seit 2.13, Schritt 11): unter den fünf Auswahlfeldern ein
+  `Button` „Reset this placement“ (`variant: 'tertiary'`, nicht
+  `isDestructive`), der alle Klassen der fünf Gruppen aus `htmlClass`
+  bzw. `html_class` entfernt (`withoutGroups()`; fremde Klassen bleiben,
+  das Attribut entfällt, wenn nichts übrig ist) und die Design-Werte der
+  Platzierung löscht (`writeDesign( {} )`: Block-Attribut `undefined`,
+  Shortcode-Attribut entfernt). Inaktiv (`disabled`), solange weder eine
+  Klasse der Gruppen noch ein Design-Wert gesetzt ist. Danach gelten
+  wieder Website- und Formular-Einstellungen; der Speicherort bleibt.
 - Die Helfer liegen auf `window.jgorFlcf7BlockEditor`, damit das
   Node-Prüfscript sie ohne Browser aufrufen kann (13).
 - Eigenes CSS nur für die Farbzeilen der Design-Panels:
@@ -930,6 +939,13 @@ global.
   klassischen Editor nutzbar. `cleanDesign()` behält nur bekannte
   Properties mit nicht leeren Werten und entfernt Zeichen, die den
   Shortcode brechen würden; die Werte selbst prüft der Server.
+- Reset je Panel (seit 2.13, Schritt 11): am Ende jedes Design-Panels ein
+  `Button` „Reset colours“ / „Reset sizes“ / „Reset animation“ / „Reset
+  focus effect“ (`variant: 'tertiary'`), der nur die Properties dieser
+  Gruppe aus den Design-Werten entfernt (`designWithoutGroup()`);
+  inaktiv, solange die Gruppe keinen Wert hat. „Reset this placement“ im
+  Panel „Floating labels“ (10) löscht alle vier Gruppen zusammen mit den
+  Klassen.
 - Server (`class-jgor-flcf7-placement-design.php`, auf jeder Anfrage
   gestartet): `render_block_contact-form-7/contact-form-selector` schreibt
   das Block-Attribut zur Laufzeit als `jgor_flcf7_design` in den ersten
@@ -1103,8 +1119,12 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   `PanelColorSettings`; Größen- und Animationsfelder mit Platzhaltern,
   Zahlenfeld, Effekt-Panel mit Farbzeile und drei Feldern, Hinweise,
   Speichern als Block-Attribut bzw.
-  Shortcode-Attribut, Entfernen ohne Werte) und das Script ohne
-  Server-Daten (nur das erste Panel). `node --check` läuft davor.
+  Shortcode-Attribut, Entfernen ohne Werte), ab Schritt 11 die
+  Reset-Buttons (10, 10.1: inaktiv ohne Werte; „Reset this placement“
+  entfernt Klassen und Design-Werte und lässt fremde Klassen stehen, je
+  Design-Panel nur die eigene Gruppe; CF7- und Shortcode-Block) und das
+  Script ohne Server-Daten (nur das erste Panel). `node --check` läuft
+  davor.
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
@@ -1288,6 +1308,16 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     Normalisierung identisch mit lokal. Offen: Sichtprüfung des Text-Modus
     im Frontend (Nutzer; auf der Kontaktseite bleibt F ohne Labels, solange
     `mode_text` aus ist).
+11. Reset-Buttons im Block-Editor (10, 10.1), Konzept 2.13 vom 29.10.2026
+    auf Wunsch des Nutzers: „Reset this placement“ im Panel „Floating
+    labels“ (Klassen der fünf Gruppen und alle Design-Werte), „Reset
+    colours/sizes/animation/focus effect“ je Design-Panel (nur diese
+    Gruppe), beide inaktiv ohne Werte; Helfer `withoutGroups()` und
+    `designWithoutGroup()` auf `window.jgorFlcf7BlockEditor`, Prüfungen in
+    `verify-editor-js.mjs` und `verify-editor.php` (Text-Domain-Zählung),
+    readme („Per placement“, FAQ Block-Editor), Kontexthilfe
+    (`text_per_placement()`), `.pot`, ZIP, Hostsharing `dateien`. Kein
+    Server-Code. Offen.
 
 ## 15. Offen
 
@@ -1362,3 +1392,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.10 | 29.10.2026 | Text-Modus komplett (Commits 16b82f0, a21c14b, 20e5fda): §13 `verify-admin.php` 55 (14 Feldzeilen, Checkbox `mode_text`), `verify-editor.php` 14 Klassen, `verify-editor-js.mjs` 88, ZIP-Stand mit `.pot` 144 (`--slug`); §14 Schritt 10 erledigt bis auf Hostsharing und Sichtprüfung; §2 und §5 CF7 6.2.4 lokal (Security-Release ohne Einfluss, Prüfscripte ohne Befund) |
 | 2.11 | 29.10.2026 | Hostsharing nach Schritt 10 mit `dateien` und `datenbank` nachgezogen (§13, §14; CF7 6.2.4 nun auch remote, §2); Zählung korrigiert: die Kontaktseite trägt sechs CF7-Formulare (A–E und F) |
 | 2.12 | 29.10.2026 | Hostsharing-Testsite mit Basic-Auth (Benutzer `<basic-auth-user>`, `.htpasswd` außerhalb des Webroots, `<webroot>/.htaccess`), Site-env mit `HS_RSYNC_AUSSCHLUESSE_SITE` (neuer Schlüssel in Stufe 6), Gegenprobe per curl mit `-u` (§2, §13) |
+| 2.13 | 29.10.2026 | Reset-Buttons im Block-Editor geplant (Wunsch des Nutzers): „Reset this placement“ im Panel „Floating labels“ (Klassen und Design-Werte), „Reset …“ je Design-Panel (nur diese Gruppe), inaktiv ohne Werte, Helfer `withoutGroups()`/`designWithoutGroup()` (10, 10.1), Prüfungen (13), §14 Schritt 11 offen |
