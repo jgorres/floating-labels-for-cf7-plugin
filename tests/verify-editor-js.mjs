@@ -182,7 +182,7 @@ const source = readFileSync( file, 'utf8' );
 vm.runInThisContext( source, { filename: file } );
 
 const api = globalThis.jgorFlcf7BlockEditor;
-check( 'api: window.jgorFlcf7BlockEditor exposed', !! api && typeof api.withGroupValue === 'function' && typeof api.withShortcodeHtmlClass === 'function' && typeof api.withShortcodeDesign === 'function' && typeof api.ColorControl === 'function' );
+check( 'api: window.jgorFlcf7BlockEditor exposed', !! api && typeof api.withGroupValue === 'function' && typeof api.withShortcodeHtmlClass === 'function' && typeof api.withShortcodeDesign === 'function' && typeof api.ColorControl === 'function' && typeof api.withoutGroups === 'function' && typeof api.designWithoutGroup === 'function' );
 
 // Filter registration.
 check( 'filter: editor.BlockEdit registered once under jgor-flcf7/block-editor', filters.length === 1 && filters[ 0 ].hook === 'editor.BlockEdit' && filters[ 0 ].namespace === 'jgor-flcf7/block-editor' && typeof filters[ 0 ].callback === 'function' );
@@ -213,6 +213,8 @@ check( 'withGroupValue: drops duplicates of the group', api.withGroupValue( 'jgo
 check( 'withGroupValue: empty value removes the group, other classes stay', api.withGroupValue( 'a jgor-flcf7-off b jgor-flcf7-style-filled', byKey.enabled, '' ) === 'a b jgor-flcf7-style-filled' );
 check( 'withGroupValue: empty attribute and empty value -> empty string', api.withGroupValue( undefined, byKey.marker, '' ) === '' );
 check( 'withGroupValue: other groups untouched', api.withGroupValue( 'jgor-flcf7-mode-label', byKey.marker, 'jgor-flcf7-marker-on' ) === 'jgor-flcf7-mode-label jgor-flcf7-marker-on' );
+check( 'withoutGroups: every placement class removed, other classes kept', api.withoutGroups( 'custom jgor-flcf7-style-filled jgor-flcf7-off x jgor-flcf7-mode-text' ) === 'custom x' && api.withoutGroups( 'jgor-flcf7-on' ) === '' && api.withoutGroups( undefined ) === '' );
+check( 'hasGroupValue: true with a placement class only', api.hasGroupValue( 'custom' ) === false && api.hasGroupValue( 'custom jgor-flcf7-marker-on' ) === true && api.hasGroupValue( '' ) === false );
 check( 'withGroupValue: effect classes form one group', api.withGroupValue( 'jgor-flcf7-effect-glow jgor-flcf7-style-filled', byKey.effect, 'jgor-flcf7-effect-sweep' ) === 'jgor-flcf7-effect-sweep jgor-flcf7-style-filled' && api.currentValue( 'jgor-flcf7-effect-none', byKey.effect ) === 'jgor-flcf7-effect-none' );
 
 // Shortcode helpers (html_class).
@@ -238,6 +240,7 @@ check( 'cleanDesign: characters that would break a shortcode removed', api.clean
 check( 'cleanDesign: non-object -> {}', Object.keys( api.cleanDesign( undefined ) ).length === 0 && Object.keys( api.cleanDesign( 'x' ) ).length === 0 );
 check( 'parseDesign: "key:value;key:value" with spaces, unknown and empty dropped', JSON.stringify( api.parseDesign( 'font-size: 1.2em ; label-color:#123456;bogus:1;radius:;junk' ) ) === '{"label-color":"#123456","font-size":"1.2em"}' );
 check( 'parseDesign: non-string -> {}', Object.keys( api.parseDesign( undefined ) ).length === 0 );
+check( 'designWithoutGroup: only the properties of the group removed', JSON.stringify( api.designWithoutGroup( { 'label-color': '#abc', 'font-size': '1em', 'effect-color': '#fff', bogus: 'x' }, 'colors' ) ) === '{"font-size":"1em","effect-color":"#fff"}' && Object.keys( api.designWithoutGroup( { 'font-size': '1em' }, 'sizes' ) ).length === 0 );
 check( 'serializeDesign: server order, empty -> ""', api.serializeDesign( { 'font-size': '1.2em', 'label-color': '#123456' } ) === 'label-color:#123456;font-size:1.2em' && api.serializeDesign( {} ) === '' && api.serializeDesign( { bogus: 'x' } ) === '' );
 check( 'colorValue: hex lower-cased, others unset', api.colorValue( '#ABC' ) === '#abc' && api.colorValue( ' #a1B2c3 ' ) === '#a1b2c3' && api.colorValue( 'red' ) === '' && api.colorValue( 'rgb(0,0,0)' ) === '' && api.colorValue( '#1234' ) === '' && api.colorValue( undefined ) === '' );
 check( 'shortcodeDesign: attribute parsed, absent -> {}', api.shortcodeDesign( '[contact-form-7 id="1" jgor_flcf7_design="font-size:1.2em;label-color:#abc"]' )[ 'font-size' ] === '1.2em' && Object.keys( api.shortcodeDesign( sc ) ).length === 0 );
@@ -273,7 +276,7 @@ const panelBodies = findAll( inspector, 'PanelBody' );
 const panelBody = panelBodies[ 0 ];
 check( 'panel: InspectorControls with PanelBody "Floating labels" first, open by default', !! panelBody && panelBody.props.title === 'Floating labels' && panelBody.props.initialOpen === true );
 const selects = findAll( panelBody, 'SelectControl' );
-check( 'panel: five selects directly in the panel, no Flex wrapper (spacing of the inspector)', selects.length === 5 && find( panelBody, 'Flex' ) === null && panelBody.children[ 0 ].length === 6 );
+check( 'panel: five selects directly in the panel, no Flex wrapper (spacing of the inspector), help and reset button behind them', selects.length === 5 && find( panelBody, 'Flex' ) === null && panelBody.children[ 0 ].length === 7 );
 check( 'panel: labels', selects.map( ( select ) => select.props.label ).join( '|' ) === 'Floating labels|Label source|Variant|Focus effect|Required fields' );
 check( 'panel: values read from htmlClass', selects.map( ( select ) => select.props.value ).join( '|' ) === '||jgor-flcf7-style-filled||' );
 check( 'panel: keys set on the selects', selects.every( ( select, index ) => select.props.key === groups[ index ].key ) );
@@ -289,6 +292,12 @@ selects[ 2 ].props.onChange( '' );
 check( 'change: default -> class removed', saved.htmlClass === 'custom' );
 selects[ 1 ].props.onChange( 'jgor-flcf7-mode-text' );
 check( 'change: label source "Text before the field only" -> class appended', saved.htmlClass === 'custom jgor-flcf7-style-filled jgor-flcf7-mode-text' );
+const resetMain = findAll( panelBody, 'Button' );
+check( 'reset: one tertiary button "Reset this placement" at the end of the panel, enabled while a class or a design value is set', resetMain.length === 1 && resetMain[ 0 ].props.className === 'jgor-flcf7-reset' && resetMain[ 0 ].props.variant === 'tertiary' && resetMain[ 0 ].props.disabled === false && resetMain[ 0 ].children[ 0 ] === 'Reset this placement' && panelBody.children[ 0 ][ 6 ] === resetMain[ 0 ] );
+resetMain[ 0 ].props.onClick();
+check( 'reset: placement classes removed, other classes kept, design attribute dropped in one setAttributes()', saved.htmlClass === 'custom' && 'jgorFlcf7Design' in saved && saved.jgorFlcf7Design === undefined );
+const untouched = Wrapped( { name: api.BLOCK_NAME, attributes: { id: 7, htmlClass: 'custom' }, setAttributes: noop } );
+check( 'reset: disabled while nothing of the plugin is set', findAll( find( untouched, 'InspectorControls' ), 'Button' ).every( ( button ) => button.props.disabled === true ) );
 
 // Design panels on the Contact Form 7 block: collapsible PanelBody each.
 check( 'design: five PanelBody panels: "Floating labels", colours, sizes, animation, focus effect; the design panels closed', panelBodies.length === 5 && panelBodies.slice( 1 ).map( ( body ) => body.props.title ).join( '|' ) === 'Floating labels: colours|Floating labels: sizes|Floating labels: animation|Floating labels: focus effect' && panelBodies.slice( 1 ).every( ( body ) => body.props.initialOpen === false ) );
@@ -302,6 +311,11 @@ check( 'design: unset colour -> hatched indicator without colour', find( secondT
 const firstPalette = paletteOf( colorRows[ 0 ] );
 check( 'design: popover holds the ColorPalette with the palette groups, clearable, hex only', !! firstPalette && firstPalette.props.value === '#abcdef' && firstPalette.props.clearable === true && firstPalette.props.enableAlpha === false && firstPalette.props.colors.map( ( group ) => group.name ).join( ',' ) === 'Theme,Default' && paletteOf( colorRows[ 1 ] ).props.value === undefined );
 check( 'design: storage note under the colours', !! find( panelBodies[ 1 ], 'p' ) && String( find( panelBodies[ 1 ], 'p' ).children[ 0 ] ).includes( 'stored with the block' ) );
+const resetColors = findAll( panelBodies[ 1 ], 'Button' );
+const resetMotion = findAll( panelBodies[ 3 ], 'Button' );
+check( 'design: reset button per panel, enabled only for a group with values', resetColors.length === 1 && resetColors[ 0 ].children[ 0 ] === 'Reset colours' && resetColors[ 0 ].props.disabled === false && resetMotion.length === 1 && resetMotion[ 0 ].children[ 0 ] === 'Reset animation' && resetMotion[ 0 ].props.disabled === true && findAll( panelBodies[ 2 ], 'Button' )[ 0 ].children[ 0 ] === 'Reset sizes' && findAll( panelBodies[ 4 ], 'Button' )[ 0 ].children[ 0 ] === 'Reset focus effect' );
+resetColors[ 0 ].props.onClick();
+check( 'design: reset colours removes that group only', JSON.stringify( saved.jgorFlcf7Design ) === '{"font-size":"1.2em"}' );
 const sizeControls = findAll( panelBodies[ 2 ], 'TextControl' );
 const motionControls = findAll( panelBodies[ 3 ], 'TextControl' );
 check( 'design: six size controls with placeholder, value from jgorFlcf7Design, no Flex wrapper', sizeControls.length === 6 && find( panelBodies[ 2 ], 'Flex' ) === null && sizeControls[ 0 ].props.label === 'Label of font-size' && sizeControls[ 0 ].props.value === '1.2em' && sizeControls[ 0 ].props.placeholder === '1em' && sizeControls[ 1 ].props.value === '' && sizeControls[ 0 ].props.type === undefined );
@@ -354,6 +368,8 @@ const onlyOurs = Wrapped( {
 } );
 findAll( find( onlyOurs, 'PanelBody' ), 'SelectControl' )[ 0 ].props.onChange( '' );
 check( 'shortcode block: last class removed -> attribute removed', savedText.text === '[contact-form-7 id="5"]' );
+findAll( shortcodePanel, 'Button' )[ 0 ].props.onClick();
+check( 'shortcode block: reset -> placement classes removed from html_class in one setAttributes()', savedText.text === 'Intro [contact-form-7 id="123" title="Contact form 1" html_class="custom"]' );
 
 // Design panels on the Shortcode block.
 const shortcodeDesignTree = Wrapped( {
@@ -371,6 +387,10 @@ paletteOf( shortcodeColors[ 0 ] ).props.onChange( '#123456' );
 check( 'shortcode block: colour -> attribute rewritten in place, html_class untouched', savedText.text === '[contact-form-7 id="5" jgor_flcf7_design="label-color:#123456;font-size:1.2em" html_class="a"]' );
 shortcodeSizes[ 0 ].props.onChange( '' );
 check( 'shortcode block: last design value cleared -> attribute removed', savedText.text === '[contact-form-7 id="5" html_class="a"]' );
+findAll( shortcodeBodies[ 0 ], 'Button' )[ 0 ].props.onClick();
+check( 'shortcode block: reset -> design attribute removed, foreign class kept', savedText.text === '[contact-form-7 id="5" html_class="a"]' );
+findAll( shortcodeBodies[ 2 ], 'Button' )[ 0 ].props.onClick();
+check( 'shortcode block: reset sizes -> attribute removed when nothing is left', savedText.text === '[contact-form-7 id="5" html_class="a"]' );
 
 // Without the server data: only the first panel.
 delete globalThis.jgorFlcf7EditorData;

@@ -25,6 +25,10 @@
  *   of properties (key, group, type, label, placeholder) comes from the
  *   server in window.jgorFlcf7EditorData; without it only the first panel
  *   is shown.
+ * - A reset button at the end of every panel: "Reset this placement" in
+ *   the first panel removes the placement classes and the design values
+ *   of this placement, the design panels reset their own group only. The
+ *   buttons are disabled while there is nothing to reset.
  *
  * Every panel is a collapsible PanelBody; the controls sit directly inside
  * it and take the spacing of the block inspector (16px between controls,
@@ -143,28 +147,32 @@
 	 * The colours panel carries the storage note of the block, the others
 	 * the format of their values.
 	 *
-	 * @type {Array<{group: string, title: string, help: string}>}
+	 * @type {Array<{group: string, title: string, help: string, reset: string}>}
 	 */
 	var DESIGN_PANELS = [
 		{
 			group: 'colors',
 			title: __( 'Floating labels: colours', 'floating-labels-for-cf7' ),
-			help: ''
+			help: '',
+			reset: __( 'Reset colours', 'floating-labels-for-cf7' )
 		},
 		{
 			group: 'sizes',
 			title: __( 'Floating labels: sizes', 'floating-labels-for-cf7' ),
-			help: __( 'A number with px, em, rem or %, for example 0.9em. The font size of the field also scales the label and the padding; 1em keeps the size of the surrounding text.', 'floating-labels-for-cf7' )
+			help: __( 'A number with px, em, rem or %, for example 0.9em. The font size of the field also scales the label and the padding; 1em keeps the size of the surrounding text.', 'floating-labels-for-cf7' ),
+			reset: __( 'Reset sizes', 'floating-labels-for-cf7' )
 		},
 		{
 			group: 'motion',
 			title: __( 'Floating labels: animation', 'floating-labels-for-cf7' ),
-			help: __( 'Scale of the floated label between 0.5 and 1; duration of the transitions with s or ms.', 'floating-labels-for-cf7' )
+			help: __( 'Scale of the floated label between 0.5 and 1; duration of the transitions with s or ms.', 'floating-labels-for-cf7' ),
+			reset: __( 'Reset animation', 'floating-labels-for-cf7' )
 		},
 		{
 			group: 'effect',
 			title: __( 'Floating labels: focus effect', 'floating-labels-for-cf7' ),
-			help: __( 'Colour of the glow and of the running light; size of the glow and width of the running light with px, em, rem or %; duration of one pulse or one round with s or ms. The effect itself is chosen in the panel "Floating labels".', 'floating-labels-for-cf7' )
+			help: __( 'Colour of the glow and of the running light; size of the glow and width of the running light with px, em, rem or %; duration of one pulse or one round with s or ms. The effect itself is chosen in the panel "Floating labels".', 'floating-labels-for-cf7' ),
+			reset: __( 'Reset focus effect', 'floating-labels-for-cf7' )
 		}
 	];
 
@@ -314,6 +322,34 @@
 	}
 
 	/**
+	 * Returns the attribute without any class of the placement groups.
+	 *
+	 * @param {*} htmlClass Value of the class attribute.
+	 * @return {string} The remaining classes, '' when none are left.
+	 */
+	function withoutGroups( htmlClass ) {
+		var values = GROUPS.reduce( function ( all, group ) {
+			return all.concat( groupValues( group ) );
+		}, [] );
+
+		return splitClasses( htmlClass ).filter( function ( token ) {
+			return values.indexOf( token ) === -1;
+		} ).join( ' ' );
+	}
+
+	/**
+	 * Whether the attribute holds a class of any placement group.
+	 *
+	 * @param {*} htmlClass Value of the class attribute.
+	 * @return {boolean} True when at least one group is set.
+	 */
+	function hasGroupValue( htmlClass ) {
+		return GROUPS.some( function ( group ) {
+			return currentValue( htmlClass, group ) !== '';
+		} );
+	}
+
+	/**
 	 * Keeps only known design properties with non-empty string values, in
 	 * the order of the server list.
 	 *
@@ -380,6 +416,25 @@
 		return Object.keys( clean ).map( function ( key ) {
 			return key + ':' + clean[ key ];
 		} ).join( ';' );
+	}
+
+	/**
+	 * Returns the design values without the properties of one group.
+	 *
+	 * @param {*}      design Object property => value.
+	 * @param {string} group  Group of the settings screen (colors, sizes, motion, effect).
+	 * @return {Object} Clean copy without that group.
+	 */
+	function designWithoutGroup( design, group ) {
+		var clean = cleanDesign( design );
+
+		DESIGN.forEach( function ( property ) {
+			if ( property.group === group ) {
+				delete clean[ property.key ];
+			}
+		} );
+
+		return clean;
 	}
 
 	/**
@@ -560,7 +615,7 @@
 	 * the first [contact-form-7] shortcode in its text.
 	 *
 	 * @param {Object} props Block edit props (name, attributes, setAttributes).
-	 * @return {Object|null} {active, read, write, help, readDesign, writeDesign, designHelp} or null.
+	 * @return {Object|null} {active, read, write, help, readDesign, writeDesign, designHelp, reset} or null.
 	 */
 	function storeFor( props ) {
 		var attributes = props.attributes || {};
@@ -586,7 +641,13 @@
 					update[ DESIGN_BLOCK_ATTRIBUTE ] = Object.keys( clean ).length > 0 ? clean : undefined;
 					props.setAttributes( update );
 				},
-				designHelp: __( 'Empty keeps the values of the settings screen. The values are stored with the block and apply to this placement only.', 'floating-labels-for-cf7' )
+				designHelp: __( 'Empty keeps the values of the settings screen. The values are stored with the block and apply to this placement only.', 'floating-labels-for-cf7' ),
+				reset: function () {
+					var update = { htmlClass: withoutGroups( attributes.htmlClass ) };
+
+					update[ DESIGN_BLOCK_ATTRIBUTE ] = undefined;
+					props.setAttributes( update );
+				}
 			};
 		}
 
@@ -606,11 +667,39 @@
 				writeDesign: function ( design ) {
 					props.setAttributes( { text: withShortcodeDesign( attributes.text, design ) } );
 				},
-				designHelp: __( 'Empty keeps the values of the settings screen. The values are stored in the jgor_flcf7_design attribute of the shortcode and apply to this placement only.', 'floating-labels-for-cf7' )
+				designHelp: __( 'Empty keeps the values of the settings screen. The values are stored in the jgor_flcf7_design attribute of the shortcode and apply to this placement only.', 'floating-labels-for-cf7' ),
+				reset: function () {
+					var text = withShortcodeHtmlClass( attributes.text, withoutGroups( shortcodeHtmlClass( attributes.text ) ) );
+
+					props.setAttributes( { text: withShortcodeDesign( text, {} ) } );
+				}
 			};
 		}
 
 		return null;
+	}
+
+	/**
+	 * Builds the reset button of a panel.
+	 *
+	 * @param {string}   label   Button text.
+	 * @param {boolean}  active  False disables the button: nothing to reset.
+	 * @param {Function} onClick Callback.
+	 * @return {Object} Element (Button).
+	 */
+	function resetButton( label, active, onClick ) {
+		return el(
+			wp.components.Button,
+			{
+				key: 'reset',
+				className: 'jgor-flcf7-reset',
+				variant: 'tertiary',
+				disabled: ! active,
+				onClick: onClick,
+				__next40pxDefaultSize: true
+			},
+			label
+		);
 	}
 
 	/**
@@ -774,6 +863,13 @@
 				controls.push( help );
 			}
 
+			var groupSet = properties.some( function ( property ) {
+				return !! design[ property.key ];
+			} );
+			controls.push( resetButton( spec.reset, groupSet, function () {
+				store.writeDesign( designWithoutGroup( design, spec.group ) );
+			} ) );
+
 			return el( wp.components.PanelBody, { key: spec.group, title: spec.title, initialOpen: false }, controls );
 		} ).filter( Boolean );
 	}
@@ -802,6 +898,9 @@
 		} );
 
 		controls.push( helpElement( store.help ) );
+
+		var canReset = hasGroupValue( htmlClass ) || Object.keys( store.readDesign() ).length > 0;
+		controls.push( resetButton( __( 'Reset this placement', 'floating-labels-for-cf7' ), canReset, store.reset ) );
 
 		var panels = [
 			el( wp.components.PanelBody, { key: 'main', title: __( 'Floating labels', 'floating-labels-for-cf7' ), initialOpen: true }, controls )
@@ -844,6 +943,9 @@
 		splitClasses: splitClasses,
 		currentValue: currentValue,
 		withGroupValue: withGroupValue,
+		withoutGroups: withoutGroups,
+		hasGroupValue: hasGroupValue,
+		designWithoutGroup: designWithoutGroup,
 		cleanDesign: cleanDesign,
 		parseDesign: parseDesign,
 		serializeDesign: serializeDesign,
