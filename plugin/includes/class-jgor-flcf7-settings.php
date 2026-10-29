@@ -112,7 +112,7 @@ final class JGOR_FLCF7_Settings {
 		'submit-error-color'      => '#fff',
 		'effect-color'            => '#dc3232',
 		'effect-size'             => '8px',
-		'effect-width'            => '2px',
+		'effect-width'            => '3px',
 		'effect-duration'         => '1.5s',
 	);
 

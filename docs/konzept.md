@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.18 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.19 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -602,7 +602,7 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
 | `--jgor-flcf7-submit-error-color` | `#fff` | Fehlertext auf dem Senden-Button |
 | `--jgor-flcf7-effect-color` | `#dc3232` (bis 2.17 `#1a73e8`) | Farbe von Glow und umlaufendem Licht; rot, damit sich der Effekt vom blauen aktiven Rahmen abhebt |
 | `--jgor-flcf7-effect-size` | `8px` | Unschärfe des Glows (`box-shadow`, Spread ein Viertel davon); der Puls schwillt zwischen der Hälfte und dem Doppelten |
-| `--jgor-flcf7-effect-width` | `2px` | Breite des Rings beim umlaufenden Licht |
+| `--jgor-flcf7-effect-width` | `3px` (bis 2.18 `2px`) | Breite des Rings beim umlaufenden Licht |
 | `--jgor-flcf7-effect-duration` | `1.5s` | Dauer eines Pulses bzw. einer Umrundung |
 
   Gegenüber 1.2 neu: `padding-y`, `border-width`, `background-filled`,
@@ -686,10 +686,11 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
   Twenty-Five zeichnet auf `:focus` ein 2 px dickes Outline genau über das
   Ringband, der Ring war dahinter unsichtbar; das Label liegt mit `z-index:
   2` darüber): `inset: -effect-width`, `padding: effect-width`,
-  `conic-gradient(from var(--jgor-flcf7-angle), transparent 0 60%,
-  effect-color 88% 100%)` (seit 2.18 ein Komet: Schweif über 28 % des
-  Kreises eingeblendet, Kopf 12 % voll; vorher Einblendung über 30 % ohne
-  vollen Kopf), per `mask: linear-gradient(#000 0 0) content-box,
+  `conic-gradient(from var(--jgor-flcf7-angle), color-mix(in srgb,
+  effect-color 30%, transparent) 0 60%, effect-color 88% 100%)` (seit 2.19:
+  geschlossener Ring in 30 % der Effektfarbe, darüber der Komet mit Schweif
+  über 28 % des Kreises und vollem Kopf von 12 %; 2.18 nur der Komet,
+  davor Einblendung über 30 % ohne vollen Kopf), per `mask: linear-gradient(#000 0 0) content-box,
   linear-gradient(#000 0 0); mask-composite: exclude` (plus
   `-webkit-mask-composite: xor`) auf den äußeren Rand beschnitten, bei
   `:focus-within` sichtbar und per Keyframes `jgor-flcf7-sweep` gedreht;
@@ -699,8 +700,11 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
   Label. Das gefloatete Label der Outlined-Variante malt über den Ring wie
   über den Rahmen. Ohne `@property` steht der Ring, ohne `mask-composite`
   fehlt er (beides seit 2024 bzw. 2023 in allen Evergreen-Browsern). Das
-  Fokus-Outline des Themes bleibt erhalten (Zugänglichkeit); Ring und Glow
-  kommen hinzu.
+  Fokus-Outline des Themes bleibt erhalten (Zugänglichkeit); beim Lauflicht
+  wird es auf dem fokussierten Steuerelement per `outline-color:
+  color-mix(in srgb, currentColor 30%, transparent)` gedimmt (seit 2.19,
+  Wunsch des Nutzers: das Licht fiel neben dem schwarzen Outline kaum auf),
+  bei Glow und Puls bleibt es unverändert.
 - `@media (prefers-reduced-motion: reduce)` schaltet die Transitionen von
   Label und Steuerelement ab; der Puls wird zum stehenden Glow, das
   umlaufende Licht zum stehenden Ring. RTL über logische Eigenschaften
@@ -1471,8 +1475,12 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     `effect-size / 4`, Puls zwischen `effect-size / 2` und `effect-size * 2`
     mit Spread (8); `DESIGN_DEFAULTS` angepasst, Prüfscripte 29/58/28
     weiter grün, Headless-Nachmessung: Glow `0 0 8px 2px #dc3232`, Puls
-    10,7–14,8 px Blur, Ring sichtbar. Offen: Sichtprüfung (Nutzer),
-    Hostsharing `dateien`.
+    10,7–14,8 px Blur, Ring sichtbar. Hostsharing am 29.10.2026 mit `dateien`
+    nachgezogen. Zweite Sichtprüfung des Nutzers: Licht fällt kaum auf →
+    Konzept 2.19: geschlossener gedimmter Ring mit hellem Kometen,
+    Theme-Outline beim Lauflicht auf 30 % gedimmt, Ringbreite Default 3 px
+    (8, `DESIGN_DEFAULTS`). Offen: Sichtprüfung (Nutzer), Hostsharing
+    `dateien`.
 
 ## 15. Offen
 
@@ -1553,3 +1561,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.16 | 29.10.2026 | Schritt 12 erledigt: Beispielseite umgesetzt (9.3 mit Befunden: Hash nach `save()`, `exit` nach Redirect, Action `jgor_flcf7_settings_page_top`, Ergebnisse `absent`/`failed`), Prüfzähler 37/58 (13), ZIP 17 Dateien, `.pot` 192; offen Hostsharing `dateien` und Sichtprüfung |
 | 2.17 | 29.10.2026 | Hostsharing nach Schritt 11 und 12 mit `dateien` nachgezogen (§13, §14); offen nur noch Sichtprüfungen des Nutzers, Browser-Matrix, Push und Veröffentlichung |
 | 2.18 | 29.10.2026 | Fokus-Effekte nachgebessert (8, §14 Schritt 13): Ring über Steuerelement und Theme-Outline (`z-index`), Label `z-index: 2`, Effektfarbe Default `#dc3232`, Glow mit Spread, Puls doppelt so stark |
+| 2.19 | 29.10.2026 | Lauflicht auffälliger (8, §14 Schritt 13): geschlossener Ring in 30 % der Effektfarbe mit hellem Kometen, Theme-Outline beim Lauflicht auf 30 % gedimmt, Ringbreite Default 3 px; Hostsharing nach 2.18 nachgezogen |

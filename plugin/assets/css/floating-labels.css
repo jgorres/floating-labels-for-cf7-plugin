@@ -54,7 +54,7 @@
 	--jgor-flcf7-submit-error-color: #fff;
 	--jgor-flcf7-effect-color: #dc3232;
 	--jgor-flcf7-effect-size: 8px;
-	--jgor-flcf7-effect-width: 2px;
+	--jgor-flcf7-effect-width: 3px;
 	--jgor-flcf7-effect-duration: 1.5s;
 }
 
@@ -289,8 +289,11 @@
  * paints above the control (z-index 1), so the focus outline a theme draws
  * on the control does not hide it; the label sits above both (z-index 2),
  * so the floated label of the Outlined variant paints above the ring, as it
- * does above the border. The light is a comet: a tail that fades in over
- * 28% of the circle and a solid head of 12%. The glow carries a small spread, so it is visible
+ * does above the border. The ring is closed but dimmed (30% of the effect
+ * colour), and the light runs over it as a comet: a tail that brightens over
+ * 28% of the circle and a solid head of 12%. While the light runs, the focus
+ * outline a theme draws on the control is dimmed to 30% so it does not
+ * compete with the ring; it is never removed. The glow carries a small spread, so it is visible
  * beyond a theme outline of a few pixels, and the pulse swells between half
  * and twice the glow.
  * ---------------------------------------------------------------- */
@@ -328,7 +331,7 @@
 	box-sizing: border-box;
 	padding: var(--jgor-flcf7-effect-width);
 	border-radius: calc(var(--jgor-flcf7-radius) + var(--jgor-flcf7-effect-width));
-	background: conic-gradient(from var(--jgor-flcf7-angle), transparent 0 60%, var(--jgor-flcf7-effect-color) 88% 100%);
+	background: conic-gradient(from var(--jgor-flcf7-angle), color-mix(in srgb, var(--jgor-flcf7-effect-color) 30%, transparent) 0 60%, var(--jgor-flcf7-effect-color) 88% 100%);
 	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
 	-webkit-mask-composite: xor;
 	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -340,6 +343,10 @@
 .wpcf7 .jgor-flcf7-sweep:focus-within::before {
 	opacity: 1;
 	animation: jgor-flcf7-sweep var(--jgor-flcf7-effect-duration) linear infinite;
+}
+
+.wpcf7 .jgor-flcf7-sweep .jgor-flcf7-control:focus {
+	outline-color: color-mix(in srgb, currentColor 30%, transparent);
 }
 
 @keyframes jgor-flcf7-sweep {
