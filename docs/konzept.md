@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.11 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.12 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -44,7 +44,7 @@ in beiden Anreden über translate.wordpress.org.
 | Requires Plugins | `contact-form-7` (Header und `readme.txt`) |
 | Plugin URI | `https://github.com/jgorres/floating-labels-for-cf7-plugin` (Repo seit 22.10.2026 privat, Remote `origin`; vor der Einreichung öffentlich stellen) |
 | Lokale Site | `https://floating-labels-for-cf7.gorres.local` (local-sites auf Bodhran, PHP 8.4, WordPress 7.1.3 „nackt“, Twenty Twenty-Five, Admin `jgorres`, Sprache en_US, de_DE installiert), CF7, Plugin Check und Query Monitor per wp-cli, Plugin per Symlink `wp-content/plugins/floating-labels-for-cf7` → `plugin/`; Browser läuft auf Silentium, Hosts-Eintrag dort über `hosts-von-bodhran.sh` |
-| Test-Site Hostsharing | `https://<hs-testsite>`: Paket `<hs-paket>`, Domain-Admin `<hs-admin>`, DB und DB-User `<hs-db>`, PHP 8.4 (`fcgiphpbin`, in HSAdmin gesetzt), Let’s Encrypt. Kopie der lokalen Site über Stufe 6 `local-sites-hostsharing.sh` (Zugangsdaten `~/.config/local-sites/hostsharing/floating-labels-for-cf7.gorres.local.env`); Änderungen nachschieben mit `dateien floating-labels-for-cf7.gorres.local --ueberschreiben`; wp-cli dort mit `php8.4 /home/pacs/<hs-paket>/bin/wp` |
+| Test-Site Hostsharing | `https://<hs-testsite>`: Paket `<hs-paket>`, Domain-Admin `<hs-admin>`, DB und DB-User `<hs-db>`, PHP 8.4 (`fcgiphpbin`, in HSAdmin gesetzt), Let’s Encrypt. Kopie der lokalen Site über Stufe 6 `local-sites-hostsharing.sh` (Zugangsdaten `~/.config/local-sites/hostsharing/floating-labels-for-cf7.gorres.local.env`); Änderungen nachschieben mit `dateien floating-labels-for-cf7.gorres.local --ueberschreiben`; wp-cli dort mit `php8.4 /home/pacs/<hs-paket>/bin/wp` Seit 29.10.2026 mit Basic-Auth: Benutzer `<basic-auth-user>`, Passwort in der lokalen Ablage; `.htpasswd` (bcrypt) außerhalb des Webroots, Block in `<webroot>/.htaccess`; in der Site-env `HS_RSYNC_AUSSCHLUESSE_SITE=".htaccess .htpasswd"`, damit `dateien --ueberschreiben` beides stehen lässt. Abrufe per curl/Playwright mit `-u <basic-auth-user>:…`; WP-Cron per HTTP bekommt 401. |
 | Rechte | Einstellungsseite `manage_options` |
 | Geprüft gegen | CF7 6.2.4 (lokal und Hostsharing seit 29.10.2026, vorher 6.2.3; das Security-Release 6.2.4 und 6.2.4.1 mit FormDataTree 2.0.10 ändern nur Uploads, SWV und FormDataTree, alle Prüfscripte danach ohne Befund), Doku `https://contactform7.com/docs/`. CF7 6.2.3 verlangt für sich WordPress 7.1 und PHP 8.3; `Requires at least` 6.5 und `Requires PHP` 8.1 bleiben trotzdem (Entscheidung 22.10.2026): Das Plugin nutzt nur CF7-API, die es seit 5.x gibt, ältere CF7-Versionen laufen auf WP 6.5 / PHP 8.1 weiter |
 
@@ -1163,8 +1163,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   „Contact“ und Testformulare mit, das Script sichert den Remote-Stand
   vorher). Prüfung nur lesend: per `ssh <hs-admin>` mit `php8.4
   /home/pacs/<hs-paket>/bin/wp --path=…/<webroot>` (`plugin list`, `plugin
-  check`) und per Abruf der Kontaktseite; das Formular-HTML wird nach
-  Normalisierung von URL und Unit-Tag mit der lokalen Seite verglichen.
+  check`) und per Abruf der Kontaktseite (seit 29.10.2026 mit `-u
+  jgorres:…`, Basic-Auth, 2); das Formular-HTML wird nach Normalisierung
+  von URL und Unit-Tag mit der lokalen Seite verglichen.
   22.10.2026, nach dem Fehlerfall erneut mit `dateien`: alle zehn
   Plugin-Dateien md5-identisch, fünf Formulare identisch (Senden-Hülle und
   Fehlertext vorhanden), Plugin Check ohne Befund. 23.10.2026 nach Konzept
@@ -1360,3 +1361,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.9 | 29.10.2026 | Text-Modus an den Code angeglichen (Commit 7e4568f): CF7-Formatter trennt `Text<br />[tag]` in zwei Absätze (5), 7.3 mit zwei Suchstufen (`text_before_wrap()`, `text_in_previous_paragraph()`), `<label>` ohne `for` als Textquelle, Erklärabsatz-Heuristik, Grenzen korrigiert; §13 Testformular (f) und `verify-markup.php` 111; §14 Schritt 10 Teil 1 erledigt |
 | 2.10 | 29.10.2026 | Text-Modus komplett (Commits 16b82f0, a21c14b, 20e5fda): §13 `verify-admin.php` 55 (14 Feldzeilen, Checkbox `mode_text`), `verify-editor.php` 14 Klassen, `verify-editor-js.mjs` 88, ZIP-Stand mit `.pot` 144 (`--slug`); §14 Schritt 10 erledigt bis auf Hostsharing und Sichtprüfung; §2 und §5 CF7 6.2.4 lokal (Security-Release ohne Einfluss, Prüfscripte ohne Befund) |
 | 2.11 | 29.10.2026 | Hostsharing nach Schritt 10 mit `dateien` und `datenbank` nachgezogen (§13, §14; CF7 6.2.4 nun auch remote, §2); Zählung korrigiert: die Kontaktseite trägt sechs CF7-Formulare (A–E und F) |
+| 2.12 | 29.10.2026 | Hostsharing-Testsite mit Basic-Auth (Benutzer `<basic-auth-user>`, `.htpasswd` außerhalb des Webroots, `<webroot>/.htaccess`), Site-env mit `HS_RSYNC_AUSSCHLUESSE_SITE` (neuer Schlüssel in Stufe 6), Gegenprobe per curl mit `-u` (§2, §13) |
