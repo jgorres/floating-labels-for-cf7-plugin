@@ -1,6 +1,6 @@
 <?php
 /**
- * PHPStan stubs for Contact Form 7 (checked against 6.2.3).
+ * PHPStan stubs for Contact Form 7 (checked against 6.2.4).
  *
  * Only the classes, methods and functions this plugin uses. Signatures follow
  * the Contact Form 7 source; return types that Contact Form 7 does not
@@ -44,6 +44,44 @@ class WPCF7_ContactForm {
 	 * @return int
 	 */
 	public function id() {}
+
+	/**
+	 * Returns a new, unsaved contact form from the default template.
+	 *
+	 * @param string|array<string, mixed> $options Options: title, locale.
+	 * @return WPCF7_ContactForm
+	 */
+	public static function get_template( $options = '' ) {}
+
+	/**
+	 * Sets properties (form, mail, mail_2, messages, additional_settings).
+	 *
+	 * @param array<string, mixed> $properties Properties to set.
+	 * @return array<string, mixed> All properties after the change.
+	 */
+	public function set_properties( $properties ) {}
+
+	/**
+	 * Saves the contact form as a post.
+	 *
+	 * @return int Post id, 0 on failure.
+	 */
+	public function save() {}
+
+	/**
+	 * Deletes the contact form permanently.
+	 *
+	 * @return bool
+	 */
+	public function delete() {}
+
+	/**
+	 * Returns the hash of the contact form (used as id in shortcodes).
+	 *
+	 * @param int $length Length of the hash.
+	 * @return string
+	 */
+	public function hash( $length = 7 ) {}
 
 	/**
 	 * Returns the unit-tag of the current rendering (wpcf7-f{id}-p{post}-o{n}).
