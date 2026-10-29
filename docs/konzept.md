@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.9 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.10 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -46,7 +46,7 @@ in beiden Anreden über translate.wordpress.org.
 | Lokale Site | `https://floating-labels-for-cf7.gorres.local` (local-sites auf Bodhran, PHP 8.4, WordPress 7.1.3 „nackt“, Twenty Twenty-Five, Admin `jgorres`, Sprache en_US, de_DE installiert), CF7, Plugin Check und Query Monitor per wp-cli, Plugin per Symlink `wp-content/plugins/floating-labels-for-cf7` → `plugin/`; Browser läuft auf Silentium, Hosts-Eintrag dort über `hosts-von-bodhran.sh` |
 | Test-Site Hostsharing | `https://<hs-testsite>`: Paket `<hs-paket>`, Domain-Admin `<hs-admin>`, DB und DB-User `<hs-db>`, PHP 8.4 (`fcgiphpbin`, in HSAdmin gesetzt), Let’s Encrypt. Kopie der lokalen Site über Stufe 6 `local-sites-hostsharing.sh` (Zugangsdaten `~/.config/local-sites/hostsharing/floating-labels-for-cf7.gorres.local.env`); Änderungen nachschieben mit `dateien floating-labels-for-cf7.gorres.local --ueberschreiben`; wp-cli dort mit `php8.4 /home/pacs/<hs-paket>/bin/wp` |
 | Rechte | Einstellungsseite `manage_options` |
-| Geprüft gegen | CF7 6.2.3 (lokal und Hostsharing), Doku `https://contactform7.com/docs/`. CF7 6.2.3 verlangt für sich WordPress 7.1 und PHP 8.3; `Requires at least` 6.5 und `Requires PHP` 8.1 bleiben trotzdem (Entscheidung 22.10.2026): Das Plugin nutzt nur CF7-API, die es seit 5.x gibt, ältere CF7-Versionen laufen auf WP 6.5 / PHP 8.1 weiter |
+| Geprüft gegen | CF7 6.2.3 (Hostsharing) und 6.2.4 (lokal seit 29.10.2026; das Security-Release 6.2.4 und 6.2.4.1 mit FormDataTree 2.0.10 ändern nur Uploads, SWV und FormDataTree, alle Prüfscripte danach ohne Befund), Doku `https://contactform7.com/docs/`. CF7 6.2.3 verlangt für sich WordPress 7.1 und PHP 8.3; `Requires at least` 6.5 und `Requires PHP` 8.1 bleiben trotzdem (Entscheidung 22.10.2026): Das Plugin nutzt nur CF7-API, die es seit 5.x gibt, ältere CF7-Versionen laufen auf WP 6.5 / PHP 8.1 weiter |
 
 Namensprüfung: „Contact Form 7“ ist eine eingetragene Marke von Rock Lobster
 Inc. Die Trademark-Policy (`contactform7.com/trademark-policy/`) nimmt die
@@ -82,7 +82,7 @@ floating-labels-for-cf7/
 │   ├── assets/css/editor.css              Block-Editor: Farbzeilen der Design-Panels (10.1)
 │   ├── assets/js/block-editor.js          Panels „Floating labels“ (Platzierung und Design) im CF7- und Shortcode-Block, ohne Build-Schritt
 │   ├── assets/js/admin.js                 Farbwähler auf der Einstellungsseite
-│   └── languages/floating-labels-for-cf7.pot  Übersetzungsvorlage (wp i18n make-pot)
+│   └── languages/floating-labels-for-cf7.pot  Übersetzungsvorlage (wp i18n make-pot plugin … --slug=floating-labels-for-cf7)
 ├── tests/
 │   ├── create-test-forms.php         Testformulare und Seite „Contact“ anlegen (wp eval-file)
 │   ├── verify-markup.php             88 PASS/FAIL-Prüfungen für Modul 2 und das Design je Platzierung (wp eval-file)
@@ -190,7 +190,7 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   endet, beginnt einen neuen Absatz. `Text<br />\n[tag]` (alte Vorlage)
   wird zu `<p>Text</p><p>[wrap]</p>`, `Text\n[tag]` zu
   `<p>Text<br>[wrap]</p>`, `Text [tag]` zu `<p>Text [wrap]</p>`; innerhalb
-  eines `<label>` bleibt der Zeilenumbruch ein `<br>` (geprüft mit 6.2.3 am
+  eines `<label>` bleibt der Zeilenumbruch ein `<br>` (geprüft mit 6.2.3 und 6.2.4 am
   29.10.2026, Grundlage von 7.3).
 - **Hooks:** `wpcf7_form_elements` (Filter, erhält das fertige Formular-HTML
   nach `wpautop` und dem Ersetzen der Form-Tags; die Priorität spielt für die
@@ -969,9 +969,10 @@ Tabellen, keine Dateien.
   `dist/floating-labels-for-cf7-<version>.zip`; das ZIP in einen frischen
   Ordner entpacken und `wp plugin check <Ordner> --path=<Site>` laufen
   lassen (`Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens
-  150 Zeichen). Stand 23.10.2026: 16 Dateien, 60 KB (mit Modul 5,
-  Design-Einstellungen, Design je Platzierung, `admin.css`, `editor.css`
-  und Fokus-Effekten), ohne Befund; am 22.10.2026 ebenso
+  150 Zeichen). Stand 29.10.2026: 16 Dateien, 60 KB (mit Modul 5,
+  Design-Einstellungen, Design je Platzierung, `admin.css`, `editor.css`,
+  Fokus-Effekten und Text-Modus; `.pot` 144 Texte, per `--slug` mit
+  korrektem Support-Link), ohne Befund; am 22.10.2026 ebenso
   ohne Befund auf dem Symlink-Ordner der Testsite und auf der
   Hostsharing-Site.
 - Testsite `floating-labels-for-cf7.gorres.local` (CF7, Plugin Check, Query
@@ -1029,14 +1030,16 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   → Shortcode-Attribut per `render_block()`, vorhandenes Attribut bleibt,
   nur ungültige Werte → unverändert; nichts bei `load_css` aus).
   `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
-- `tests/verify-admin.php` prüft Modul 4 ohne Browser (54 Punkte): Menü
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (55 Punkte): Menü
   unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
-  Kontexthilfe (Hook, drei Reiter, escapete Beispiele samt Effekt-Klassen,
+  Kontexthilfe (Hook, drei Reiter, escapete Beispiele samt Effekt- und
+  Text-Modus-Klassen, Hinweis auf die Option im Reiter „Overview“,
   Snippet, Seitenleiste), Farbwähler-Assets und `admin.css` (Grid-Regel
   mit 16em-Spalten) nur auf dem Seiten-Hook, fünf Sektionen
-  und 13 Feldzeilen (Design-Gruppen decken jede Property genau einmal ab),
+  und 14 Feldzeilen (Design-Gruppen decken jede Property genau einmal ab),
   das gerenderte Formular (Ziel `options.php`, Nonce, Defaults, Radios für
-  Variante und Effekt, `for`/`id`,
+  Variante und Effekt, Checkbox `mode_text` unangehakt mit Hinweis auf
+  alte Vorlagen, `for`/`id`,
   escapete Codebeispiele, Snippet in der Textarea, fünf Spaltengruppen
   ohne `<br>` zwischen den Typen, Design-Felder: elf Farbfelder
   mit Picker-Klasse und Hex-Defaults, zehn Größen- und Zeitfelder mit
@@ -1071,17 +1074,18 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Reihenfolge der Einstellungsseite, Typ, Label, wirksamer Wert als
   Platzhalter), Block-Attribut `jgorFlcf7Design` am CF7-Block und in
   `get_block_editor_server_block_settings()`, Script-Datei (CF7-Block,
-  Shortcode-Block, Filter, alle 13 Platzierungsklassen, Design-Attribute,
+  Shortcode-Block, Filter, alle 14 Platzierungsklassen, Design-Attribute,
   Daten-Global, `ColorPalette` und `useSettings` statt
   `PanelColorSettings`, keine `Flex`-Hüllen, Text-Domain an jedem `__()`
   und `_x()`) und kein
   Enqueue ohne registrierten Block (Registry wird wiederhergestellt).
-- `tests/verify-editor-js.mjs` prüft das Editor-Script unter Node (86
+- `tests/verify-editor-js.mjs` prüft das Editor-Script unter Node (88
   Punkte): die `wp.*`-Pakete sind Stubs, `createElement` liefert einfache
   Objekte (Funktionskomponenten wie die Farbzeile werden beim Suchen im
   Baum aufgerufen), `useSettings` liefert eine kleine Palette, die
   Server-Daten sind mit den 22 Properties gestubbt; geprüft
-  werden Filter-Registrierung, Gruppen und Klassen (13, Effekt-Gruppe),
+  werden Filter-Registrierung, Gruppen und Klassen (14, Effekt-Gruppe,
+  Eintrag „Text before the field only“ samt Auswahl),
   `paletteGroups()`,
   `splitClasses()`, `currentValue()`, `withGroupValue()` (ersetzen,
   anhängen, entfernen, Duplikate, fremde Klassen), `shortcodeHtmlClass()`
@@ -1257,18 +1261,22 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    zeigen noch keinen Pflichtstern
    (bei Bedarf per `docs/screenshots-erzeugen.sh` neu).
 10. Text-Modus (7.3) für bestehende Formulare mit der alten CF7-Vorlage,
-    Konzept 2.8 vom 29.10.2026, vor der Veröffentlichung (5.6). Teil 1
-    erledigt am 29.10.2026 (Commit 7e4568f, Konzept 2.9): Option
-    `mode_text` (6), Modul 2 mit zwei Suchstufen, `floating_labels: text`
-    und `jgor-flcf7-mode-text` (7.5), Testformular (f) „FL Test F Old
-    template“ in `tests/create-test-forms.php`, `verify-markup.php` 111
-    Prüfungen, `composer check` und PHPCS auf `tests/` ohne Befund. Befund
-    dabei: der CF7-Formatter trennt `Text<br />[tag]` in zwei Absätze (5),
-    7.3 entsprechend umgeschrieben. Offen: Checkbox in „Label sources“ (9)
-    mit `verify-admin.php`, Eintrag „Text before the field only“ im
-    Block-Panel (10, 14 Platzierungsklassen) mit `verify-editor.php` und
-    `verify-editor-js.mjs`, readme, Kontexthilfe, `.pot`, ZIP, Hostsharing
-    mit `dateien` und `datenbank` (Kontaktseite hat nun sieben Formulare).
+    Konzept 2.8 vom 29.10.2026, vor der Veröffentlichung (5.6). Erledigt am
+    29.10.2026 in vier Teilen: Modul 2 mit zwei Suchstufen, Option
+    `mode_text` (6), `floating_labels: text` und `jgor-flcf7-mode-text`
+    (7.5), Testformular (f) „FL Test F Old template“ (Commit 7e4568f,
+    Konzept 2.9; Befund dabei: der CF7-Formatter trennt `Text<br />[tag]`
+    in zwei Absätze, 5); Checkbox „Text before the field“ in „Label
+    sources“, Sektions-Intro, Hilfe „Overview“ und Beispiele (9, Commit
+    16b82f0); Eintrag „Text before the field only“ im Block-Panel (10, 14
+    Platzierungsklassen, Commit a21c14b); readme (Beschreibung, Features,
+    Per form/placement, Installation, FAQ „My forms come from an older
+    Contact Form 7 …“), `.pot` 144 Texte, ZIP 16 Dateien, Plugin Check ohne
+    Befund (Commit 20e5fda). Prüfscripte 111/55/29/27/88 PASS, `composer
+    check` und PHPCS auf `tests/` ohne Befund; nach dem Update der lokalen
+    Site auf CF7 6.2.4 alle PHP-Prüfscripte erneut ohne Befund. Offen:
+    Hostsharing mit `dateien` und `datenbank` (Kontaktseite hat nun sieben
+    Formulare), Sichtprüfung des Text-Modus im Frontend (Nutzer).
 
 ## 15. Offen
 
@@ -1340,3 +1348,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.7 | 23.10.2026 | Zweite Sichtprüfung: Zeile „Glow and running light“ mit vier Spalten (`jgor-flcf7-columns--4`, 9), 8 px Abstand zwischen Farbindikator und Name in den Farbzeilen (10.1), Panel „Floating labels“ statt „Floating Labels“ (10, readme, Kontexthilfe, Screenshot-Script); `.pot` neu |
 | 2.8 | 29.10.2026 | Text-Modus für bestehende Formulare ohne Label und Placeholder (alte CF7-Vorlage `<p>Text<br>[tag]</p>`): neuer Abschnitt 7.3, die bisherigen 7.3–7.6 werden 7.4–7.7 (Verweise angepasst); Option `mode_text` Default aus (6), Schritt 5 in 7, `floating_labels: text` und `jgor-flcf7-mode-text` (7.5), Checkbox (9), Block-Panel (10), §14 Schritt 10 offen für 1.0; §15: Erweiterung 1.1 „Bedingtes Laden des Stylesheets“ (Option, Erkennung per `has_shortcode()`/`has_block()`, Sicherheitsnetz aus Modul 2, Default bleibt die CF7-Politik) und Entscheidung gegen das Umschreiben gespeicherter Vorlagen; keine Codeänderung |
 | 2.9 | 29.10.2026 | Text-Modus an den Code angeglichen (Commit 7e4568f): CF7-Formatter trennt `Text<br />[tag]` in zwei Absätze (5), 7.3 mit zwei Suchstufen (`text_before_wrap()`, `text_in_previous_paragraph()`), `<label>` ohne `for` als Textquelle, Erklärabsatz-Heuristik, Grenzen korrigiert; §13 Testformular (f) und `verify-markup.php` 111; §14 Schritt 10 Teil 1 erledigt |
+| 2.10 | 29.10.2026 | Text-Modus komplett (Commits 16b82f0, a21c14b, 20e5fda): §13 `verify-admin.php` 55 (14 Feldzeilen, Checkbox `mode_text`), `verify-editor.php` 14 Klassen, `verify-editor-js.mjs` 88, ZIP-Stand mit `.pot` 144 (`--slug`); §14 Schritt 10 erledigt bis auf Hostsharing und Sichtprüfung; §2 und §5 CF7 6.2.4 lokal (Security-Release ohne Einfluss, Prüfscripte ohne Befund) |
