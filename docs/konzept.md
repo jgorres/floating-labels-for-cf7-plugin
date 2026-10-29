@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.8 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.9 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -185,6 +185,13 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
 - **Standardvorlage:** `<label> Your name\n    [text* your-name autocomplete:name] </label>`.
   CF7 wendet `wpautop` an (`WPCF7_AUTOP`), gerendert also
   `<p><label> Your name<br>\n<span class="wpcf7-form-control-wrap" …>…</span> </label></p>`.
+  `wpcf7_autop()` arbeitet seit CF7 5.x mit `WPCF7_HTMLFormatter`
+  (Form-Tags vorher durch Platzhalter ersetzt): eine Zeile, die mit `<br />`
+  endet, beginnt einen neuen Absatz. `Text<br />\n[tag]` (alte Vorlage)
+  wird zu `<p>Text</p><p>[wrap]</p>`, `Text\n[tag]` zu
+  `<p>Text<br>[wrap]</p>`, `Text [tag]` zu `<p>Text [wrap]</p>`; innerhalb
+  eines `<label>` bleibt der Zeilenumbruch ein `<br>` (geprüft mit 6.2.3 am
+  29.10.2026, Grundlage von 7.3).
 - **Hooks:** `wpcf7_form_elements` (Filter, erhält das fertige Formular-HTML
   nach `wpautop` und dem Ersetzen der Form-Tags; die Priorität spielt für die
   Reihenfolge zu `wpautop` keine Rolle), `WPCF7_ContactForm::get_current()`
@@ -377,26 +384,52 @@ text`, 7.5), prüft das Ergebnis. Greift als letzte Stufe, wenn 7.2 und 7.1
 nichts liefern. Die gespeicherte Vorlage bleibt unverändert, der Umbau
 passiert wie bei den anderen Modi nur beim Rendern.
 
-- Vom Wrap aus rückwärts über die Geschwisterknoten im selben Elternknoten
-  (`p`, `div` oder das `<form>` selbst, wenn `wpautop` abgeschaltet ist):
-  zuerst Whitespace-Textknoten, dann höchstens ein `<br>`, dann Textknoten
-  und die Inline-Elemente aus 7.2 ohne Steuerelement darin, bis zum Anfang
-  des Elternknotens, zu einem weiteren `<br>`, zu einem anderen Wrap oder
-  zu einem sonstigen Element. Der gesammelte Text (Whitespace
-  zusammengezogen wie in 7, Schritt 5) wird Label-Text; leer → Feld
-  überspringen. Nur Klartext wie in 7.1, Inline-Markup geht verloren.
-- Die eingesammelten Knoten (Text, Inline-Elemente und das `<br>` direkt
-  vor dem Wrap) werden entfernt; ein `<br>`, das als Grenze zum vorigen Feld
-  diente, bleibt, damit die Felder untereinander stehen. Dann Umbau nach
-  7.7, das Label sitzt wie sonst im Wrap. `<p>Name<br>[a]<br>Email<br>[b]</p>`
-  aus `wpautop` ergibt die Labels „Name“ und „Email“ und `<p>[a]<br>[b]</p>`.
-- Nicht angefasst: Text in einem eigenen Absatz oder hinter einem
-  Block-Element, Text hinter dem Feld, ein zweiter Wrap ohne `<br>` davor
-  (`<p>Name [a] [b]</p>`: „Name“ geht an [a], [b] bleibt ohne Label).
-- Zusätze wie „(required)“ aus alten Vorlagen bleiben im Label-Text und
-  stehen neben dem Pflichtstern; der Filter `jgor_flcf7_label_text` kann
-  sie entfernen, oder der Pflichtstern wird für das Formular abgeschaltet.
-- Kein neues CSS, keine Umwandlung gespeicherter Vorlagen (15).
+Der CF7-Formatter (5) trennt `Text<br />\n[tag]` in zwei Absätze
+`<p>Text</p><p>[wrap]</p>`; `Text\n[tag]` und `Text [tag]` bleiben mit dem
+Wrap in einem Absatz. Deshalb zwei Suchstufen (`preceding_text()`), beide
+nur, wenn der Elternknoten des Wraps ein `p` oder `div` ist (der
+Wurzelknoten des Fragments ist ein `div`; in einem `<label>` gilt 7.2):
+
+1. **Text vor dem Wrap im selben Elternknoten** (`text_before_wrap()`):
+   vom Wrap aus rückwärts über die Geschwisterknoten: zuerst
+   Whitespace-Textknoten, dann höchstens ein `<br>`, dann Textknoten und
+   Textquellen-Elemente bis zum Anfang des Elternknotens, zu einem weiteren
+   `<br>`, zu einem anderen Wrap oder zu einem sonstigen Element; Kommentare
+   werden übersprungen und bleiben stehen. Die eingesammelten Knoten (samt
+   dem `<br>` direkt vor dem Wrap) entfallen; ein `<br>`, das die Grenze zum
+   vorigen Feld bildete, bleibt, damit die Felder untereinander stehen.
+   Deckt `<p>Text<br>[wrap]</p>` (`Text\n[tag]` in der Vorlage),
+   `<p>Text [wrap]</p>` und Vorlagen ohne `wpautop` ab.
+2. **Absatz davor** (`text_in_previous_paragraph()`): nur wenn Stufe 1
+   nichts fand, der Elternknoten ein `<p>` ist und außer dem Wrap nur
+   Whitespace und Kommentare enthält. Das vorige Element-Geschwister
+   (Whitespace und Kommentare dazwischen übersprungen) muss ein `<p>` sein,
+   das nur aus Text, `<br>` (wird zu einem Leerzeichen), Kommentaren und
+   Textquellen-Elementen besteht (`loose_text()`); sein Text wird
+   Label-Text, der ganze Absatz entfällt. Deckt die alte Vorlage ab. Ein
+   Erklärabsatz direkt vor einem Feld ohne eigene Beschriftung wird dabei
+   ebenfalls genommen – Teil der Heuristik, deshalb Default aus; Abhilfe
+   `nofloat` am Feld oder `floating_labels: off` am Formular.
+
+Textquellen-Elemente (`is_text_source()`): die Inline-Elemente aus 7.2 und
+ein `<label>` ohne `for`-Attribut (weder umschließend noch verknüpft),
+jeweils ohne Steuerelement darin; das nackte `<label>` entfällt zugunsten
+des echten `<label for>` im Wrap. Der gesammelte Text wird wie in 7,
+Schritt 5, zusammengezogen; leer → Feld überspringen. Nur Klartext wie in
+7.1, Inline-Markup geht verloren. Der Umbau folgt 7.7, das Label sitzt wie
+sonst im Wrap.
+
+Grenzen: Text hinter dem Feld zählt nie; ein vorangehendes Block-Element,
+`<label for>`, Select oder ein anderer Wrap bildet die Grenze und bleibt
+stehen, nur der Text dahinter zählt. Ein zweiter Wrap ohne `<br>` davor
+(`<p>Name [a] [b]</p>`: „Name“ geht an [a], [b] bleibt ohne Label) und ein
+Absatz vor einem Absatz mit zwei Wraps bleiben ohne Label, ebenso Wraps in
+Tabellen, Listen oder `<fieldset>` (Elternknoten weder `p` noch `div`).
+
+Zusätze wie „(required)“ aus alten Vorlagen bleiben im Label-Text und
+stehen neben dem Pflichtstern; der Filter `jgor_flcf7_label_text` kann sie
+entfernen, oder der Pflichtstern wird für das Formular abgeschaltet. Kein
+neues CSS, keine Umwandlung gespeicherter Vorlagen (15).
 
 ### 7.4 Feld-ID
 
@@ -951,7 +984,9 @@ Tabellen, keine Dateien.
   `<label for>` mit `id:`, `nofloat`, umschließendes Label mit `<strong>`,
   `tel`, `number` mit `min:`/`max:`, Select, Checkbox, Datei), (d) „FL Test D
   Off“ (b mit `floating_labels: off`), (e) Formular (b) ein zweites Mal auf
-  derselben Seite.
+  derselben Seite, (f) „FL Test F Old template“ (alte CF7-Vorlage mit
+  „(required)“, zwei Felder ohne `<p>`, `Website [url]` in einer Zeile,
+  Erklärabsatz, `<label>Nickname</label>` ohne `for`; Text-Modus 7.3).
 
 ```bash
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/create-test-forms.php
@@ -963,7 +998,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 ```
 
 - `tests/verify-markup.php` rendert die Formulare per `form_html()` und
-  prüft 88 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
+  prüft 111 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
   Placeholder-Modus, Ersatz des umschließenden Labels, Label-Text aus der
   Vorlage, Varianten- und Textarea-Klasse, IDs aus dem Unit-Tag, `for` =
   `id`, `placeholder=" "`, unberührte Felder (Submit, `nofloat`, Select,
@@ -974,6 +1009,12 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   normalisiert), zwei Instanzen mit verschiedenen IDs, zweites Rendering
   von (c) ohne CF7-`id` (Label über die `id:`-Option gefunden, ID aus dem
   Unit-Tag, `<br>` entfernt, vier Labels), UTF-8 und Entities,
+  Text-Modus an (f) (Default aus → byteidentisch, `floating_labels: text`
+  mit sieben Labels, fünf entfernte Textabsätze von 14, Erklärabsatz
+  unberührt, Label ohne `for` ersetzt, `jgor-flcf7-mode-text`, `mode-label`
+  übersteuert, (a) und (b) unberührt, Option an mit Vorrang des
+  Label-Modus, Filter `jgor_flcf7_form_settings` und
+  `jgor_flcf7_label_text`),
   Steuerung je Formular (`floating_labels_style`, `_marker`, `_types`, leere
   Liste, ungültiger Wert), je Platzierung (`html_class`-Klassen samt
   Rangfolge über das Formular und `jgor-flcf7-on` gegen `floating_labels:
@@ -1216,18 +1257,18 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
    zeigen noch keinen Pflichtstern
    (bei Bedarf per `docs/screenshots-erzeugen.sh` neu).
 10. Text-Modus (7.3) für bestehende Formulare mit der alten CF7-Vorlage,
-    Konzept 2.8 vom 29.10.2026, vor der Veröffentlichung (5.6): Option
-    `mode_text` (6), Modul 2 als letzte Stufe in Schritt 5 mit
-    `floating_labels: text` und `jgor-flcf7-mode-text` (7.5), Checkbox in
-    „Label sources“ (9), Eintrag „Text before the field only“ im Block-Panel
-    (10, 14 Platzierungsklassen), Testformular (f) „FL Test F Old template“
-    in `tests/create-test-forms.php` (`<p>Text<br>[tag]</p>`, zwei Felder in
-    einem Absatz, Text ohne `<br>`, Erklärtext in eigenem Absatz,
-    „(required)“ im Text) und Prüfungen in `verify-markup.php` (Default aus
-    → unverändert, Option an, `floating_labels: text`, Klasse, Filter),
-    `verify-admin.php`, `verify-editor.php`, `verify-editor-js.mjs`; readme,
-    Kontexthilfe, `.pot`, ZIP, Hostsharing mit `dateien` und `datenbank`.
-    Offen.
+    Konzept 2.8 vom 29.10.2026, vor der Veröffentlichung (5.6). Teil 1
+    erledigt am 29.10.2026 (Commit 7e4568f, Konzept 2.9): Option
+    `mode_text` (6), Modul 2 mit zwei Suchstufen, `floating_labels: text`
+    und `jgor-flcf7-mode-text` (7.5), Testformular (f) „FL Test F Old
+    template“ in `tests/create-test-forms.php`, `verify-markup.php` 111
+    Prüfungen, `composer check` und PHPCS auf `tests/` ohne Befund. Befund
+    dabei: der CF7-Formatter trennt `Text<br />[tag]` in zwei Absätze (5),
+    7.3 entsprechend umgeschrieben. Offen: Checkbox in „Label sources“ (9)
+    mit `verify-admin.php`, Eintrag „Text before the field only“ im
+    Block-Panel (10, 14 Platzierungsklassen) mit `verify-editor.php` und
+    `verify-editor-js.mjs`, readme, Kontexthilfe, `.pot`, ZIP, Hostsharing
+    mit `dateien` und `datenbank` (Kontaktseite hat nun sieben Formulare).
 
 ## 15. Offen
 
@@ -1298,3 +1339,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.6 | 23.10.2026 | Nachbesserungen aus der Sichtprüfung (Commits a89fbe0, b655073, 87c17f9): Block-Panels ohne `Flex`-Hüllen (Abstand des Inspectors), „Floating labels: colours“ als einklappbares `PanelBody` mit eigenen Farbzeilen (`useSettings`, `Dropdown`, `ColorPalette`) statt `PanelColorSettings` (ToolsPanel in WP 7.1), `assets/css/editor.css` (10, 10.1); Einstellungsseite mit `assets/css/admin.css` und 16em-Spalten für Typen, Farben, Maße, Animation und Effekt (9); `required_marker` Default true (6); Fokus-Effekte: Option `effect`, `floating_labels_effect`, `jgor-flcf7-effect-*`, Wrap-Klasse `jgor-flcf7-<effect>`, Properties `effect-color/-size/-width/-duration`, CSS mit `box-shadow`, Keyframes, `conic-gradient` + `@property`, Reduced Motion stehend (6, 7.4, 7.6, 8, 9.2, 10); §3, §4, §13 (Prüfungen 88/54/29/27/86, ZIP 16 Dateien 60 KB, Screenshots 5/6), §14 Schritt 9, §15; readme, Kontexthilfe; `.pot` 140 Texte |
 | 2.7 | 23.10.2026 | Zweite Sichtprüfung: Zeile „Glow and running light“ mit vier Spalten (`jgor-flcf7-columns--4`, 9), 8 px Abstand zwischen Farbindikator und Name in den Farbzeilen (10.1), Panel „Floating labels“ statt „Floating Labels“ (10, readme, Kontexthilfe, Screenshot-Script); `.pot` neu |
 | 2.8 | 29.10.2026 | Text-Modus für bestehende Formulare ohne Label und Placeholder (alte CF7-Vorlage `<p>Text<br>[tag]</p>`): neuer Abschnitt 7.3, die bisherigen 7.3–7.6 werden 7.4–7.7 (Verweise angepasst); Option `mode_text` Default aus (6), Schritt 5 in 7, `floating_labels: text` und `jgor-flcf7-mode-text` (7.5), Checkbox (9), Block-Panel (10), §14 Schritt 10 offen für 1.0; §15: Erweiterung 1.1 „Bedingtes Laden des Stylesheets“ (Option, Erkennung per `has_shortcode()`/`has_block()`, Sicherheitsnetz aus Modul 2, Default bleibt die CF7-Politik) und Entscheidung gegen das Umschreiben gespeicherter Vorlagen; keine Codeänderung |
+| 2.9 | 29.10.2026 | Text-Modus an den Code angeglichen (Commit 7e4568f): CF7-Formatter trennt `Text<br />[tag]` in zwei Absätze (5), 7.3 mit zwei Suchstufen (`text_before_wrap()`, `text_in_previous_paragraph()`), `<label>` ohne `for` als Textquelle, Erklärabsatz-Heuristik, Grenzen korrigiert; §13 Testformular (f) und `verify-markup.php` 111; §14 Schritt 10 Teil 1 erledigt |
