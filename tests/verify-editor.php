@@ -108,7 +108,7 @@ $jgor_flcf7_js = file_exists( $jgor_flcf7_file ) ? (string) file_get_contents( $
 jgor_flcf7_check( 'file: assets/js/block-editor.js exists', '' !== $jgor_flcf7_js );
 jgor_flcf7_check( 'file: targets the Contact Form 7 block and the filter editor.BlockEdit', str_contains( $jgor_flcf7_js, "'" . $jgor_flcf7_block . "'" ) && str_contains( $jgor_flcf7_js, "'editor.BlockEdit'" ) );
 jgor_flcf7_check( 'file: targets the Shortcode block with a [contact-form-7] shortcode', str_contains( $jgor_flcf7_js, "'core/shortcode'" ) && str_contains( $jgor_flcf7_js, 'contact-form-7\\b' ) );
-$jgor_flcf7_classes = array( 'jgor-flcf7-on', 'jgor-flcf7-off', 'jgor-flcf7-mode-placeholder', 'jgor-flcf7-mode-label', 'jgor-flcf7-marker-on', 'jgor-flcf7-marker-off' );
+$jgor_flcf7_classes = array( 'jgor-flcf7-on', 'jgor-flcf7-off', 'jgor-flcf7-mode-placeholder', 'jgor-flcf7-mode-label', 'jgor-flcf7-mode-text', 'jgor-flcf7-marker-on', 'jgor-flcf7-marker-off' );
 foreach ( JGOR_FLCF7_Settings::STYLES as $jgor_flcf7_style_name ) {
 	$jgor_flcf7_classes[] = JGOR_FLCF7_Markup::HTML_CLASS_STYLE_PREFIX . $jgor_flcf7_style_name;
 }
@@ -121,7 +121,7 @@ foreach ( $jgor_flcf7_classes as $jgor_flcf7_class ) {
 		$jgor_flcf7_missing[] = $jgor_flcf7_class;
 	}
 }
-jgor_flcf7_check( 'file: every placement class of the concept (13) is offered', 13 === count( $jgor_flcf7_classes ) && empty( $jgor_flcf7_missing ), implode( ', ', $jgor_flcf7_missing ) );
+jgor_flcf7_check( 'file: every placement class of the concept (14) is offered', 14 === count( $jgor_flcf7_classes ) && empty( $jgor_flcf7_missing ), implode( ', ', $jgor_flcf7_missing ) );
 jgor_flcf7_check( 'file: design attributes, data global and colour palette used', str_contains( $jgor_flcf7_js, "'" . JGOR_FLCF7_Placement_Design::BLOCK_ATTRIBUTE . "'" ) && str_contains( $jgor_flcf7_js, "'" . JGOR_FLCF7_Placement_Design::SHORTCODE_ATTRIBUTE . "'" ) && str_contains( $jgor_flcf7_js, 'window.' . JGOR_FLCF7_Editor::DATA_GLOBAL ) && str_contains( $jgor_flcf7_js, 'wp.components.ColorPalette' ) && str_contains( $jgor_flcf7_js, 'wp.blockEditor.useSettings' ) );
 jgor_flcf7_check( 'file: collapsible panels only, no PanelColorSettings and no Flex wrappers', ! str_contains( $jgor_flcf7_js, 'PanelColorSettings' ) && ! str_contains( $jgor_flcf7_js, 'wp.components.Flex' ) );
 // __( 'text' ) and _x( 'text', 'context' ) without the domain, and the number of calls against the number of domain arguments.

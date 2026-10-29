@@ -187,18 +187,19 @@ check( 'api: window.jgorFlcf7BlockEditor exposed', !! api && typeof api.withGrou
 // Filter registration.
 check( 'filter: editor.BlockEdit registered once under jgor-flcf7/block-editor', filters.length === 1 && filters[ 0 ].hook === 'editor.BlockEdit' && filters[ 0 ].namespace === 'jgor-flcf7/block-editor' && typeof filters[ 0 ].callback === 'function' );
 
-// Groups and classes (concept, section 7.4).
+// Groups and classes (concept, section 7.5).
 const groups = api.GROUPS;
 const byKey = Object.fromEntries( groups.map( ( group ) => [ group.key, group ] ) );
 check( 'groups: enabled, mode, style, effect, marker', groups.map( ( group ) => group.key ).join( ',' ) === 'enabled,mode,style,effect,marker' );
 check( 'groups: first option of every group is the empty default', groups.every( ( group ) => group.options[ 0 ].value === '' && group.options[ 0 ].label === 'Default' ) );
+check( 'groups: label source offers labels, placeholders and text before the field', byKey.mode.options.map( ( option ) => option.value ).join( ',' ) === ',jgor-flcf7-mode-label,jgor-flcf7-mode-placeholder,jgor-flcf7-mode-text' && byKey.mode.options[ 3 ].label === 'Text before the field only' );
 const classes = groups.flatMap( ( group ) => group.options.map( ( option ) => option.value ) ).filter( ( value ) => value !== '' ).sort();
 const expected = [
 	'jgor-flcf7-effect-glow', 'jgor-flcf7-effect-none', 'jgor-flcf7-effect-pulse', 'jgor-flcf7-effect-sweep',
-	'jgor-flcf7-marker-off', 'jgor-flcf7-marker-on', 'jgor-flcf7-mode-label', 'jgor-flcf7-mode-placeholder',
+	'jgor-flcf7-marker-off', 'jgor-flcf7-marker-on', 'jgor-flcf7-mode-label', 'jgor-flcf7-mode-placeholder', 'jgor-flcf7-mode-text',
 	'jgor-flcf7-off', 'jgor-flcf7-on', 'jgor-flcf7-style-filled', 'jgor-flcf7-style-minimal', 'jgor-flcf7-style-outlined',
 ];
-check( 'groups: exactly the thirteen placement classes', classes.join( ' ' ) === expected.join( ' ' ), classes.join( ' ' ) );
+check( 'groups: exactly the fourteen placement classes', classes.join( ' ' ) === expected.join( ' ' ), classes.join( ' ' ) );
 
 // Helpers.
 check( 'splitClasses: trims and splits on whitespace', api.splitClasses( '  a \t b\n' ).join( ',' ) === 'a,b' );
@@ -286,6 +287,8 @@ selects[ 3 ].props.onChange( 'jgor-flcf7-effect-glow' );
 check( 'change: focus effect -> class appended', saved.htmlClass === 'custom jgor-flcf7-style-filled jgor-flcf7-effect-glow' );
 selects[ 2 ].props.onChange( '' );
 check( 'change: default -> class removed', saved.htmlClass === 'custom' );
+selects[ 1 ].props.onChange( 'jgor-flcf7-mode-text' );
+check( 'change: label source "Text before the field only" -> class appended', saved.htmlClass === 'custom jgor-flcf7-style-filled jgor-flcf7-mode-text' );
 
 // Design panels on the Contact Form 7 block: collapsible PanelBody each.
 check( 'design: five PanelBody panels: "Floating labels", colours, sizes, animation, focus effect; the design panels closed', panelBodies.length === 5 && panelBodies.slice( 1 ).map( ( body ) => body.props.title ).join( '|' ) === 'Floating labels: colours|Floating labels: sizes|Floating labels: animation|Floating labels: focus effect' && panelBodies.slice( 1 ).every( ( body ) => body.props.initialOpen === false ) );

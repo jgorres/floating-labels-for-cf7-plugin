@@ -8,7 +8,7 @@
  * The script hooks into the filter editor.BlockEdit and adds the panel
  * "Floating labels" with five selects (on/off, label source, variant,
  * focus effect, required marker), stored as placement classes of the concept (section
- * 7.4) in the block attribute htmlClass or the shortcode attribute
+ * 7.5) in the block attribute htmlClass or the shortcode attribute
  * html_class, and the panels "Floating labels: colours", "sizes" and
  * "animation" with the design values of this placement, stored in the block
  * attribute jgorFlcf7Design or the shortcode attribute jgor_flcf7_design

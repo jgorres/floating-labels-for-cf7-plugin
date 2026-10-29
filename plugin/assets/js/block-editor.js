@@ -169,7 +169,7 @@
 	];
 
 	/**
-	 * Groups of placement classes, one select each (concept, section 7.4).
+	 * Groups of placement classes, one select each (concept, section 7.5).
 	 *
 	 * The empty value means "no class of this group": the settings of the
 	 * site and of the form apply. Within one group the last class wins on
@@ -193,7 +193,8 @@
 			options: [
 				{ value: '', label: __( 'Default', 'floating-labels-for-cf7' ) },
 				{ value: 'jgor-flcf7-mode-label', label: __( 'Form template labels only', 'floating-labels-for-cf7' ) },
-				{ value: 'jgor-flcf7-mode-placeholder', label: __( 'Placeholders only', 'floating-labels-for-cf7' ) }
+				{ value: 'jgor-flcf7-mode-placeholder', label: __( 'Placeholders only', 'floating-labels-for-cf7' ) },
+				{ value: 'jgor-flcf7-mode-text', label: __( 'Text before the field only', 'floating-labels-for-cf7' ) }
 			]
 		},
 		{
