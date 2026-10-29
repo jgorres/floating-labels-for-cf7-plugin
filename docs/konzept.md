@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.14 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.15 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -68,7 +68,7 @@ floating-labels-for-cf7/
 ├── plugin/
 │   ├── floating-labels-for-cf7.php   Header, Konstanten, Laden der Module
 │   ├── readme.txt                    WP.org-Readme: Stable tag, Tested up to, FAQ, Changelog
-│   ├── uninstall.php                 löscht die Option
+│   ├── uninstall.php                 löscht die Option und die Beispielseite (9.3)
 │   ├── includes/
 │   │   ├── class-jgor-flcf7-plugin.php    Bootstrap: CF7 vorhanden?, Hooks, Hinweis
 │   │   ├── class-jgor-flcf7-settings.php  Defaults, Lesen und Sanitize der Option, Filter
@@ -76,7 +76,8 @@ floating-labels-for-cf7/
 │   │   ├── class-jgor-flcf7-assets.php    Modul 3: CSS einbinden
 │   │   ├── class-jgor-flcf7-admin.php     Modul 4: Einstellungsseite
 │   │   ├── class-jgor-flcf7-editor.php    Modul 5: Block-Seitenleiste (Editor-Script und Daten laden)
-│   │   └── class-jgor-flcf7-placement-design.php  Modul 5, Server: Design je Platzierung (Block-Attribut, Shortcode-Attribut, style am Wrapper)
+│   │   ├── class-jgor-flcf7-placement-design.php  Modul 5, Server: Design je Platzierung (Block-Attribut, Shortcode-Attribut, style am Wrapper)
+│   │   └── class-jgor-flcf7-samples.php   Modul 6: Beispielseite mit Formularen, Box und Nachfrage (9.3)
 │   ├── assets/css/floating-labels.css     Frontend (eine Datei, alle Varianten, Fokus-Effekte)
 │   ├── assets/css/admin.css               Einstellungsseite: Spalten der Feld-Gruppen (9)
 │   ├── assets/css/editor.css              Block-Editor: Farbzeilen der Design-Panels (10.1)
@@ -88,8 +89,9 @@ floating-labels-for-cf7/
 │   ├── verify-markup.php             88 PASS/FAIL-Prüfungen für Modul 2 und das Design je Platzierung (wp eval-file)
 │   ├── verify-admin.php              54 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
 │   ├── verify-design.php             29 PASS/FAIL-Prüfungen für die Design-Einstellungen (wp eval-file)
+│   ├── verify-samples.php            PASS/FAIL-Prüfungen für die Beispielseite (wp eval-file, Schritt 12)
 │   ├── verify-editor.php             27 PASS/FAIL-Prüfungen für Modul 5, Enqueue und Block-Attribut (wp eval-file)
-│   └── verify-editor-js.mjs          86 PASS/FAIL-Prüfungen für das Editor-Script (node)
+│   └── verify-editor-js.mjs          99 PASS/FAIL-Prüfungen für das Editor-Script (node)
 ├── docs/
 │   ├── konzept.md                    dieses Dokument
 │   ├── assets-erzeugen.py            Icon (SVG und APNG) und Banner (APNG), Pillow
@@ -151,7 +153,8 @@ WordPress (Abschnitt 13).
 - **Entwickler-Filter:** `jgor_flcf7_settings` (Konfiguration aus Code),
   `jgor_flcf7_form_settings` (je Rendering), `jgor_flcf7_enabled` (je
   Formular), `jgor_flcf7_label_text` (je Feld), `jgor_flcf7_field_types`.
-- **Schlank:** Eine Option (`jgor_flcf7_settings`, autoload), eine
+- **Schlank:** Eine Option (`jgor_flcf7_settings`, autoload; dazu
+  `jgor_flcf7_samples` nur, solange die Beispielseite aus 9.3 angelegt ist), eine
   CSS-Datei, keine Tabellen, keine Transients, kein Cron. Der Umbau läuft
   einmal je gerendertem Formular auf einem kleinen HTML-Fragment.
 
@@ -242,7 +245,8 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   `JGOR_FLCF7_FILE`, `JGOR_FLCF7_PATH`, `JGOR_FLCF7_URL`, Laden der Klassen
   aus `includes/` (mit `file_exists()`, fehlende Module werden übersprungen),
   Start auf `plugins_loaded` mit Priorität 20 (nach CF7), Aktivierungs-Hook
-  mit PHP-Prüfung und `ensure_option()`.
+  mit PHP-Prüfung, `ensure_option()` und dem Transient für die Nachfrage
+  nach der Beispielseite (9.3).
 - `JGOR_FLCF7_Plugin::instance()->init()`: prüft `class_exists(
   'WPCF7_ContactForm' )` und `class_exists( 'DOMDocument' )`. Fehlt CF7, zeigt
   das Plugin einen Admin-Hinweis (`wp_admin_notice()`, nur für
@@ -255,8 +259,8 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   Sanitize-Callback auch für `update_option()` in Code und WP-CLI greift. Die
   Module 2 und 3 sowie der Server-Teil von Modul 5
   (`JGOR_FLCF7_Placement_Design`, 10.1) werden im Bootstrap auf jeder
-  Anfrage gestartet, Modul 4 und das Editor-Script von Modul 5 nur bei
-  `is_admin()`.
+  Anfrage gestartet, Modul 4, Modul 6 (9.3) und das Editor-Script von
+  Modul 5 nur bei `is_admin()`.
 - `JGOR_FLCF7_Settings` (Singleton `instance()`): Konstanten `OPTION`,
   `GROUP`, `BASE_TYPES` (text, email, url, tel, number, textarea), `STYLES`,
   `EFFECTS` (none, glow, pulse, sweep);
@@ -830,6 +834,84 @@ Animation sollen ohne CSS einstellbar sein.
   (10.1); sie werden als `style`-Attribut am Wrapper des Formulars ausgegeben
   und gewinnen gegen Option und Inline-Regel.
 
+### 9.3 Beispielseite (Modul 6, `class-jgor-flcf7-samples.php`)
+
+Auf Wunsch des Nutzers vom 29.10.2026 (Konzept 2.15): eine optionale
+Beispielseite mit Formularen, die die Optionen des Plugins zeigen – zum
+Ausprobieren nach der Installation, jederzeit wieder entfernbar.
+
+- **Inhalt:** Seite „Testpage Floating Labels for CF7“, Slug
+  `testpage-floating-labels-for-cf7`, Status `private` (nur angemeldete
+  Benutzer mit `read_private_pages` sehen sie; auf Live-Sites keine
+  öffentliche Spam-Fläche, Veröffentlichen bleibt dem Nutzer überlassen).
+  Sieben Formulare, Titel „FL Test <Name> - may be deleted“, alle mit
+  `skip_mail: on` in den Additional Settings (kein Mailversand):
+
+| Name | Vorlage | Additional Settings | Zeigt |
+| --- | --- | --- | --- |
+| Default template | CF7-Standardvorlage (`WPCF7_ContactForm::get_template()`) | – | Label-Modus, Variante und Effekt der Einstellungsseite |
+| Placeholders | Felder mit `placeholder`-Option | – | Placeholder-Modus |
+| Old template | `<p>Text<br />[tag]</p>` wie vor CF7 5.4 | `floating_labels: text` | Text-Modus (7.3) unabhängig von der Option |
+| Filled and glow | wie Default | `floating_labels_style: filled`, `floating_labels_effect: glow` | Variante Filled, Effekt Glow |
+| Minimal and running light | wie Placeholders | `floating_labels_style: minimal`, `floating_labels_effect: sweep`, `floating_labels_marker: off` | Variante Minimal, Effekt Sweep, ohne Pflichtstern |
+| Mixed | verknüpftes `<label for>`, `nofloat`, `<strong>` im Label, `tel`, `number`, Select, Checkbox, Datei | `floating_labels_effect: pulse` | Grenzen des Umbaus, Effekt Puls |
+| Off | wie Placeholders | `floating_labels: off` | Formular ohne Floating Labels |
+
+  Die Seite: je Formular eine Überschrift (H2), ein Absatz mit einem Satz
+  Erklärung und der CF7-Block (`contact-form-7/contact-form-selector` mit
+  `id` und `title`); am Ende zwei Platzierungsbeispiele mit dem Formular
+  „Default template“: ein CF7-Block mit `htmlClass`
+  `jgor-flcf7-style-filled jgor-flcf7-effect-glow` und `jgorFlcf7Design`
+  (`border-color`, `font-size`) sowie ein Shortcode-Block mit
+  `html_class="jgor-flcf7-style-minimal"` und
+  `jgor_flcf7_design="border-color:#0a7d3e;font-size:1.1em"` (10, 10.1).
+  Überschriften und Erklärungen übersetzbar (Text-Domain), die
+  Formularvorlagen englisch.
+- **Option** `jgor_flcf7_samples` (nicht autoload): `page` (ID) und `forms`
+  (IDs in der Reihenfolge der Tabelle). Sie existiert nur, solange die
+  Beispielseite angelegt ist, und ist die einzige Quelle beim Entfernen:
+  gelöscht werden genau diese IDs (`wp_delete_post( $id, true )`,
+  endgültig; Formulare sind Posts vom Typ `wpcf7_contact_form`). Fehlt die
+  Seite (von Hand gelöscht), gilt die Beispielseite als nicht angelegt;
+  verwaiste Formular-IDs werden beim nächsten Anlegen entfernt und die
+  Option neu geschrieben. Anlegen bei vorhandener Seite tut nichts (keine
+  Duplikate).
+- **Box „Sample page“** auf der Einstellungsseite (9), unter dem
+  Hinweisabsatz und über dem Formular der Settings API, als eigenes
+  `<form method="post" action="admin-post.php">`: Status („not created“
+  bzw. „created“ mit Links „View“ und „Edit“), Button „Create sample page
+  and forms“ bzw. „Remove sample page and forms“ (`button-secondary`),
+  `wp_nonce_field( 'jgor_flcf7_samples' )`, verstecktes
+  `action=jgor_flcf7_samples` und `do=create|remove`. Handler auf
+  `admin_post_jgor_flcf7_samples`: `check_admin_referer()`, dann
+  `current_user_can( 'manage_options' )` und `wpcf7_edit_contact_forms`
+  (CF7-Capability, Standard `publish_pages`) bzw. beim Entfernen
+  `wpcf7_delete_contact_forms` und `delete_pages`; Eingaben nur per
+  `sanitize_key()`; Rückkehr per `wp_safe_redirect()` zur
+  Einstellungsseite mit `jgor_flcf7_samples=created|removed|exists|missing`,
+  dort als Notice über `add_settings_error()` (wie „Settings saved.“).
+  Ohne CF7 (`WPCF7_ContactForm` fehlt) zeigt die Box nur einen Hinweis.
+- **Nachfrage nach der Aktivierung:** der Aktivierungs-Hook setzt den
+  Transient `jgor_flcf7_activated` (eine Stunde); solange er besteht und
+  keine Beispielseite angelegt ist, zeigt Modul 6 auf `admin_notices` (nur
+  `manage_options`, nur mit aktivem CF7) den Hinweis „Floating Labels for
+  CF7: create a private sample page with forms that show the options?“ mit
+  zwei Links auf `admin-post.php` (`do=create` und `do=dismiss`, beide mit
+  Nonce). Beide löschen den Transient, „Not now“ sonst nichts. Keine
+  Abfrage während der Aktivierung selbst (WordPress bietet dort keinen
+  Dialog).
+- **Deinstallation** (12): `uninstall.php` liest `jgor_flcf7_samples`,
+  löscht die gespeicherten Posts endgültig und dann die Option; ohne
+  Option nichts. Deaktivieren lässt alles stehen.
+- **Abgrenzung:** `tests/create-test-forms.php` (13) bleibt das
+  Entwicklungswerkzeug für `verify-markup.php` (Formulare A–F, Seite
+  „Contact“); die Beispielseite ist Nutzer-Funktion mit eigenen Titeln.
+- **Sicherheit:** Nonce und Capability vor jeder Aktion, Posts nur über
+  die WordPress-API (`wp_insert_post()`, `WPCF7_ContactForm::save()`),
+  Titel und Inhalte feste Strings aus dem Plugin, Ausgabe mit `esc_*`.
+- **PHPStan:** `stubs/cf7.php` um `WPCF7_ContactForm::get_template()`,
+  `set_properties()`, `save()` und `delete()` ergänzen.
+
 ## 10. Modul 5: Block-Seitenleiste (`class-jgor-flcf7-editor.php`, `assets/js/block-editor.js`)
 
 Vorgezogen aus 1.1 am 22.10.2026 (Commit a820fd7, Shortcode-Block am selben
@@ -977,9 +1059,12 @@ Multisite über alle Sites (`get_sites()`, `switch_to_blog()` /
 
 ## 12. Deinstallation (`uninstall.php`)
 
-`defined( 'WP_UNINSTALL_PLUGIN' ) || exit;`, dann `delete_option(
-'jgor_flcf7_settings' )`, bei Multisite je Site. Keine Transients, keine
-Tabellen, keine Dateien.
+`defined( 'WP_UNINSTALL_PLUGIN' ) || exit;`, dann je Site (bei Multisite
+über `switch_to_blog()`): Beispielseite und -formulare aus
+`jgor_flcf7_samples` endgültig löschen (9.3, nur die gespeicherten IDs),
+`delete_option()` für `jgor_flcf7_samples` und `jgor_flcf7_settings`,
+`delete_transient( 'jgor_flcf7_activated' )`. Keine Tabellen, keine
+Dateien.
 
 ## 13. Prüfung
 
@@ -1017,6 +1102,7 @@ wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file te
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-admin.php
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-editor.php
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-design.php
+wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-samples.php
 node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 ```
 
@@ -1132,6 +1218,13 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Design-Panel nur die eigene Gruppe; CF7- und Shortcode-Block) und das
   Script ohne Server-Daten (nur das erste Panel). `node --check` läuft
   davor.
+- `tests/verify-samples.php` prüft Modul 6 ohne Browser (Schritt 12):
+  Anlegen (Seite privat mit Slug, sieben Formulare mit Suffix und
+  `skip_mail: on`, Blöcke und Platzierungsbeispiele im Inhalt, Option),
+  zweiter Aufruf ohne Duplikate, von Hand gelöschte Seite → Option
+  bereinigt, Box und Notice (Zustände, Nonce, Links), Capability (Handler
+  bricht ohne `manage_options` ab), Entfernen (Posts endgültig weg, Option
+  weg). Räumt nach sich auf.
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
@@ -1330,6 +1423,14 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     (9, `verify-admin.php` 56), readme, Kontexthilfe, `.pot` 150 Texte,
     ZIP 16 Dateien, Plugin Check ohne Befund. Offen: Hostsharing `dateien`,
     Sichtprüfung der Buttons im Block-Editor (Nutzer).
+12. Beispielseite (9.3), Konzept 2.15 vom 29.10.2026 auf Wunsch des
+    Nutzers, vor dem nächsten Hostsharing-Lauf: Teil 1 Klasse
+    `JGOR_FLCF7_Samples` (Anlegen, Entfernen, Option, Bootstrap unter
+    `is_admin()`, Stubs, `uninstall.php`) mit `verify-samples.php`; Teil 2
+    Box auf der Einstellungsseite, Handler `admin_post_…`, Notice nach der
+    Aktivierung (Transient im Aktivierungs-Hook) mit `verify-admin.php`;
+    Teil 3 readme (Installation, FAQ), Kontexthilfe, `.pot`, ZIP, Plugin
+    Check, Hostsharing `dateien`. Offen.
 
 ## 15. Offen
 
@@ -1406,3 +1507,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.12 | 29.10.2026 | Hostsharing-Testsite mit Basic-Auth (Benutzer `<basic-auth-user>`, `.htpasswd` außerhalb des Webroots, `<webroot>/.htaccess`), Site-env mit `HS_RSYNC_AUSSCHLUESSE_SITE` (neuer Schlüssel in Stufe 6), Gegenprobe per curl mit `-u` (§2, §13) |
 | 2.13 | 29.10.2026 | Reset-Buttons im Block-Editor geplant (Wunsch des Nutzers): „Reset this placement“ im Panel „Floating labels“ (Klassen und Design-Werte), „Reset …“ je Design-Panel (nur diese Gruppe), inaktiv ohne Werte, Helfer `withoutGroups()`/`designWithoutGroup()` (10, 10.1), Prüfungen (13), §14 Schritt 11 offen |
 | 2.14 | 29.10.2026 | Schritt 11 erledigt: Reset-Buttons (10, 10.1), Hinweisabsatz auf der Einstellungsseite und Reset-Satz in der Kontexthilfe (9), Prüfzähler 56/28/99 (13), readme, `.pot` 150, ZIP-Stand; offen Hostsharing `dateien` und Sichtprüfung |
+| 2.15 | 29.10.2026 | Beispielseite geplant (Wunsch des Nutzers): neuer Abschnitt 9.3 (Seite `testpage-floating-labels-for-cf7` privat, sieben Formulare „FL Test … - may be deleted“ mit `skip_mail`, Platzierungsbeispiele, Option `jgor_flcf7_samples`, Box mit admin-post-Handler, Nachfrage nach der Aktivierung, Uninstall, Stubs); §3, §4, §6, §12, §13 `verify-samples.php`, §14 Schritt 12 offen |
