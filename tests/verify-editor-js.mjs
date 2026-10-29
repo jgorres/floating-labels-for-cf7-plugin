@@ -293,7 +293,7 @@ check( 'change: default -> class removed', saved.htmlClass === 'custom' );
 selects[ 1 ].props.onChange( 'jgor-flcf7-mode-text' );
 check( 'change: label source "Text before the field only" -> class appended', saved.htmlClass === 'custom jgor-flcf7-style-filled jgor-flcf7-mode-text' );
 const resetMain = findAll( panelBody, 'Button' );
-check( 'reset: one tertiary button "Reset this placement" at the end of the panel, enabled while a class or a design value is set', resetMain.length === 1 && resetMain[ 0 ].props.className === 'jgor-flcf7-reset' && resetMain[ 0 ].props.variant === 'tertiary' && resetMain[ 0 ].props.disabled === false && resetMain[ 0 ].children[ 0 ] === 'Reset this placement' && panelBody.children[ 0 ][ 6 ] === resetMain[ 0 ] );
+check( 'reset: one secondary button "Reset this placement" at the end of the panel, enabled while a class or a design value is set', resetMain.length === 1 && resetMain[ 0 ].props.className === 'jgor-flcf7-reset' && resetMain[ 0 ].props.variant === 'secondary' && resetMain[ 0 ].props.disabled === false && resetMain[ 0 ].children[ 0 ] === 'Reset this placement' && panelBody.children[ 0 ][ 6 ] === resetMain[ 0 ] );
 resetMain[ 0 ].props.onClick();
 check( 'reset: placement classes removed, other classes kept, design attribute dropped in one setAttributes()', saved.htmlClass === 'custom' && 'jgorFlcf7Design' in saved && saved.jgorFlcf7Design === undefined );
 const untouched = Wrapped( { name: api.BLOCK_NAME, attributes: { id: 7, htmlClass: 'custom' }, setAttributes: noop } );

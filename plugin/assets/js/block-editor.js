@@ -25,7 +25,8 @@
  *   of properties (key, group, type, label, placeholder) comes from the
  *   server in window.jgorFlcf7EditorData; without it only the first panel
  *   is shown.
- * - A reset button at the end of every panel: "Reset this placement" in
+ * - A reset button (secondary, with a border so it reads as a button even
+ *   while disabled) at the end of every panel: "Reset this placement" in
  *   the first panel removes the placement classes and the design values
  *   of this placement, the design panels reset their own group only. The
  *   buttons are disabled while there is nothing to reset.
@@ -693,7 +694,7 @@
 			{
 				key: 'reset',
 				className: 'jgor-flcf7-reset',
-				variant: 'tertiary',
+				variant: 'secondary',
 				disabled: ! active,
 				onClick: onClick,
 				__next40pxDefaultSize: true

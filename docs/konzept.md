@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.23 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.24 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -1009,7 +1009,9 @@ einem Klassenfeld oder im Shortcode-Text.
   Attribut `html_class`. Serverseitig ändert sich nichts (7.5, Schicht 3);
   ohne das Plugin bleiben die Klassen wirkungslos.
 - Reset (seit 2.13, Schritt 11): unter den fünf Auswahlfeldern ein
-  `Button` „Reset this placement“ (`variant: 'tertiary'`, nicht
+  `Button` „Reset this placement“ (`variant: 'secondary'`, mit Rahmen –
+  seit 2.24, weil der rahmenlose `tertiary`-Button im `disabled`-Zustand wie
+  eine Beschriftung wirkte und der Nutzer ihn übersah; nicht
   `isDestructive`), der alle Klassen der fünf Gruppen aus `htmlClass`
   bzw. `html_class` entfernt (`withoutGroups()`; fremde Klassen bleiben,
   das Attribut entfällt, wenn nichts übrig ist) und die Design-Werte der
@@ -1068,7 +1070,7 @@ global.
   Shortcode brechen würden; die Werte selbst prüft der Server.
 - Reset je Panel (seit 2.13, Schritt 11): am Ende jedes Design-Panels ein
   `Button` „Reset colours“ / „Reset sizes“ / „Reset animation“ / „Reset
-  focus effect“ (`variant: 'tertiary'`), der nur die Properties dieser
+  focus effect“ (`variant: 'secondary'`, 2.24), der nur die Properties dieser
   Gruppe aus den Design-Werten entfernt (`designWithoutGroup()`);
   inaktiv, solange die Gruppe keinen Wert hat. „Reset this placement“ im
   Panel „Floating labels“ (10) löscht alle vier Gruppen zusammen mit den
@@ -1594,3 +1596,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.21 | 29.10.2026 | Testformulare räumen sich auf: `verify-markup.php` legt B, C, D, F und die Seite „Contact“ über `create-test-forms.php` selbst an und entfernt sie am Ende (`FLCF7_KEEP=1`), alte Reste lokal gelöscht und per `datenbank` nach Hostsharing; Hostsharing-Vergleich über die Beispielseite (13) |
 | 2.22 | 29.10.2026 | Beispielseite: alte und heutige Vorlage als Code-Blöcke beim alten Formular (9.3), Prüfung in `verify-samples.php` |
 | 2.23 | 29.10.2026 | Asset-Version = Plugin-Version plus `filemtime()` (`JGOR_FLCF7_Plugin::asset_version()`, 8, 10) gegen veraltete Browser-Caches; Prüfungen angepasst, `verify-admin.php` 59 |
+| 2.24 | 29.10.2026 | Reset-Buttons als `secondary` mit Rahmen (10, 10.1), damit sie auch inaktiv als Buttons erkennbar sind; Screenshots 5 und 6 neu |
