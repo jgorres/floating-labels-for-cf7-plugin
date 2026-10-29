@@ -185,14 +185,14 @@ final class JGOR_FLCF7_Admin {
 			self::SCRIPT_HANDLE,
 			JGOR_FLCF7_URL . self::SCRIPT_PATH,
 			array( 'wp-color-picker' ),
-			JGOR_FLCF7_VERSION,
+			JGOR_FLCF7_Plugin::asset_version( self::SCRIPT_PATH ),
 			array( 'in_footer' => true )
 		);
 		wp_enqueue_style(
 			self::SCRIPT_HANDLE,
 			JGOR_FLCF7_URL . self::STYLE_PATH,
 			array( 'wp-color-picker' ),
-			JGOR_FLCF7_VERSION
+			JGOR_FLCF7_Plugin::asset_version( self::STYLE_PATH )
 		);
 	}
 

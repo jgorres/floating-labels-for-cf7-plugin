@@ -115,7 +115,7 @@ final class JGOR_FLCF7_Editor {
 			self::HANDLE,
 			JGOR_FLCF7_URL . self::SCRIPT_PATH,
 			self::DEPENDENCIES,
-			JGOR_FLCF7_VERSION,
+			JGOR_FLCF7_Plugin::asset_version( self::SCRIPT_PATH ),
 			array( 'in_footer' => true )
 		);
 
@@ -130,7 +130,7 @@ final class JGOR_FLCF7_Editor {
 			self::HANDLE,
 			JGOR_FLCF7_URL . self::STYLE_PATH,
 			self::STYLE_DEPENDENCIES,
-			JGOR_FLCF7_VERSION
+			JGOR_FLCF7_Plugin::asset_version( self::STYLE_PATH )
 		);
 	}
 

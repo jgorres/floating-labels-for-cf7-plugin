@@ -10,9 +10,10 @@
  * Creates the sample page and forms, checks page, forms, block content and
  * the rendered output, creates again (no duplicates), trashes the page by
  * hand and creates again (leftovers removed), removes everything and checks
- * that nothing is left. Leftovers of an earlier run are removed first; the
- * script leaves no sample page behind. The settings option is saved and
- * restored around the run.
+ * that nothing is left. Leftovers of an earlier run are removed first. A
+ * sample page that existed before the run is created again at the end (new
+ * ids), so the site keeps it. The settings option is saved and restored
+ * around the run.
  *
  * @package Floating_Labels_For_CF7
  */
@@ -119,6 +120,10 @@ update_option( 'jgor_flcf7_settings', $jgor_flcf7_settings->defaults() );
 $jgor_flcf7_settings->reset_cache();
 
 $jgor_flcf7_samples = new JGOR_FLCF7_Samples();
+
+// A sample page the user created stays available: it is removed for the
+// run and created again at the end (with new ids).
+$jgor_flcf7_had_samples = $jgor_flcf7_samples->is_created();
 
 // Leftovers of an earlier run.
 if ( false !== get_option( JGOR_FLCF7_Samples::OPTION, false ) ) {
@@ -325,6 +330,11 @@ update_option(
 $jgor_flcf7_samples->remove();
 jgor_flcf7_check( 'remove(): a post of another type in the option is left alone, option dropped', get_post( $jgor_flcf7_foreign ) instanceof WP_Post && false === get_option( JGOR_FLCF7_Samples::OPTION, false ) );
 wp_delete_post( (int) $jgor_flcf7_foreign, true );
+
+// Give the user back the sample page that existed before the run.
+if ( $jgor_flcf7_had_samples ) {
+	WP_CLI::log( 'Sample page created again: ' . $jgor_flcf7_samples->create() . ' (page ' . $jgor_flcf7_samples->page_id() . ').' );
+}
 
 // Restore the settings option as it was before the run.
 if ( false === $jgor_flcf7_saved_option ) {

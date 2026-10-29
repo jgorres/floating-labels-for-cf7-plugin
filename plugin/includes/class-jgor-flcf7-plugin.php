@@ -177,4 +177,18 @@ final class JGOR_FLCF7_Plugin {
 			)
 		);
 	}
+	/**
+	 * Returns the version string for an enqueued asset of the plugin: the
+	 * plugin version plus the modification time of the file, so browsers
+	 * and caches fetch a changed file even while the plugin version stays.
+	 *
+	 * @param string $relative_path Path below the plugin directory, e.g. assets/css/floating-labels.css.
+	 * @return string JGOR_FLCF7_VERSION, with ".<timestamp>" appended when the file is readable.
+	 */
+	public static function asset_version( string $relative_path ): string {
+		$file = JGOR_FLCF7_PATH . $relative_path;
+		$time = file_exists( $file ) ? filemtime( $file ) : false;
+
+		return false === $time ? JGOR_FLCF7_VERSION : JGOR_FLCF7_VERSION . '.' . $time;
+	}
 }

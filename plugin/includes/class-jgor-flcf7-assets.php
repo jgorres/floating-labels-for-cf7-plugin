@@ -77,7 +77,7 @@ final class JGOR_FLCF7_Assets {
 			self::HANDLE,
 			JGOR_FLCF7_URL . self::STYLE_PATH,
 			array( 'contact-form-7' ),
-			JGOR_FLCF7_VERSION
+			JGOR_FLCF7_Plugin::asset_version( self::STYLE_PATH )
 		);
 
 		$css = $this->inline_css();

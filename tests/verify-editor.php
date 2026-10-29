@@ -63,14 +63,14 @@ $jgor_flcf7_reg     = $jgor_flcf7_scripts->registered[ $jgor_flcf7_handle ] ?? n
 jgor_flcf7_check( 'script: enqueued', wp_script_is( $jgor_flcf7_handle, 'enqueued' ) );
 jgor_flcf7_check( 'script: source is assets/js/block-editor.js', $jgor_flcf7_reg instanceof _WP_Dependency && is_string( $jgor_flcf7_reg->src ) && str_ends_with( $jgor_flcf7_reg->src, '/assets/js/block-editor.js' ) );
 jgor_flcf7_check( 'script: dependencies', $jgor_flcf7_reg instanceof _WP_Dependency && JGOR_FLCF7_Editor::DEPENDENCIES === $jgor_flcf7_reg->deps, $jgor_flcf7_reg instanceof _WP_Dependency ? implode( ',', $jgor_flcf7_reg->deps ) : 'not registered' );
-jgor_flcf7_check( 'script: version is the plugin version', $jgor_flcf7_reg instanceof _WP_Dependency && JGOR_FLCF7_VERSION === $jgor_flcf7_reg->ver );
+jgor_flcf7_check( 'script: version is the plugin version plus the file time', $jgor_flcf7_reg instanceof _WP_Dependency && JGOR_FLCF7_Plugin::asset_version( 'assets/js/block-editor.js' ) === $jgor_flcf7_reg->ver );
 jgor_flcf7_check( 'script: printed in the footer', 1 === (int) $jgor_flcf7_scripts->get_data( $jgor_flcf7_handle, 'group' ) );
 jgor_flcf7_check( 'script: translations set for the text domain', $jgor_flcf7_reg instanceof _WP_Dependency && 'floating-labels-for-cf7' === $jgor_flcf7_reg->textdomain && JGOR_FLCF7_PATH . 'languages' === $jgor_flcf7_reg->translations_path );
 
 // The stylesheet of the colour rows, same handle and version.
 $jgor_flcf7_style = wp_styles()->registered[ $jgor_flcf7_handle ] ?? null;
 jgor_flcf7_check( 'style: enqueued with the script', wp_style_is( $jgor_flcf7_handle, 'enqueued' ) );
-jgor_flcf7_check( 'style: source is assets/css/editor.css, depends on wp-components, plugin version', $jgor_flcf7_style instanceof _WP_Dependency && is_string( $jgor_flcf7_style->src ) && str_ends_with( $jgor_flcf7_style->src, '/assets/css/editor.css' ) && JGOR_FLCF7_Editor::STYLE_DEPENDENCIES === $jgor_flcf7_style->deps && JGOR_FLCF7_VERSION === $jgor_flcf7_style->ver );
+jgor_flcf7_check( 'style: source is assets/css/editor.css, depends on wp-components, plugin version', $jgor_flcf7_style instanceof _WP_Dependency && is_string( $jgor_flcf7_style->src ) && str_ends_with( $jgor_flcf7_style->src, '/assets/css/editor.css' ) && JGOR_FLCF7_Editor::STYLE_DEPENDENCIES === $jgor_flcf7_style->deps && JGOR_FLCF7_Plugin::asset_version( 'assets/css/editor.css' ) === $jgor_flcf7_style->ver );
 $jgor_flcf7_css_file = JGOR_FLCF7_PATH . 'assets/css/editor.css';
 // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local plugin file, no URL.
 $jgor_flcf7_css = file_exists( $jgor_flcf7_css_file ) ? (string) file_get_contents( $jgor_flcf7_css_file ) : '';

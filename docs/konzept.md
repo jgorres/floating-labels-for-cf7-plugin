@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.22 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.23 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -571,7 +571,14 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
 ## 8. Modul 3: CSS (`class-jgor-flcf7-assets.php`, `assets/css/floating-labels.css`)
 
 - Einbinden auf `add_action( 'wpcf7_enqueue_styles', … )`:
-  `wp_enqueue_style( 'jgor-flcf7', …, array( 'contact-form-7' ), JGOR_FLCF7_VERSION )`.
+  `wp_enqueue_style( 'jgor-flcf7', …, array( 'contact-form-7' ),
+  JGOR_FLCF7_Plugin::asset_version( … ) )` – seit 2.23 Plugin-Version plus
+  `filemtime()` der Datei (`1.0.0.<Zeitstempel>`), damit Browser und
+  Hosting-Caches eine geänderte Datei auch ohne neue Plugin-Version laden
+  (Befund des Nutzers: Glow blieb im Browser blau, obwohl der Server rot
+  lieferte). Gilt für alle fünf Assets (Frontend-CSS, `admin.js`,
+  `admin.css`, `block-editor.js`, `editor.css`); bei unlesbarer Datei nur
+  die Plugin-Version.
   Die Abhängigkeit sorgt für die Reihenfolge hinter dem CF7-CSS. Lädt CF7 sein
   CSS nicht (`WPCF7_LOAD_CSS` false), lädt das Plugin seins auch nicht; wer
   `wpcf7_enqueue_styles()` im Template aufruft, bekommt beides. `load_css`
@@ -953,7 +960,8 @@ einem Klassenfeld oder im Shortcode-Text.
 - `JGOR_FLCF7_Editor` lädt auf `enqueue_block_editor_assets` das Script
   `assets/js/block-editor.js` (Handle `jgor-flcf7-editor`, Abhängigkeiten
   `wp-hooks`, `wp-compose`, `wp-element`, `wp-components`,
-  `wp-block-editor`, `wp-i18n`, Version `JGOR_FLCF7_VERSION`, Footer), aber
+  `wp-block-editor`, `wp-i18n`, Version `JGOR_FLCF7_Plugin::asset_version()`
+  (8), Footer), aber
   nur, wenn der Block `contact-form-7/contact-form-selector` registriert ist
   (`WP_Block_Type_Registry`); Übersetzungen per
   `wp_set_script_translations()` aus `languages/` bzw. den Sprachpaketen;
@@ -1176,7 +1184,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   → Shortcode-Attribut per `render_block()`, vorhandenes Attribut bleibt,
   nur ungültige Werte → unverändert; nichts bei `load_css` aus).
   `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
-- `tests/verify-admin.php` prüft Modul 4 ohne Browser (58 Punkte): Box
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (59 Punkte): Box
   „Sample page“ zwischen Hinweisabsatz und Formular samt zweitem Nonce,
   Ergebnis-Notice von Modul 6, Menü
   unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
@@ -1264,7 +1272,8 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   zweiter Aufruf ohne Duplikate, von Hand gelöschte Seite → Option
   bereinigt, Box und Notice (Zustände, Nonce, Links), Capability (Handler
   bricht ohne `manage_options` ab), Entfernen (Posts endgültig weg, Option
-  weg). Räumt nach sich auf.
+  weg). Räumt nach sich auf; eine vorher vorhandene Beispielseite legt das
+  Script am Ende wieder an (neue IDs).
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
@@ -1584,3 +1593,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.20 | 29.10.2026 | Box „Sample page“: Überschrift ohne WordPress-Klasse `title` (floatete links), eigene Klasse mit Abstand per `admin.css` (9); Beispielseite per `datenbank` nach Hostsharing, Workflow-Hinweis (§14 Schritt 12) |
 | 2.21 | 29.10.2026 | Testformulare räumen sich auf: `verify-markup.php` legt B, C, D, F und die Seite „Contact“ über `create-test-forms.php` selbst an und entfernt sie am Ende (`FLCF7_KEEP=1`), alte Reste lokal gelöscht und per `datenbank` nach Hostsharing; Hostsharing-Vergleich über die Beispielseite (13) |
 | 2.22 | 29.10.2026 | Beispielseite: alte und heutige Vorlage als Code-Blöcke beim alten Formular (9.3), Prüfung in `verify-samples.php` |
+| 2.23 | 29.10.2026 | Asset-Version = Plugin-Version plus `filemtime()` (`JGOR_FLCF7_Plugin::asset_version()`, 8, 10) gegen veraltete Browser-Caches; Prüfungen angepasst, `verify-admin.php` 59 |
