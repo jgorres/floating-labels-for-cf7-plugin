@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.20 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.21 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -1121,6 +1121,13 @@ Dateien.
   derselben Seite, (f) „FL Test F Old template“ (alte CF7-Vorlage mit
   „(required)“, zwei Felder ohne `<p>`, `Website [url]` in einer Zeile,
   Erklärabsatz, `<label>Nickname</label>` ohne `for`; Text-Modus 7.3).
+  Seit 2.21 ruft `verify-markup.php` das Script selbst auf (eingebunden mit
+  `$GLOBALS['jgor_flcf7_test_forms_quiet']`, Funktion
+  `jgor_flcf7_create_test_forms()`) und entfernt B, C, D, F und die Seite
+  am Ende wieder (`jgor_flcf7_remove_test_forms()`); `FLCF7_KEEP=1` lässt
+  sie zum Nachsehen stehen. Nur „Contact form 1“ bleibt. Auf der Site
+  liegen damit dauerhaft keine Testformulare mehr; was Besucher sehen
+  sollen, zeigt die Beispielseite (9.3).
 
 ```bash
 wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/create-test-forms.php
@@ -1307,9 +1314,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 - Gegenprobe auf der Hostsharing-Testsite `<hs-testsite>`
   (PHP 8.4, Produktiv-Stack) vor jedem Release. Stand nachziehen mit
   `local-sites-hostsharing.sh dateien … --ueberschreiben` und `datenbank …
-  --ueberschreiben` (beides startet der Nutzer; `datenbank` bringt Seite
-  „Contact“ und Testformulare mit, das Script sichert den Remote-Stand
-  vorher). Prüfung nur lesend: per `ssh <hs-admin>` mit `php8.4
+  --ueberschreiben` (beides startet der Nutzer; `datenbank` bringt seit
+  2.21 die Beispielseite (9.3) mit, bis dahin Seite „Contact“ und
+  Testformulare; das Script sichert den Remote-Stand vorher). Prüfung nur lesend: per `ssh <hs-admin>` mit `php8.4
   /home/pacs/<hs-paket>/bin/wp --path=…/<webroot>` (`plugin list`, `plugin
   check`) und per Abruf der Kontaktseite (seit 29.10.2026 mit `-u
   jgorres:…`, Basic-Auth, 2); das Formular-HTML wird nach Normalisierung
@@ -1570,3 +1577,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.18 | 29.10.2026 | Fokus-Effekte nachgebessert (8, §14 Schritt 13): Ring über Steuerelement und Theme-Outline (`z-index`), Label `z-index: 2`, Effektfarbe Default `#dc3232`, Glow mit Spread, Puls doppelt so stark |
 | 2.19 | 29.10.2026 | Lauflicht auffälliger (8, §14 Schritt 13): geschlossener Ring in 30 % der Effektfarbe mit hellem Kometen, Theme-Outline beim Lauflicht auf 30 % gedimmt, Ringbreite Default 3 px; Hostsharing nach 2.18 nachgezogen |
 | 2.20 | 29.10.2026 | Box „Sample page“: Überschrift ohne WordPress-Klasse `title` (floatete links), eigene Klasse mit Abstand per `admin.css` (9); Beispielseite per `datenbank` nach Hostsharing, Workflow-Hinweis (§14 Schritt 12) |
+| 2.21 | 29.10.2026 | Testformulare räumen sich auf: `verify-markup.php` legt B, C, D, F und die Seite „Contact“ über `create-test-forms.php` selbst an und entfernt sie am Ende (`FLCF7_KEEP=1`), alte Reste lokal gelöscht und per `datenbank` nach Hostsharing; Hostsharing-Vergleich über die Beispielseite (13) |

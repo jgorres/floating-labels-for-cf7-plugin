@@ -4,9 +4,13 @@
  * tests/create-test-forms.php. Prints one PASS/FAIL line per check and
  * exits with an error when a check fails.
  *
- * Usage, on a local test site only (run create-test-forms.php first):
+ * Usage, on a local test site only:
  *
  *   wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-markup.php
+ *
+ * The test forms and the page "Contact" come from tests/create-test-forms.php,
+ * which this script includes: created at the start, removed at the end
+ * (set FLCF7_KEEP=1 in the environment to keep them for a look).
  *
  * Besides the rebuild itself the script covers the control layers of the
  * concept (section 7.5): additional settings per form (floating_labels_*),
@@ -163,6 +167,11 @@ function jgor_flcf7_labels_match( string $html ): void {
 		);
 	}
 }
+
+// Test forms and the page "Contact": created here, removed at the end.
+$GLOBALS['jgor_flcf7_test_forms_quiet'] = true;
+require __DIR__ . '/create-test-forms.php';
+jgor_flcf7_create_test_forms();
 
 // Save the stored option and run on the defaults.
 $jgor_flcf7_saved_option = get_option( 'jgor_flcf7_settings', false );
@@ -472,6 +481,11 @@ JGOR_FLCF7_Settings::instance()->reset_cache();
 
 if ( getenv( 'FLCF7_DUMP' ) ) {
 	WP_CLI::log( "\n----- A -----\n" . $jgor_flcf7_a . "\n----- C -----\n" . $jgor_flcf7_c );
+}
+
+// Remove the test forms and the page unless they should stay for a look.
+if ( ! getenv( 'FLCF7_KEEP' ) ) {
+	WP_CLI::log( 'Removed ' . jgor_flcf7_remove_test_forms() . ' test posts (FLCF7_KEEP=1 keeps them).' );
 }
 
 if ( $GLOBALS['jgor_flcf7_failed'] > 0 ) {
