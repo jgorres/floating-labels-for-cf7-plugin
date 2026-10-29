@@ -444,6 +444,7 @@ final class JGOR_FLCF7_Admin {
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Floating Labels for CF7', 'floating-labels-for-cf7' ); ?></h1>
 			<?php settings_errors( JGOR_FLCF7_Settings::GROUP ); ?>
+			<p><?php esc_html_e( 'These are the defaults for every Contact Form 7 form on this site. Override them per form in the "Additional Settings" tab of the form, or per placement in the block editor: select the Contact Form 7 block (or a Shortcode block with the shortcode of the form) and open the panels "Floating labels" in the block sidebar. The section "Per form, per placement, per field" at the end of this screen has the details.', 'floating-labels-for-cf7' ); ?></p>
 			<?php if ( ! empty( $this->settings->locked_keys() ) ) : ?>
 				<div class="notice notice-info inline">
 					<p><?php esc_html_e( 'Some settings are fixed in code through the filter jgor_flcf7_settings. They are shown disabled.', 'floating-labels-for-cf7' ); ?></p>
