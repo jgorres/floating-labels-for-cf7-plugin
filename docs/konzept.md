@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.16 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.17 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -1307,7 +1307,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   nötig, wenn sich Seiten oder Formulare ändern; neue Optionsschlüssel
   kommen über die Defaults. 29.10.2026 nach Schritt 10 erneut beides
   (Details in §14, Schritt 10): 16 Plugin-Dateien identisch, Plugin Check
-  remote ohne Befund, sechs Formulare und Kontaktseite identisch. Die Warnung des Scripts zu `rewrite flush` ist
+  remote ohne Befund, sechs Formulare und Kontaktseite identisch. Nach
+  Schritt 12 (29.10.2026, 15:32) erneut `dateien`: 17 Dateien identisch,
+  Plugin Check remote ohne Befund, Basic-Auth-Dateien erhalten (2). Die Warnung des Scripts zu `rewrite flush` ist
   harmlos: keine `.htaccess`, Permalinks `/index.php/…`.
 - Testeinstellungen und Testformulare nach der Prüfung entfernen.
 
@@ -1430,8 +1432,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     für Hinweisabsatz und Doku, Konzept 2.14): `verify-editor-js.mjs` 99,
     `verify-editor.php` 28, dazu der Hinweisabsatz auf der Einstellungsseite
     (9, `verify-admin.php` 56), readme, Kontexthilfe, `.pot` 150 Texte,
-    ZIP 16 Dateien, Plugin Check ohne Befund. Offen: Hostsharing `dateien`,
-    Sichtprüfung der Buttons im Block-Editor (Nutzer).
+    ZIP 16 Dateien, Plugin Check ohne Befund. Hostsharing mit Schritt 12
+    nachgezogen (29.10.2026). Offen: Sichtprüfung der Buttons im
+    Block-Editor (Nutzer).
 12. Beispielseite (9.3), Konzept 2.15 vom 29.10.2026 auf Wunsch des
     Nutzers. Erledigt am 29.10.2026 (Commits 652b5fe Teil 1, Teil 2 und
     Doku-Commit, Konzept 2.16): Klasse `JGOR_FLCF7_Samples` mit Anlegen,
@@ -1441,9 +1444,13 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     58 Prüfungen, alle anderen Prüfscripte unverändert grün; readme
     (Features, Installation Schritt 5, FAQ „Is there a sample page …“,
     Requirements), Kontexthilfe „Overview“, `.pot` 192 Texte, ZIP 16 +
-    1 = 17 Dateien, Plugin Check ohne Befund. Offen: Hostsharing `dateien`,
-    Sichtprüfung (Nutzer: Box, Notice nach erneuter Aktivierung,
-    Beispielseite im Frontend und im Block-Editor).
+    1 = 17 Dateien, Plugin Check ohne Befund. Hostsharing am 29.10.2026 mit
+    `dateien --ueberschreiben --ja` nachgezogen (Sicherung vorher, 1 neue
+    und 7 geänderte Dateien, 17 Plugin-Dateien md5-identisch, Plugin Check
+    remote ohne Befund, Basic-Auth erhalten); die Beispielseite dort nur bei
+    Bedarf über die Box anlegen. Offen: Sichtprüfung (Nutzer: Box, Notice
+    nach erneuter Aktivierung, Beispielseite im Frontend und im
+    Block-Editor).
 
 ## 15. Offen
 
@@ -1522,3 +1529,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.14 | 29.10.2026 | Schritt 11 erledigt: Reset-Buttons (10, 10.1), Hinweisabsatz auf der Einstellungsseite und Reset-Satz in der Kontexthilfe (9), Prüfzähler 56/28/99 (13), readme, `.pot` 150, ZIP-Stand; offen Hostsharing `dateien` und Sichtprüfung |
 | 2.15 | 29.10.2026 | Beispielseite geplant (Wunsch des Nutzers): neuer Abschnitt 9.3 (Seite `testpage-floating-labels-for-cf7` privat, sieben Formulare „FL Test … - may be deleted“ mit `skip_mail`, Platzierungsbeispiele, Option `jgor_flcf7_samples`, Box mit admin-post-Handler, Nachfrage nach der Aktivierung, Uninstall, Stubs); §3, §4, §6, §12, §13 `verify-samples.php`, §14 Schritt 12 offen |
 | 2.16 | 29.10.2026 | Schritt 12 erledigt: Beispielseite umgesetzt (9.3 mit Befunden: Hash nach `save()`, `exit` nach Redirect, Action `jgor_flcf7_settings_page_top`, Ergebnisse `absent`/`failed`), Prüfzähler 37/58 (13), ZIP 17 Dateien, `.pot` 192; offen Hostsharing `dateien` und Sichtprüfung |
+| 2.17 | 29.10.2026 | Hostsharing nach Schritt 11 und 12 mit `dateien` nachgezogen (§13, §14); offen nur noch Sichtprüfungen des Nutzers, Browser-Matrix, Push und Veröffentlichung |
