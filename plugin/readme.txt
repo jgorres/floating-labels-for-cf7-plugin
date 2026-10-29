@@ -28,6 +28,7 @@ Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server
 * Control at every level: for the whole site, per form, per placement (page) and per field.
 * Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get "Floating labels" panels in the sidebar: the placement settings, and colours, sizes, animation and focus effect for that placement only; no classes to type, and a reset button in every panel.
 * Design settings: colours with the WordPress colour picker, font size, padding, border, corner radius, the animation and the focus effect on the settings screen, or per placement in the block editor; every value is also a CSS custom property, so themes can set them too.
+* Sample page on request: a private page with forms that show every option, created and removed with one click on the settings screen.
 * Lightweight: one option, one stylesheet, no database tables, no cron, no external requests, no tracking.
 
 = Field types =
@@ -98,7 +99,7 @@ To style one form only, replace `.wpcf7` with the id of its wrapper, for example
 
 = Requirements and privacy =
 
-The plugin needs Contact Form 7 (5.0 or newer) and the PHP extension DOM, which is part of every standard PHP build. It stores one option in the WordPress database, sends no data anywhere and loads nothing from third-party servers.
+The plugin needs Contact Form 7 (5.0 or newer) and the PHP extension DOM, which is part of every standard PHP build. It stores one option in the WordPress database (a second one while the sample page exists), sends no data anywhere and loads nothing from third-party servers.
 
 Contact Form 7 is a trademark of Rock Lobster, Inc. This plugin is an independent add-on and is not affiliated with or endorsed by Rock Lobster, Inc.
 
@@ -108,8 +109,13 @@ Contact Form 7 is a trademark of Rock Lobster, Inc. This plugin is an independen
 2. Upload the plugin folder to `wp-content/plugins/` or install the ZIP via Plugins > Add New > Upload Plugin.
 3. Activate the plugin under Plugins.
 4. Open Contact > Floating Labels to choose the variant, the focus effect, the field types, the text of the submit button on errors and, under Design, colours and sizes. These are the defaults for every form; forms (Additional Settings) and placements (block editor) can override them. The defaults work out of the box: every text-like field of every form gets a floating label, required fields an asterisk. Forms without labels and placeholders (older templates) need the option "Text before the field" under "Label sources".
+5. Optional: create the sample page. Right after the activation a notice offers it; later, use the box "Sample page" at the top of Contact > Floating Labels. The page "Testpage Floating Labels for CF7" is private, its forms "FL Test ... - may be deleted" send no mail, and the same box removes both again.
 
 == Frequently Asked Questions ==
+
+= Is there a sample page to try the options? =
+
+Yes. After the activation a notice offers to create it; later, open Contact > Floating Labels and use the box "Sample page" at the top. It creates a private page "Testpage Floating Labels for CF7" (only logged-in users who may read private pages see it) with the default form of Contact Form 7, a placeholder form, an old template, the variants and focus effects, a mixed form that shows the limits, a form switched off, and two placements with settings of their own. The forms are named "FL Test ... - may be deleted" and send no mail. The same box removes the page and the forms again; uninstalling the plugin removes them too.
 
 = A field does not get a floating label. Why? =
 

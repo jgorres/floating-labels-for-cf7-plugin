@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.15 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.16 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -89,7 +89,7 @@ floating-labels-for-cf7/
 │   ├── verify-markup.php             88 PASS/FAIL-Prüfungen für Modul 2 und das Design je Platzierung (wp eval-file)
 │   ├── verify-admin.php              54 PASS/FAIL-Prüfungen für Modul 4 (wp eval-file)
 │   ├── verify-design.php             29 PASS/FAIL-Prüfungen für die Design-Einstellungen (wp eval-file)
-│   ├── verify-samples.php            PASS/FAIL-Prüfungen für die Beispielseite (wp eval-file, Schritt 12)
+│   ├── verify-samples.php            37 PASS/FAIL-Prüfungen für die Beispielseite (wp eval-file)
 │   ├── verify-editor.php             27 PASS/FAIL-Prüfungen für Modul 5, Enqueue und Block-Attribut (wp eval-file)
 │   └── verify-editor-js.mjs          99 PASS/FAIL-Prüfungen für das Editor-Script (node)
 ├── docs/
@@ -888,8 +888,12 @@ Ausprobieren nach der Installation, jederzeit wieder entfernbar.
   (CF7-Capability, Standard `publish_pages`) bzw. beim Entfernen
   `wpcf7_delete_contact_forms` und `delete_pages`; Eingaben nur per
   `sanitize_key()`; Rückkehr per `wp_safe_redirect()` zur
-  Einstellungsseite mit `jgor_flcf7_samples=created|removed|exists|missing`,
-  dort als Notice über `add_settings_error()` (wie „Settings saved.“).
+  Einstellungsseite mit `jgor_flcf7_samples=created|removed|exists|
+  absent|missing|failed`, dort als Notice über `add_settings_error()` (wie
+  „Settings saved.“); nach `wp_safe_redirect()` beendet `exit` die Anfrage
+  (ein `wp_die()` würde den 302 durch 500 ersetzen – die eine bewusste
+  Ausnahme). Die Box hängt an der Action `jgor_flcf7_settings_page_top`,
+  die `render_page()` zwischen Hinweisabsatz und Formular auslöst.
   Ohne CF7 (`WPCF7_ContactForm` fehlt) zeigt die Box nur einen Hinweis.
 - **Nachfrage nach der Aktivierung:** der Aktivierungs-Hook setzt den
   Transient `jgor_flcf7_activated` (eine Stunde); solange er besteht und
@@ -909,8 +913,11 @@ Ausprobieren nach der Installation, jederzeit wieder entfernbar.
 - **Sicherheit:** Nonce und Capability vor jeder Aktion, Posts nur über
   die WordPress-API (`wp_insert_post()`, `WPCF7_ContactForm::save()`),
   Titel und Inhalte feste Strings aus dem Plugin, Ausgabe mit `esc_*`.
-- **PHPStan:** `stubs/cf7.php` um `WPCF7_ContactForm::get_template()`,
-  `set_properties()`, `save()` und `delete()` ergänzen.
+- **PHPStan/PHPCS:** `stubs/cf7.php` um `WPCF7_ContactForm::get_template()`,
+  `set_properties()`, `save()`, `delete()` und `hash()`; die
+  CF7-Capabilities als `custom_capabilities` in `phpcs.xml.dist`. Befund
+  bei der Umsetzung: nach `save()` kennt das CF7-Objekt seinen Hash nicht,
+  die Klasse lädt das Formular per `get_instance()` neu.
 
 ## 10. Modul 5: Block-Seitenleiste (`class-jgor-flcf7-editor.php`, `assets/js/block-editor.js`)
 
@@ -1076,10 +1083,10 @@ Dateien.
   `dist/floating-labels-for-cf7-<version>.zip`; das ZIP in einen frischen
   Ordner entpacken und `wp plugin check <Ordner> --path=<Site>` laufen
   lassen (`Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens
-  150 Zeichen). Stand 29.10.2026: 16 Dateien, 64 KB (mit Modul 5,
+  150 Zeichen). Stand 29.10.2026: 17 Dateien, 72 KB (mit Modul 5,
   Design-Einstellungen, Design je Platzierung, `admin.css`, `editor.css`,
-  Fokus-Effekten, Text-Modus und Reset-Buttons; `.pot` 150 Texte, per
-  `--slug` mit korrektem Support-Link), ohne Befund; am 22.10.2026 ebenso
+  Fokus-Effekten, Text-Modus, Reset-Buttons und Beispielseite; `.pot`
+  192 Texte, per `--slug` mit korrektem Support-Link), ohne Befund; am 22.10.2026 ebenso
   ohne Befund auf dem Symlink-Ordner der Testsite und auf der
   Hostsharing-Site.
 - Testsite `floating-labels-for-cf7.gorres.local` (CF7, Plugin Check, Query
@@ -1138,7 +1145,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   → Shortcode-Attribut per `render_block()`, vorhandenes Attribut bleibt,
   nur ungültige Werte → unverändert; nichts bei `load_css` aus).
   `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
-- `tests/verify-admin.php` prüft Modul 4 ohne Browser (56 Punkte): Menü
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (58 Punkte): Box
+  „Sample page“ zwischen Hinweisabsatz und Formular samt zweitem Nonce,
+  Ergebnis-Notice von Modul 6, Menü
   unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
   Kontexthilfe (Hook, drei Reiter, escapete Beispiele samt Effekt- und
   Text-Modus-Klassen, Hinweis auf die Option im Reiter „Overview“,
@@ -1218,7 +1227,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Design-Panel nur die eigene Gruppe; CF7- und Shortcode-Block) und das
   Script ohne Server-Daten (nur das erste Panel). `node --check` läuft
   davor.
-- `tests/verify-samples.php` prüft Modul 6 ohne Browser (Schritt 12):
+- `tests/verify-samples.php` prüft Modul 6 ohne Browser (37 Punkte):
   Anlegen (Seite privat mit Slug, sieben Formulare mit Suffix und
   `skip_mail: on`, Blöcke und Platzierungsbeispiele im Inhalt, Option),
   zweiter Aufruf ohne Duplikate, von Hand gelöschte Seite → Option
@@ -1424,13 +1433,17 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     ZIP 16 Dateien, Plugin Check ohne Befund. Offen: Hostsharing `dateien`,
     Sichtprüfung der Buttons im Block-Editor (Nutzer).
 12. Beispielseite (9.3), Konzept 2.15 vom 29.10.2026 auf Wunsch des
-    Nutzers, vor dem nächsten Hostsharing-Lauf: Teil 1 Klasse
-    `JGOR_FLCF7_Samples` (Anlegen, Entfernen, Option, Bootstrap unter
-    `is_admin()`, Stubs, `uninstall.php`) mit `verify-samples.php`; Teil 2
-    Box auf der Einstellungsseite, Handler `admin_post_…`, Notice nach der
-    Aktivierung (Transient im Aktivierungs-Hook) mit `verify-admin.php`;
-    Teil 3 readme (Installation, FAQ), Kontexthilfe, `.pot`, ZIP, Plugin
-    Check, Hostsharing `dateien`. Offen.
+    Nutzers. Erledigt am 29.10.2026 (Commits 652b5fe Teil 1, Teil 2 und
+    Doku-Commit, Konzept 2.16): Klasse `JGOR_FLCF7_Samples` mit Anlegen,
+    Entfernen, Option, Box, Handler, Notice und Transient im
+    Aktivierungshook, Bootstrap unter `is_admin()`, `uninstall.php`,
+    Stubs, `phpcs.xml.dist`; `verify-samples.php` 37 und `verify-admin.php`
+    58 Prüfungen, alle anderen Prüfscripte unverändert grün; readme
+    (Features, Installation Schritt 5, FAQ „Is there a sample page …“,
+    Requirements), Kontexthilfe „Overview“, `.pot` 192 Texte, ZIP 16 +
+    1 = 17 Dateien, Plugin Check ohne Befund. Offen: Hostsharing `dateien`,
+    Sichtprüfung (Nutzer: Box, Notice nach erneuter Aktivierung,
+    Beispielseite im Frontend und im Block-Editor).
 
 ## 15. Offen
 
@@ -1508,3 +1521,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.13 | 29.10.2026 | Reset-Buttons im Block-Editor geplant (Wunsch des Nutzers): „Reset this placement“ im Panel „Floating labels“ (Klassen und Design-Werte), „Reset …“ je Design-Panel (nur diese Gruppe), inaktiv ohne Werte, Helfer `withoutGroups()`/`designWithoutGroup()` (10, 10.1), Prüfungen (13), §14 Schritt 11 offen |
 | 2.14 | 29.10.2026 | Schritt 11 erledigt: Reset-Buttons (10, 10.1), Hinweisabsatz auf der Einstellungsseite und Reset-Satz in der Kontexthilfe (9), Prüfzähler 56/28/99 (13), readme, `.pot` 150, ZIP-Stand; offen Hostsharing `dateien` und Sichtprüfung |
 | 2.15 | 29.10.2026 | Beispielseite geplant (Wunsch des Nutzers): neuer Abschnitt 9.3 (Seite `testpage-floating-labels-for-cf7` privat, sieben Formulare „FL Test … - may be deleted“ mit `skip_mail`, Platzierungsbeispiele, Option `jgor_flcf7_samples`, Box mit admin-post-Handler, Nachfrage nach der Aktivierung, Uninstall, Stubs); §3, §4, §6, §12, §13 `verify-samples.php`, §14 Schritt 12 offen |
+| 2.16 | 29.10.2026 | Schritt 12 erledigt: Beispielseite umgesetzt (9.3 mit Befunden: Hash nach `save()`, `exit` nach Redirect, Action `jgor_flcf7_settings_page_top`, Ergebnisse `absent`/`failed`), Prüfzähler 37/58 (13), ZIP 17 Dateien, `.pot` 192; offen Hostsharing `dateien` und Sichtprüfung |
