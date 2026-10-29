@@ -52,7 +52,7 @@
 	--jgor-flcf7-duration: 0.15s;
 	--jgor-flcf7-submit-error-background: #dc3232;
 	--jgor-flcf7-submit-error-color: #fff;
-	--jgor-flcf7-effect-color: #1a73e8;
+	--jgor-flcf7-effect-color: #dc3232;
 	--jgor-flcf7-effect-size: 8px;
 	--jgor-flcf7-effect-width: 2px;
 	--jgor-flcf7-effect-duration: 1.5s;
@@ -87,6 +87,7 @@
 
 .wpcf7 .jgor-flcf7-label {
 	position: absolute;
+	z-index: 2;
 	top: calc(var(--jgor-flcf7-padding-y) + var(--jgor-flcf7-border-width));
 	inset-inline-start: calc(var(--jgor-flcf7-padding-x) - 0.25em);
 	max-width: calc(100% - 2 * var(--jgor-flcf7-padding-x) + 0.5em);
@@ -277,19 +278,25 @@
  * Focus effects (setting "effect": glow, pulsing glow, running light)
  *
  * The effect class sits on the wrap next to the variant class; without it
- * nothing of this section applies. Glow and pulse are a box-shadow of the
+ * nothing of this section applies. The default colour is red, so the effect
+ * stands out from the (blue) active border. Glow and pulse are a box-shadow of the
  * control while it has focus. The running light is a ring drawn by the
  * ::before pseudo-element of the wrap (an input cannot carry one): a conic
  * gradient, masked to its outer band of --jgor-flcf7-effect-width and
  * turned through the custom property --jgor-flcf7-angle, which @property
  * registers as an animatable angle. A browser without @property shows the
- * ring without motion, one without mask-composite no ring at all. The
- * floated label of the Outlined variant paints above the ring, as it does
- * above the border.
+ * ring without motion, one without mask-composite no ring at all. The ring
+ * paints above the control (z-index 1), so the focus outline a theme draws
+ * on the control does not hide it; the label sits above both (z-index 2),
+ * so the floated label of the Outlined variant paints above the ring, as it
+ * does above the border. The light is a comet: a tail that fades in over
+ * 28% of the circle and a solid head of 12%. The glow carries a small spread, so it is visible
+ * beyond a theme outline of a few pixels, and the pulse swells between half
+ * and twice the glow.
  * ---------------------------------------------------------------- */
 
 .wpcf7 .jgor-flcf7-glow .jgor-flcf7-control:focus {
-	box-shadow: 0 0 var(--jgor-flcf7-effect-size) var(--jgor-flcf7-effect-color);
+	box-shadow: 0 0 var(--jgor-flcf7-effect-size) calc(var(--jgor-flcf7-effect-size) / 4) var(--jgor-flcf7-effect-color);
 }
 
 .wpcf7 .jgor-flcf7-pulse .jgor-flcf7-control:focus {
@@ -299,11 +306,11 @@
 @keyframes jgor-flcf7-pulse {
 	0%,
 	100% {
-		box-shadow: 0 0 0 var(--jgor-flcf7-effect-color);
+		box-shadow: 0 0 calc(var(--jgor-flcf7-effect-size) / 2) 0 var(--jgor-flcf7-effect-color);
 	}
 
 	50% {
-		box-shadow: 0 0 var(--jgor-flcf7-effect-size) var(--jgor-flcf7-effect-color);
+		box-shadow: 0 0 calc(var(--jgor-flcf7-effect-size) * 2) calc(var(--jgor-flcf7-effect-size) / 2) var(--jgor-flcf7-effect-color);
 	}
 }
 
@@ -316,11 +323,12 @@
 .wpcf7 .jgor-flcf7-sweep::before {
 	content: "";
 	position: absolute;
+	z-index: 1;
 	inset: calc(-1 * var(--jgor-flcf7-effect-width));
 	box-sizing: border-box;
 	padding: var(--jgor-flcf7-effect-width);
 	border-radius: calc(var(--jgor-flcf7-radius) + var(--jgor-flcf7-effect-width));
-	background: conic-gradient(from var(--jgor-flcf7-angle), transparent 0 70%, var(--jgor-flcf7-effect-color) 100%);
+	background: conic-gradient(from var(--jgor-flcf7-angle), transparent 0 60%, var(--jgor-flcf7-effect-color) 88% 100%);
 	-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
 	-webkit-mask-composite: xor;
 	mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -424,7 +432,7 @@
 
 	/* The pulse becomes a steady glow, the running light a steady ring. */
 	.wpcf7 .jgor-flcf7-pulse .jgor-flcf7-control:focus {
-		box-shadow: 0 0 var(--jgor-flcf7-effect-size) var(--jgor-flcf7-effect-color);
+		box-shadow: 0 0 var(--jgor-flcf7-effect-size) calc(var(--jgor-flcf7-effect-size) / 4) var(--jgor-flcf7-effect-color);
 		animation: none;
 	}
 

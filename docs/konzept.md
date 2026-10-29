@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.17 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.18 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -600,8 +600,8 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
 | `--jgor-flcf7-duration` | `0.15s` | Dauer der Übergänge |
 | `--jgor-flcf7-submit-error-background` | `#dc3232` | Senden-Button bei Validierungsfehlern |
 | `--jgor-flcf7-submit-error-color` | `#fff` | Fehlertext auf dem Senden-Button |
-| `--jgor-flcf7-effect-color` | `#1a73e8` | Farbe von Glow und umlaufendem Licht |
-| `--jgor-flcf7-effect-size` | `8px` | Unschärfe des Glows (`box-shadow`) |
+| `--jgor-flcf7-effect-color` | `#dc3232` (bis 2.17 `#1a73e8`) | Farbe von Glow und umlaufendem Licht; rot, damit sich der Effekt vom blauen aktiven Rahmen abhebt |
+| `--jgor-flcf7-effect-size` | `8px` | Unschärfe des Glows (`box-shadow`, Spread ein Viertel davon); der Puls schwillt zwischen der Hälfte und dem Doppelten |
 | `--jgor-flcf7-effect-width` | `2px` | Breite des Rings beim umlaufenden Licht |
 | `--jgor-flcf7-effect-duration` | `1.5s` | Dauer eines Pulses bzw. einer Umrundung |
 
@@ -674,13 +674,22 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
 - **Fokus-Effekte (seit 2.6, Option `effect`):** Die Effekt-Klasse
   (`jgor-flcf7-glow`, `-pulse`, `-sweep`) sitzt am Wrap neben der
   Varianten-Klasse; ohne sie gilt nichts aus diesem Abschnitt. Glow:
-  `.jgor-flcf7-control:focus { box-shadow: 0 0 effect-size effect-color }`.
-  Puls: Keyframes `jgor-flcf7-pulse` zwischen unsichtbarem und vollem
-  Glow, `ease-in-out infinite`, Dauer `effect-duration`. Umlaufendes
+  `.jgor-flcf7-control:focus { box-shadow: 0 0 effect-size
+  calc(effect-size / 4) effect-color }` (seit 2.18 mit Spread, damit der
+  Glow über das Fokus-Outline eines Themes hinausreicht). Puls: Keyframes
+  `jgor-flcf7-pulse` zwischen halbem Glow (Blur `effect-size / 2`) und
+  doppeltem Glow (Blur `effect-size * 2`, Spread `effect-size / 2`),
+  `ease-in-out infinite`, Dauer `effect-duration` (seit 2.18; bis dahin 0
+  bis `effect-size`, im Outline-Band kaum sichtbar). Umlaufendes
   Licht: Ring am `::before` des Wraps (ein `input` trägt keine
-  Pseudo-Elemente): `inset: -effect-width`, `padding: effect-width`,
-  `conic-gradient(from var(--jgor-flcf7-angle), transparent 0 70%,
-  effect-color)`, per `mask: linear-gradient(#000 0 0) content-box,
+  Pseudo-Elemente), `z-index: 1` über dem Steuerelement (seit 2.18: Twenty
+  Twenty-Five zeichnet auf `:focus` ein 2 px dickes Outline genau über das
+  Ringband, der Ring war dahinter unsichtbar; das Label liegt mit `z-index:
+  2` darüber): `inset: -effect-width`, `padding: effect-width`,
+  `conic-gradient(from var(--jgor-flcf7-angle), transparent 0 60%,
+  effect-color 88% 100%)` (seit 2.18 ein Komet: Schweif über 28 % des
+  Kreises eingeblendet, Kopf 12 % voll; vorher Einblendung über 30 % ohne
+  vollen Kopf), per `mask: linear-gradient(#000 0 0) content-box,
   linear-gradient(#000 0 0); mask-composite: exclude` (plus
   `-webkit-mask-composite: xor`) auf den äußeren Rand beschnitten, bei
   `:focus-within` sichtbar und per Keyframes `jgor-flcf7-sweep` gedreht;
@@ -689,7 +698,9 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
   eckig, bei Minimal beginnt der Ring unter dem Platz für das gefloatete
   Label. Das gefloatete Label der Outlined-Variante malt über den Ring wie
   über den Rahmen. Ohne `@property` steht der Ring, ohne `mask-composite`
-  fehlt er (beides seit 2024 bzw. 2023 in allen Evergreen-Browsern).
+  fehlt er (beides seit 2024 bzw. 2023 in allen Evergreen-Browsern). Das
+  Fokus-Outline des Themes bleibt erhalten (Zugänglichkeit); Ring und Glow
+  kommen hinzu.
 - `@media (prefers-reduced-motion: reduce)` schaltet die Transitionen von
   Label und Steuerelement ab; der Puls wird zum stehenden Glow, das
   umlaufende Licht zum stehenden Ring. RTL über logische Eigenschaften
@@ -1451,6 +1462,17 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     Bedarf über die Box anlegen. Offen: Sichtprüfung (Nutzer: Box, Notice
     nach erneuter Aktivierung, Beispielseite im Frontend und im
     Block-Editor).
+13. Nachbesserung der Fokus-Effekte nach der Sichtprüfung des Nutzers auf
+    der Beispielseite (29.10.2026, Konzept 2.18): das umlaufende Licht war
+    hinter dem 2 px dicken Fokus-Outline von Twenty Twenty-Five unsichtbar
+    (headless mit Chromium 156 bestätigt: Winkel animierte, Ring verdeckt),
+    Glow und Puls in Rahmenblau kaum erkennbar. Ring `z-index: 1`, Label
+    `z-index: 2`, Effektfarbe Default `#dc3232`, Glow mit Spread
+    `effect-size / 4`, Puls zwischen `effect-size / 2` und `effect-size * 2`
+    mit Spread (8); `DESIGN_DEFAULTS` angepasst, Prüfscripte 29/58/28
+    weiter grün, Headless-Nachmessung: Glow `0 0 8px 2px #dc3232`, Puls
+    10,7–14,8 px Blur, Ring sichtbar. Offen: Sichtprüfung (Nutzer),
+    Hostsharing `dateien`.
 
 ## 15. Offen
 
@@ -1530,3 +1552,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.15 | 29.10.2026 | Beispielseite geplant (Wunsch des Nutzers): neuer Abschnitt 9.3 (Seite `testpage-floating-labels-for-cf7` privat, sieben Formulare „FL Test … - may be deleted“ mit `skip_mail`, Platzierungsbeispiele, Option `jgor_flcf7_samples`, Box mit admin-post-Handler, Nachfrage nach der Aktivierung, Uninstall, Stubs); §3, §4, §6, §12, §13 `verify-samples.php`, §14 Schritt 12 offen |
 | 2.16 | 29.10.2026 | Schritt 12 erledigt: Beispielseite umgesetzt (9.3 mit Befunden: Hash nach `save()`, `exit` nach Redirect, Action `jgor_flcf7_settings_page_top`, Ergebnisse `absent`/`failed`), Prüfzähler 37/58 (13), ZIP 17 Dateien, `.pot` 192; offen Hostsharing `dateien` und Sichtprüfung |
 | 2.17 | 29.10.2026 | Hostsharing nach Schritt 11 und 12 mit `dateien` nachgezogen (§13, §14); offen nur noch Sichtprüfungen des Nutzers, Browser-Matrix, Push und Veröffentlichung |
+| 2.18 | 29.10.2026 | Fokus-Effekte nachgebessert (8, §14 Schritt 13): Ring über Steuerelement und Theme-Outline (`z-index`), Label `z-index: 2`, Effektfarbe Default `#dc3232`, Glow mit Spread, Puls doppelt so stark |
