@@ -290,7 +290,7 @@ final class JGOR_FLCF7_Admin {
 	 * @return string Plain text.
 	 */
 	private function text_per_placement(): string {
-		return __( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages. The panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:', 'floating-labels-for-cf7' );
+		return __( 'Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel "Floating labels" in the block sidebar. It stores the choice as classes in the "Class" field of the block (panel "Form attributes") or in the html_class attribute of the shortcode, so one form can look different on different pages. A reset button at the end of each panel takes the placement back to the settings of the site and of the form. The panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:', 'floating-labels-for-cf7' );
 	}
 
 	/**

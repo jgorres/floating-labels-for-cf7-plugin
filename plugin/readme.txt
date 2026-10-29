@@ -26,7 +26,7 @@ Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server
 * Accessible: every rebuilt field gets a real `<label for>` with a matching `id`; the placeholder is replaced so screen readers do not hear two names. Contact Form 7's `aria-*` attributes stay untouched.
 * Clear error state: the label of an invalid field floats up in the error colour, Contact Form 7's message appears inside the field (no layout jump), and the submit button turns red with a text of your choice until the next attempt.
 * Control at every level: for the whole site, per form, per placement (page) and per field.
-* Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get "Floating labels" panels in the sidebar: the placement settings, and colours, sizes, animation and focus effect for that placement only; no classes to type.
+* Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get "Floating labels" panels in the sidebar: the placement settings, and colours, sizes, animation and focus effect for that placement only; no classes to type, and a reset button in every panel.
 * Design settings: colours with the WordPress colour picker, font size, padding, border, corner radius, the animation and the focus effect on the settings screen, or per placement in the block editor; every value is also a CSS custom property, so themes can set them too.
 * Lightweight: one option, one stylesheet, no database tables, no cron, no external requests, no tracking.
 
@@ -63,7 +63,7 @@ jgor-flcf7-marker-on  jgor-flcf7-marker-off
 
 Example: `[contact-form-7 id="123" html_class="jgor-flcf7-style-filled"]`
 
-The panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" below it set colours, sizes, the animation and the look of the focus effect for this placement only. Leave a control empty to keep the value of the settings screen. The values are stored with the block, or in the `jgor_flcf7_design` attribute of the shortcode, which you can also write by hand (property names as on the settings screen, without the prefix):
+The panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" below it set colours, sizes, the animation and the look of the focus effect for this placement only. Leave a control empty to keep the value of the settings screen; the reset button at the end of each panel clears its values, and "Reset this placement" in the panel "Floating labels" clears the choices and all design values of this placement. The values are stored with the block, or in the `jgor_flcf7_design` attribute of the shortcode, which you can also write by hand (property names as on the settings screen, without the prefix):
 
 `[contact-form-7 id="123" jgor_flcf7_design="border-color:#0a7d3e;font-size:1.1em"]`
 
@@ -107,7 +107,7 @@ Contact Form 7 is a trademark of Rock Lobster, Inc. This plugin is an independen
 1. Install and activate Contact Form 7.
 2. Upload the plugin folder to `wp-content/plugins/` or install the ZIP via Plugins > Add New > Upload Plugin.
 3. Activate the plugin under Plugins.
-4. Open Contact > Floating Labels to choose the variant, the focus effect, the field types, the text of the submit button on errors and, under Design, colours and sizes. The defaults work out of the box: every text-like field of every form gets a floating label, required fields an asterisk. Forms without labels and placeholders (older templates) need the option "Text before the field" under "Label sources".
+4. Open Contact > Floating Labels to choose the variant, the focus effect, the field types, the text of the submit button on errors and, under Design, colours and sizes. These are the defaults for every form; forms (Additional Settings) and placements (block editor) can override them. The defaults work out of the box: every text-like field of every form gets a floating label, required fields an asterisk. Forms without labels and placeholders (older templates) need the option "Text before the field" under "Label sources".
 
 == Frequently Asked Questions ==
 
@@ -137,7 +137,7 @@ On the settings screen under Design: pick the colours with the colour picker, en
 
 = Does it work with the block editor? =
 
-Yes. The Contact Form 7 block, and a Shortcode block that holds the `[contact-form-7]` shortcode, get the panel "Floating labels" (placement settings) and the panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" (design values for this placement) in the sidebar. The choices are stored as classes in the block's "Class" field (panel "Form attributes") or in the `html_class` attribute of the shortcode, the design values with the block or in the `jgor_flcf7_design` attribute of the shortcode, so the content stays valid without the plugin.
+Yes. The Contact Form 7 block, and a Shortcode block that holds the `[contact-form-7]` shortcode, get the panel "Floating labels" (placement settings) and the panels "Floating labels: colours", "Floating labels: sizes", "Floating labels: animation" and "Floating labels: focus effect" (design values for this placement) in the sidebar. The choices are stored as classes in the block's "Class" field (panel "Form attributes") or in the `html_class` attribute of the shortcode, the design values with the block or in the `jgor_flcf7_design` attribute of the shortcode, so the content stays valid without the plugin. Every panel ends with a reset button: "Reset this placement" removes the choices and the design values of this placement, the design panels reset their own values only.
 
 = Does the plugin load JavaScript? =
 

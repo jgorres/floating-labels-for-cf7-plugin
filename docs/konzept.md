@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.13 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.14 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -708,6 +708,12 @@ eine zweite CSS-Datei oder Inline-CSS bräuchte.
   `options.php` mit `settings_fields( 'jgor_flcf7' )`,
   `do_settings_sections()`, `submit_button()`; `register_setting()` und
   `sanitize()` kommen aus Modul 1.
+- Unter der Überschrift (nach `settings_errors()`, seit 2.14 auf Wunsch des
+  Nutzers) ein Absatz: die Werte dieser Seite sind die Standardwerte für
+  alle Formulare, übersteuerbar je Formular (Additional Settings) und je
+  Platzierung im Block-Editor (Panels „Floating labels“), mit Verweis auf
+  die Sektion „Per form, per placement, per field“. Der Hinweistext
+  `text_per_placement()` nennt seit 2.14 auch die Reset-Buttons (10).
 - Fünf Sektionen: „Label sources“ (Checkboxen `mode_label`,
   `mode_placeholder` und `mode_text`, letztere „Text before the field“ mit
   Hinweis auf Vorlagen ohne Label und Placeholder, Default aus), „Field
@@ -985,10 +991,10 @@ Tabellen, keine Dateien.
   `dist/floating-labels-for-cf7-<version>.zip`; das ZIP in einen frischen
   Ordner entpacken und `wp plugin check <Ordner> --path=<Site>` laufen
   lassen (`Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens
-  150 Zeichen). Stand 29.10.2026: 16 Dateien, 60 KB (mit Modul 5,
+  150 Zeichen). Stand 29.10.2026: 16 Dateien, 64 KB (mit Modul 5,
   Design-Einstellungen, Design je Platzierung, `admin.css`, `editor.css`,
-  Fokus-Effekten und Text-Modus; `.pot` 144 Texte, per `--slug` mit
-  korrektem Support-Link), ohne Befund; am 22.10.2026 ebenso
+  Fokus-Effekten, Text-Modus und Reset-Buttons; `.pot` 150 Texte, per
+  `--slug` mit korrektem Support-Link), ohne Befund; am 22.10.2026 ebenso
   ohne Befund auf dem Symlink-Ordner der Testsite und auf der
   Hostsharing-Site.
 - Testsite `floating-labels-for-cf7.gorres.local` (CF7, Plugin Check, Query
@@ -1046,14 +1052,15 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   → Shortcode-Attribut per `render_block()`, vorhandenes Attribut bleibt,
   nur ungültige Werte → unverändert; nichts bei `load_css` aus).
   `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
-- `tests/verify-admin.php` prüft Modul 4 ohne Browser (55 Punkte): Menü
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (56 Punkte): Menü
   unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
   Kontexthilfe (Hook, drei Reiter, escapete Beispiele samt Effekt- und
   Text-Modus-Klassen, Hinweis auf die Option im Reiter „Overview“,
   Snippet, Seitenleiste), Farbwähler-Assets und `admin.css` (Grid-Regel
   mit 16em-Spalten) nur auf dem Seiten-Hook, fünf Sektionen
   und 14 Feldzeilen (Design-Gruppen decken jede Property genau einmal ab),
-  das gerenderte Formular (Ziel `options.php`, Nonce, Defaults, Radios für
+  das gerenderte Formular (Hinweisabsatz unter der Überschrift, Ziel
+  `options.php`, Nonce, Defaults, Radios für
   Variante und Effekt, Checkbox `mode_text` unangehakt mit Hinweis auf
   alte Vorlagen, `for`/`id`,
   escapete Codebeispiele, Snippet in der Textarea, fünf Spaltengruppen
@@ -1081,7 +1088,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   `load_css` aus), Sperre per Filter, die Effekt-Regeln (Glow, Puls,
   `@property`, Ring mit `mask-composite`, Reduced Motion) und die
   `font-size`-Regel in der CSS.
-- `tests/verify-editor.php` prüft Modul 5 ohne Browser (27 Punkte): Klasse
+- `tests/verify-editor.php` prüft Modul 5 ohne Browser (28 Punkte): Klasse
   geladen, CF7-Block registriert, Hook, Enqueue (Quelle, Abhängigkeiten,
   Version, Footer, Übersetzungen), Stylesheet `editor.css` (Quelle,
   Abhängigkeit `wp-components`, Version, Datei mit den Farbzeilen-Regeln),
@@ -1092,10 +1099,11 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   `get_block_editor_server_block_settings()`, Script-Datei (CF7-Block,
   Shortcode-Block, Filter, alle 14 Platzierungsklassen, Design-Attribute,
   Daten-Global, `ColorPalette` und `useSettings` statt
-  `PanelColorSettings`, keine `Flex`-Hüllen, Text-Domain an jedem `__()`
+  `PanelColorSettings`, keine `Flex`-Hüllen, Reset-Buttons samt Helfern,
+  Text-Domain an jedem `__()`
   und `_x()`) und kein
   Enqueue ohne registrierten Block (Registry wird wiederhergestellt).
-- `tests/verify-editor-js.mjs` prüft das Editor-Script unter Node (88
+- `tests/verify-editor-js.mjs` prüft das Editor-Script unter Node (99
   Punkte): die `wp.*`-Pakete sind Stubs, `createElement` liefert einfache
   Objekte (Funktionskomponenten wie die Farbzeile werden beim Suchen im
   Baum aufgerufen), `useSettings` liefert eine kleine Palette, die
@@ -1119,8 +1127,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   `PanelColorSettings`; Größen- und Animationsfelder mit Platzhaltern,
   Zahlenfeld, Effekt-Panel mit Farbzeile und drei Feldern, Hinweise,
   Speichern als Block-Attribut bzw.
-  Shortcode-Attribut, Entfernen ohne Werte), ab Schritt 11 die
-  Reset-Buttons (10, 10.1: inaktiv ohne Werte; „Reset this placement“
+  Shortcode-Attribut, Entfernen ohne Werte), die Reset-Buttons (10, 10.1: inaktiv ohne Werte; „Reset this placement“
   entfernt Klassen und Design-Werte und lässt fremde Klassen stehen, je
   Design-Panel nur die eigene Gruppe; CF7- und Shortcode-Block) und das
   Script ohne Server-Daten (nur das erste Panel). `node --check` läuft
@@ -1317,7 +1324,12 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     `verify-editor-js.mjs` und `verify-editor.php` (Text-Domain-Zählung),
     readme („Per placement“, FAQ Block-Editor), Kontexthilfe
     (`text_per_placement()`), `.pot`, ZIP, Hostsharing `dateien`. Kein
-    Server-Code. Offen.
+    Server-Code. Erledigt am 29.10.2026 (Commit 87a3b8d und Folge-Commits
+    für Hinweisabsatz und Doku, Konzept 2.14): `verify-editor-js.mjs` 99,
+    `verify-editor.php` 28, dazu der Hinweisabsatz auf der Einstellungsseite
+    (9, `verify-admin.php` 56), readme, Kontexthilfe, `.pot` 150 Texte,
+    ZIP 16 Dateien, Plugin Check ohne Befund. Offen: Hostsharing `dateien`,
+    Sichtprüfung der Buttons im Block-Editor (Nutzer).
 
 ## 15. Offen
 
@@ -1393,3 +1405,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.11 | 29.10.2026 | Hostsharing nach Schritt 10 mit `dateien` und `datenbank` nachgezogen (§13, §14; CF7 6.2.4 nun auch remote, §2); Zählung korrigiert: die Kontaktseite trägt sechs CF7-Formulare (A–E und F) |
 | 2.12 | 29.10.2026 | Hostsharing-Testsite mit Basic-Auth (Benutzer `<basic-auth-user>`, `.htpasswd` außerhalb des Webroots, `<webroot>/.htaccess`), Site-env mit `HS_RSYNC_AUSSCHLUESSE_SITE` (neuer Schlüssel in Stufe 6), Gegenprobe per curl mit `-u` (§2, §13) |
 | 2.13 | 29.10.2026 | Reset-Buttons im Block-Editor geplant (Wunsch des Nutzers): „Reset this placement“ im Panel „Floating labels“ (Klassen und Design-Werte), „Reset …“ je Design-Panel (nur diese Gruppe), inaktiv ohne Werte, Helfer `withoutGroups()`/`designWithoutGroup()` (10, 10.1), Prüfungen (13), §14 Schritt 11 offen |
+| 2.14 | 29.10.2026 | Schritt 11 erledigt: Reset-Buttons (10, 10.1), Hinweisabsatz auf der Einstellungsseite und Reset-Satz in der Kontexthilfe (9), Prüfzähler 56/28/99 (13), readme, `.pot` 150, ZIP-Stand; offen Hostsharing `dateien` und Sichtprüfung |
