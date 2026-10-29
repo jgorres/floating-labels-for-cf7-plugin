@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.10 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.11 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -46,7 +46,7 @@ in beiden Anreden über translate.wordpress.org.
 | Lokale Site | `https://floating-labels-for-cf7.gorres.local` (local-sites auf Bodhran, PHP 8.4, WordPress 7.1.3 „nackt“, Twenty Twenty-Five, Admin `jgorres`, Sprache en_US, de_DE installiert), CF7, Plugin Check und Query Monitor per wp-cli, Plugin per Symlink `wp-content/plugins/floating-labels-for-cf7` → `plugin/`; Browser läuft auf Silentium, Hosts-Eintrag dort über `hosts-von-bodhran.sh` |
 | Test-Site Hostsharing | `https://<hs-testsite>`: Paket `<hs-paket>`, Domain-Admin `<hs-admin>`, DB und DB-User `<hs-db>`, PHP 8.4 (`fcgiphpbin`, in HSAdmin gesetzt), Let’s Encrypt. Kopie der lokalen Site über Stufe 6 `local-sites-hostsharing.sh` (Zugangsdaten `~/.config/local-sites/hostsharing/floating-labels-for-cf7.gorres.local.env`); Änderungen nachschieben mit `dateien floating-labels-for-cf7.gorres.local --ueberschreiben`; wp-cli dort mit `php8.4 /home/pacs/<hs-paket>/bin/wp` |
 | Rechte | Einstellungsseite `manage_options` |
-| Geprüft gegen | CF7 6.2.3 (Hostsharing) und 6.2.4 (lokal seit 29.10.2026; das Security-Release 6.2.4 und 6.2.4.1 mit FormDataTree 2.0.10 ändern nur Uploads, SWV und FormDataTree, alle Prüfscripte danach ohne Befund), Doku `https://contactform7.com/docs/`. CF7 6.2.3 verlangt für sich WordPress 7.1 und PHP 8.3; `Requires at least` 6.5 und `Requires PHP` 8.1 bleiben trotzdem (Entscheidung 22.10.2026): Das Plugin nutzt nur CF7-API, die es seit 5.x gibt, ältere CF7-Versionen laufen auf WP 6.5 / PHP 8.1 weiter |
+| Geprüft gegen | CF7 6.2.4 (lokal und Hostsharing seit 29.10.2026, vorher 6.2.3; das Security-Release 6.2.4 und 6.2.4.1 mit FormDataTree 2.0.10 ändern nur Uploads, SWV und FormDataTree, alle Prüfscripte danach ohne Befund), Doku `https://contactform7.com/docs/`. CF7 6.2.3 verlangt für sich WordPress 7.1 und PHP 8.3; `Requires at least` 6.5 und `Requires PHP` 8.1 bleiben trotzdem (Entscheidung 22.10.2026): Das Plugin nutzt nur CF7-API, die es seit 5.x gibt, ältere CF7-Versionen laufen auf WP 6.5 / PHP 8.1 weiter |
 
 Namensprüfung: „Contact Form 7“ ist eine eingetragene Marke von Rock Lobster
 Inc. Die Trademark-Policy (`contactform7.com/trademark-policy/`) nimmt die
@@ -1175,7 +1175,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   identisch (die Meldung „Site-URL: ?“ des Scripts ist harmlos, `siteurl`
   und `home` stimmen). `datenbank` ist nur
   nötig, wenn sich Seiten oder Formulare ändern; neue Optionsschlüssel
-  kommen über die Defaults. Die Warnung des Scripts zu `rewrite flush` ist
+  kommen über die Defaults. 29.10.2026 nach Schritt 10 erneut beides
+  (Details in §14, Schritt 10): 16 Plugin-Dateien identisch, Plugin Check
+  remote ohne Befund, sechs Formulare und Kontaktseite identisch. Die Warnung des Scripts zu `rewrite flush` ist
   harmlos: keine `.htaccess`, Permalinks `/index.php/…`.
 - Testeinstellungen und Testformulare nach der Prüfung entfernen.
 
@@ -1274,9 +1276,17 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     Contact Form 7 …“), `.pot` 144 Texte, ZIP 16 Dateien, Plugin Check ohne
     Befund (Commit 20e5fda). Prüfscripte 111/55/29/27/88 PASS, `composer
     check` und PHPCS auf `tests/` ohne Befund; nach dem Update der lokalen
-    Site auf CF7 6.2.4 alle PHP-Prüfscripte erneut ohne Befund. Offen:
-    Hostsharing mit `dateien` und `datenbank` (Kontaktseite hat nun sieben
-    Formulare), Sichtprüfung des Text-Modus im Frontend (Nutzer).
+    Site auf CF7 6.2.4 alle PHP-Prüfscripte erneut ohne Befund. Hostsharing
+    am 29.10.2026 nachgezogen: `dateien --ueberschreiben --ja` (Sicherung
+    38 MB vorher, 15 neue und 517 geänderte Dateien, 0 Löschungen; bringt
+    CF7 6.2.4 und Query Monitor 4.1.1 mit), alle 16 Plugin-Dateien
+    md5-identisch, Plugin Check auf dem Server ohne Befund; `datenbank
+    --ueberschreiben --ja` (lokale und Remote-DB gesichert, 36
+    URL-Ersetzungen): Option mit `mode_text` false, Formular F (ID 71) und
+    die Kontaktseite mit sechs CF7-Formularen (A–E und F) nach
+    Normalisierung identisch mit lokal. Offen: Sichtprüfung des Text-Modus
+    im Frontend (Nutzer; auf der Kontaktseite bleibt F ohne Labels, solange
+    `mode_text` aus ist).
 
 ## 15. Offen
 
@@ -1349,3 +1359,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.8 | 29.10.2026 | Text-Modus für bestehende Formulare ohne Label und Placeholder (alte CF7-Vorlage `<p>Text<br>[tag]</p>`): neuer Abschnitt 7.3, die bisherigen 7.3–7.6 werden 7.4–7.7 (Verweise angepasst); Option `mode_text` Default aus (6), Schritt 5 in 7, `floating_labels: text` und `jgor-flcf7-mode-text` (7.5), Checkbox (9), Block-Panel (10), §14 Schritt 10 offen für 1.0; §15: Erweiterung 1.1 „Bedingtes Laden des Stylesheets“ (Option, Erkennung per `has_shortcode()`/`has_block()`, Sicherheitsnetz aus Modul 2, Default bleibt die CF7-Politik) und Entscheidung gegen das Umschreiben gespeicherter Vorlagen; keine Codeänderung |
 | 2.9 | 29.10.2026 | Text-Modus an den Code angeglichen (Commit 7e4568f): CF7-Formatter trennt `Text<br />[tag]` in zwei Absätze (5), 7.3 mit zwei Suchstufen (`text_before_wrap()`, `text_in_previous_paragraph()`), `<label>` ohne `for` als Textquelle, Erklärabsatz-Heuristik, Grenzen korrigiert; §13 Testformular (f) und `verify-markup.php` 111; §14 Schritt 10 Teil 1 erledigt |
 | 2.10 | 29.10.2026 | Text-Modus komplett (Commits 16b82f0, a21c14b, 20e5fda): §13 `verify-admin.php` 55 (14 Feldzeilen, Checkbox `mode_text`), `verify-editor.php` 14 Klassen, `verify-editor-js.mjs` 88, ZIP-Stand mit `.pot` 144 (`--slug`); §14 Schritt 10 erledigt bis auf Hostsharing und Sichtprüfung; §2 und §5 CF7 6.2.4 lokal (Security-Release ohne Einfluss, Prüfscripte ohne Befund) |
+| 2.11 | 29.10.2026 | Hostsharing nach Schritt 10 mit `dateien` und `datenbank` nachgezogen (§13, §14; CF7 6.2.4 nun auch remote, §2); Zählung korrigiert: die Kontaktseite trägt sechs CF7-Formulare (A–E und F) |
