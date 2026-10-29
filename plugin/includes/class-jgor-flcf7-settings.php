@@ -239,6 +239,7 @@ final class JGOR_FLCF7_Settings {
 		return array(
 			'mode_placeholder'  => true,
 			'mode_label'        => true,
+			'mode_text'         => false,
 			'types'             => array_values( array_intersect( self::BASE_TYPES, $this->field_types() ) ),
 			'style'             => 'outlined',
 			'effect'            => 'none',
@@ -621,7 +622,7 @@ final class JGOR_FLCF7_Settings {
 	 * Keeps only known field types, in the order of field_types().
 	 *
 	 * An empty list is a valid choice: it switches the rebuild off for every
-	 * type without touching the two mode switches.
+	 * type without touching the mode switches.
 	 *
 	 * @param mixed $raw Raw value, an array of type names.
 	 * @return string[]

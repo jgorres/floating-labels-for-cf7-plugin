@@ -9,10 +9,13 @@
  *   wp --path=/var/www/local-sites/floating-labels-for-cf7.gorres.local eval-file tests/verify-markup.php
  *
  * Besides the rebuild itself the script covers the control layers of the
- * concept (section 7.4): additional settings per form (floating_labels_*),
+ * concept (section 7.5): additional settings per form (floating_labels_*),
  * html_class classes per placement (block field "Class" or shortcode
  * attribute) and the filters jgor_flcf7_form_settings, jgor_flcf7_enabled
  * and jgor_flcf7_label_text.
+ *
+ * Form F (the Contact Form 7 template before 5.4, no labels and no
+ * placeholders) covers text mode (concept 7.3), which is off by default.
  *
  * Form C is rendered a second time to cover the id option Contact Form 7
  * prints only once per request (same form twice on a page). The design
@@ -170,6 +173,7 @@ $jgor_flcf7_id_a = jgor_flcf7_form_id( 'Contact form 1' );
 $jgor_flcf7_id_b = jgor_flcf7_form_id( 'FL Test B Placeholder' );
 $jgor_flcf7_id_c = jgor_flcf7_form_id( 'FL Test C Mixed' );
 $jgor_flcf7_id_d = jgor_flcf7_form_id( 'FL Test D Off' );
+$jgor_flcf7_id_f = jgor_flcf7_form_id( 'FL Test F Old template' );
 
 // (a) Standard template, label mode.
 $jgor_flcf7_a = jgor_flcf7_render( $jgor_flcf7_id_a );
@@ -233,7 +237,49 @@ jgor_flcf7_check( 'C twice: linked label found through the id option, moved behi
 jgor_flcf7_check( 'C twice: <br> removed, 4 floating labels as in the first rendering', (bool) preg_match( '#<p>\s*<span class="wpcf7-form-control-wrap jgor-flcf7-wrap[^"]*" data-name="your-subject">#', $jgor_flcf7_c2 ) && 4 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_c2 ) );
 jgor_flcf7_labels_match( $jgor_flcf7_c2 );
 
-// Per form: additional settings (concept 7.4).
+// (f) Old template without labels and placeholders (concept 7.3): text mode, off by default.
+$jgor_flcf7_f  = jgor_flcf7_render( $jgor_flcf7_id_f );
+$jgor_flcf7_f0 = jgor_flcf7_render( $jgor_flcf7_id_f, false );
+jgor_flcf7_check( 'F: mode_text off by default -> byte-identical to original (unit tag normalised)', jgor_flcf7_norm_unit( $jgor_flcf7_f ) === jgor_flcf7_norm_unit( $jgor_flcf7_f0 ) && ! str_contains( $jgor_flcf7_f, 'jgor-flcf7' ) );
+$jgor_flcf7_f = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'floating_labels: text' );
+jgor_flcf7_check( 'F: floating_labels: text -> 7 floating labels', 7 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_f ) );
+jgor_flcf7_check( 'F: label texts from the loose text in front of the fields', str_contains( $jgor_flcf7_f, '>Your Name (required)</label>' ) && str_contains( $jgor_flcf7_f, '>Your Email (required)</label>' ) && str_contains( $jgor_flcf7_f, '>Phone</label>' ) && str_contains( $jgor_flcf7_f, '>Company</label>' ) && str_contains( $jgor_flcf7_f, '>Your Message</label>' ) && str_contains( $jgor_flcf7_f, '>Website</label>' ) && str_contains( $jgor_flcf7_f, '>Nickname</label>' ) );
+jgor_flcf7_check( 'F: text paragraphs from the old template removed (Contact Form 7 renders Text<br />[tag] as two paragraphs), wrap paragraphs kept', ! preg_match( '#<p>\s*(?:Your Name \(required\)|Your Email \(required\)|Phone|Company|Your Message)\s*</p>#', $jgor_flcf7_f ) && (bool) preg_match( '#<p>\s*<span class="wpcf7-form-control-wrap jgor-flcf7-wrap[^"]*" data-name="your-name">#', $jgor_flcf7_f ) && (bool) preg_match( '#<p>\s*<span class="wpcf7-form-control-wrap jgor-flcf7-wrap[^"]*" data-name="your-company">#', $jgor_flcf7_f ) );
+jgor_flcf7_check( 'F: 9 paragraphs left of 14', 9 === preg_match_all( '#<p>#', $jgor_flcf7_f ) );
+jgor_flcf7_check( 'F: explanatory paragraph untouched', (bool) preg_match( '#<p>\s*Please describe your request in a few sentences\.\s*</p>#', $jgor_flcf7_f ) );
+jgor_flcf7_check( 'F: <label> without for replaced by the floating label', ! str_contains( $jgor_flcf7_f, '<label>Nickname</label>' ) && (bool) preg_match( '#<p>\s*<span class="wpcf7-form-control-wrap jgor-flcf7-wrap[^"]*" data-name="your-nick">#', $jgor_flcf7_f ) );
+jgor_flcf7_check( 'F: text without <br> ("Website") removed from the paragraph', (bool) preg_match( '#<p>\s*<span class="wpcf7-form-control-wrap jgor-flcf7-wrap[^"]*" data-name="your-site">#', $jgor_flcf7_f ) && ! str_contains( $jgor_flcf7_f, '<p>Website' ) );
+jgor_flcf7_labels_match( $jgor_flcf7_f );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_f, true, null, array( 'html_class' => 'jgor-flcf7-mode-text' ) );
+jgor_flcf7_check( 'F: placement jgor-flcf7-mode-text -> rebuilt', 7 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'floating_labels: text', array( 'html_class' => 'jgor-flcf7-mode-label' ) );
+jgor_flcf7_check( 'F: placement jgor-flcf7-mode-label overrides floating_labels: text -> untouched', ! preg_match( '#jgor-flcf7-(wrap|control|label)#', $jgor_flcf7_p ) );
+jgor_flcf7_check( 'A with floating_labels: text -> untouched (enclosing labels are not loose text)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_a, true, 'floating_labels: text' ), 'jgor-flcf7' ) );
+jgor_flcf7_check( 'B with floating_labels: text -> untouched (no text in front of the fields)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels: text' ), 'jgor-flcf7' ) );
+$jgor_flcf7_option              = get_option( 'jgor_flcf7_settings' );
+$jgor_flcf7_option['mode_text'] = true;
+update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
+JGOR_FLCF7_Settings::instance()->reset_cache();
+jgor_flcf7_check( 'F: option mode_text on -> rebuilt', 7 === preg_match_all( '#class="jgor-flcf7-label"#', jgor_flcf7_render( $jgor_flcf7_id_f ) ) );
+jgor_flcf7_check( 'A: option mode_text on -> label mode still comes first (4 field spans)', 4 === preg_match_all( '#<span class="jgor-flcf7-field">#', jgor_flcf7_render( $jgor_flcf7_id_a ) ) );
+update_option( 'jgor_flcf7_settings', JGOR_FLCF7_Settings::instance()->defaults() );
+JGOR_FLCF7_Settings::instance()->reset_cache();
+$jgor_flcf7_f9 = function ( $settings ) {
+	$settings['mode_text'] = true;
+	return $settings;
+};
+add_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_f9 );
+jgor_flcf7_check( 'F: filter jgor_flcf7_form_settings mode_text=true -> rebuilt', 7 === preg_match_all( '#class="jgor-flcf7-label"#', jgor_flcf7_render( $jgor_flcf7_id_f ) ) );
+remove_filter( 'jgor_flcf7_form_settings', $jgor_flcf7_f9 );
+$jgor_flcf7_f10 = function ( $text ) {
+	return str_replace( ' (required)', '', $text );
+};
+add_filter( 'jgor_flcf7_label_text', $jgor_flcf7_f10 );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'floating_labels: text' );
+jgor_flcf7_check( 'F: filter jgor_flcf7_label_text strips "(required)"', str_contains( $jgor_flcf7_p, '>Your Name</label>' ) && ! str_contains( $jgor_flcf7_p, '(required)' ) );
+remove_filter( 'jgor_flcf7_label_text', $jgor_flcf7_f10 );
+
+// Per form: additional settings (concept 7.5).
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, "floating_labels_style: filled\nfloating_labels_marker: on" );
 jgor_flcf7_check( 'form: floating_labels_style: filled -> filled wraps, no outlined', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-filled#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-outlined' ) );
 jgor_flcf7_check( 'form: floating_labels_marker: on -> marker class on every wrap', 3 === preg_match_all( '#jgor-flcf7-marker"#', $jgor_flcf7_p ) );

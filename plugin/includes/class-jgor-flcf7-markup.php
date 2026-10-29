@@ -7,8 +7,11 @@
  * and the class jgor-flcf7-control, its placeholder becomes a single space,
  * and a <label for> with the label text follows the control inside the
  * span.wpcf7-form-control-wrap. The label text comes from the enclosing or
- * linked <label> of the form template (label mode) or from the placeholder
- * option of the form-tag (placeholder mode). A linked <label for> is found
+ * linked <label> of the form template (label mode), from the placeholder
+ * option of the form-tag (placeholder mode) or, for templates with neither
+ * (the Contact Form 7 template before 5.4: <p>Text<br />[tag]</p>), from the
+ * loose text in front of the field or in the paragraph before it (text
+ * mode, off by default; see preceding_text()). A linked <label for> is found
  * through the id of the control or, when Contact Form 7 dropped that id
  * because the same form is rendered a second time on the page, through the
  * id option of the form-tag; the control then gets a fresh id and the label
@@ -112,6 +115,15 @@ final class JGOR_FLCF7_Markup {
 	private const INLINE_TAGS = array( 'strong', 'em', 'b', 'i', 'span', 'small', 'abbr', 'code', 'sup', 'sub', 'mark', 'u', 's' );
 
 	/**
+	 * Elements whose loose text in front of a wrap text mode may use: the
+	 * paragraphs wpautop makes, a <div> of the template, or the fragment root
+	 * (a <div>) when wpautop is off.
+	 *
+	 * @var string[]
+	 */
+	private const TEXT_PARENT_TAGS = array( 'p', 'div' );
+
+	/**
 	 * Plugin settings.
 	 *
 	 * @var JGOR_FLCF7_Settings
@@ -194,7 +206,7 @@ final class JGOR_FLCF7_Markup {
 	 * disabled, no mode active or no field type allowed.
 	 *
 	 * @param WPCF7_ContactForm $form The contact form being rendered.
-	 * @return array{placeholder: bool, label: bool, types: string[], style: string, effect: string, marker: bool, submit_error: string}|null
+	 * @return array{placeholder: bool, label: bool, text: bool, types: string[], style: string, effect: string, marker: bool, submit_error: string}|null
 	 */
 	private function form_settings( WPCF7_ContactForm $form ): ?array {
 		$known = $this->settings->field_types();
@@ -210,6 +222,7 @@ final class JGOR_FLCF7_Markup {
 			'enabled'           => true,
 			'mode_placeholder'  => (bool) $this->settings->get( 'mode_placeholder' ),
 			'mode_label'        => (bool) $this->settings->get( 'mode_label' ),
+			'mode_text'         => (bool) $this->settings->get( 'mode_text' ),
 			'types'             => is_array( $types ) ? array_values( array_intersect( $known, $types ) ) : array(),
 			'style'             => (string) $this->settings->get( 'style' ),
 			'effect'            => (string) $this->settings->get( 'effect' ),
@@ -225,7 +238,7 @@ final class JGOR_FLCF7_Markup {
 		 *
 		 * Runs after the additional settings of the form and the classes of
 		 * the shortcode or block have been read. Keys: enabled (bool),
-		 * mode_placeholder (bool), mode_label (bool), types (string[] of
+		 * mode_placeholder (bool), mode_label (bool), mode_text (bool), types (string[] of
 		 * Contact Form 7 base types), style ("outlined", "filled" or
 		 * "minimal"), effect ("none", "glow", "pulse" or "sweep"),
 		 * required_marker (bool) and submit_error_text (string, empty for
@@ -251,7 +264,7 @@ final class JGOR_FLCF7_Markup {
 		 */
 		$enabled = (bool) apply_filters( 'jgor_flcf7_enabled', $current['enabled'], $form );
 
-		if ( ! $enabled || ( ! $current['mode_placeholder'] && ! $current['mode_label'] ) || empty( $current['types'] ) ) {
+		if ( ! $enabled || ( ! $current['mode_placeholder'] && ! $current['mode_label'] && ! $current['mode_text'] ) || empty( $current['types'] ) ) {
 			return null;
 		}
 
@@ -269,6 +282,7 @@ final class JGOR_FLCF7_Markup {
 		return array(
 			'placeholder'  => $current['mode_placeholder'],
 			'label'        => $current['mode_label'],
+			'text'         => $current['mode_text'],
 			'types'        => $current['types'],
 			'style'        => $current['style'],
 			'effect'       => $current['effect'],
@@ -281,7 +295,8 @@ final class JGOR_FLCF7_Markup {
 	 * Applies the additional settings of the form (tab "Additional Settings").
 	 *
 	 * Lines: "floating_labels: off" (also false, no, 0), "floating_labels:
-	 * placeholder" or "floating_labels: label" (only that mode),
+	 * placeholder", "floating_labels: label" or "floating_labels: text" (only
+	 * that mode),
 	 * "floating_labels_style: outlined|filled|minimal",
 	 * "floating_labels_effect: none|glow|pulse|sweep",
 	 * "floating_labels_marker: on|off" and "floating_labels_types: text email"
@@ -307,11 +322,19 @@ final class JGOR_FLCF7_Markup {
 				case 'placeholder':
 					$current['mode_placeholder'] = true;
 					$current['mode_label']       = false;
+					$current['mode_text']        = false;
 					break;
 
 				case 'label':
 					$current['mode_placeholder'] = false;
 					$current['mode_label']       = true;
+					$current['mode_text']        = false;
+					break;
+
+				case 'text':
+					$current['mode_placeholder'] = false;
+					$current['mode_label']       = false;
+					$current['mode_text']        = true;
 					break;
 			}
 		}
@@ -354,7 +377,7 @@ final class JGOR_FLCF7_Markup {
 	 * The Contact Form 7 block offers the attribute as "Class" in its panel
 	 * "Form attributes"; the shortcode takes html_class="...". Recognised
 	 * classes: jgor-flcf7-off, jgor-flcf7-on, jgor-flcf7-mode-placeholder,
-	 * jgor-flcf7-mode-label, jgor-flcf7-style-outlined, jgor-flcf7-style-filled,
+	 * jgor-flcf7-mode-label, jgor-flcf7-mode-text, jgor-flcf7-style-outlined, jgor-flcf7-style-filled,
 	 * jgor-flcf7-style-minimal, jgor-flcf7-effect-none, jgor-flcf7-effect-glow,
 	 * jgor-flcf7-effect-pulse, jgor-flcf7-effect-sweep, jgor-flcf7-marker-on,
 	 * jgor-flcf7-marker-off.
@@ -391,11 +414,19 @@ final class JGOR_FLCF7_Markup {
 				case 'jgor-flcf7-mode-placeholder':
 					$current['mode_placeholder'] = true;
 					$current['mode_label']       = false;
+					$current['mode_text']        = false;
 					break;
 
 				case 'jgor-flcf7-mode-label':
 					$current['mode_placeholder'] = false;
 					$current['mode_label']       = true;
+					$current['mode_text']        = false;
+					break;
+
+				case 'jgor-flcf7-mode-text':
+					$current['mode_placeholder'] = false;
+					$current['mode_label']       = false;
+					$current['mode_text']        = true;
 					break;
 
 				case 'jgor-flcf7-marker-on':
@@ -435,7 +466,7 @@ final class JGOR_FLCF7_Markup {
 	 * @return array<string, mixed>
 	 */
 	private function merge_form_settings( array $current, array $filtered, array $known ): array {
-		foreach ( array( 'enabled', 'mode_placeholder', 'mode_label', 'required_marker' ) as $key ) {
+		foreach ( array( 'enabled', 'mode_placeholder', 'mode_label', 'mode_text', 'required_marker' ) as $key ) {
 			if ( ! array_key_exists( $key, $filtered ) ) {
 				continue;
 			}
@@ -604,7 +635,7 @@ final class JGOR_FLCF7_Markup {
 	 * @param array<string, mixed>                           $config Settings for this rendering, see form_settings().
 	 * @return string|null Rebuilt HTML, or null when nothing changed or parsing failed.
 	 *
-	 * @phpstan-param array{placeholder: bool, label: bool, types: string[], style: string, effect: string, marker: bool, submit_error: string} $config
+	 * @phpstan-param array{placeholder: bool, label: bool, text: bool, types: string[], style: string, effect: string, marker: bool, submit_error: string} $config
 	 */
 	private function rebuild( string $html, WPCF7_ContactForm $form, array $fields, array $config ): ?string {
 		$loaded = $this->load( $html );
@@ -671,6 +702,14 @@ final class JGOR_FLCF7_Markup {
 				}
 			}
 
+			$preceding = null;
+			if ( null === $text && $config['text'] ) {
+				$preceding = $this->preceding_text( $wrap );
+				if ( null !== $preceding ) {
+					$text = $preceding['text'];
+				}
+			}
+
 			if ( null === $text ) {
 				continue;
 			}
@@ -696,6 +735,15 @@ final class JGOR_FLCF7_Markup {
 			}
 
 			$this->apply( $dom, $wrap, $control, $name, $unit_tag, $config['style'], $config['effect'], $config['marker'], $filtered, $text, $label, $enclosing );
+
+			// Text mode: the loose text now lives in the label.
+			if ( null !== $preceding ) {
+				foreach ( $preceding['nodes'] as $node ) {
+					if ( null !== $node->parentNode ) {
+						$node->parentNode->removeChild( $node );
+					}
+				}
+			}
 			++$changed;
 		}
 
@@ -968,6 +1016,202 @@ final class JGOR_FLCF7_Markup {
 		$text = $this->normalize_text( implode( '', $parts ) );
 
 		return '' === $text ? null : $text;
+	}
+
+	/**
+	 * Collects the loose text that belongs to a wrap for text mode.
+	 *
+	 * Contact Form 7 formats the template with its HTML formatter: a line
+	 * that ends with <br /> starts a new paragraph, so the template of
+	 * Contact Form 7 before 5.4 (<p>Text<br />[tag]</p>) renders as
+	 * <p>Text</p><p>[wrap]</p>, while "Text\n[tag]" renders as
+	 * <p>Text<br />[wrap]</p> and "Text [tag]" as <p>Text [wrap]</p>. Two
+	 * searches cover both shapes, in this order: the loose text in front of
+	 * the wrap inside its parent (text_before_wrap()), then the paragraph
+	 * before a paragraph that holds nothing but the wrap
+	 * (text_in_previous_paragraph()). The text becomes the label text, plain
+	 * text only; the nodes it came from are removed once the field is
+	 * rebuilt.
+	 *
+	 * @param DOMElement $wrap The span.wpcf7-form-control-wrap.
+	 * @return array{text: string, nodes: DOMNode[]}|null Normalised text and the nodes to remove, or null when there is no text.
+	 */
+	private function preceding_text( DOMElement $wrap ): ?array {
+		$parent = $wrap->parentNode;
+		if ( ! $parent instanceof DOMElement || ! in_array( strtolower( $parent->tagName ), self::TEXT_PARENT_TAGS, true ) ) {
+			return null;
+		}
+
+		$found = $this->text_before_wrap( $wrap );
+		if ( null !== $found ) {
+			return $found;
+		}
+
+		return $this->text_in_previous_paragraph( $wrap, $parent );
+	}
+
+	/**
+	 * Text in front of the wrap inside the same parent.
+	 *
+	 * Walks back through the siblings of the wrap: first whitespace, then at
+	 * most one <br>, then text nodes and text-source elements (see
+	 * is_text_source()), up to the start of the parent, another <br>, another
+	 * wrap or any other element. Comments are passed over and stay in place.
+	 * The collected nodes, including the <br> directly in front of the wrap,
+	 * are the nodes to remove; a <br> that marked the boundary to a previous
+	 * field stays, so the fields keep their own lines.
+	 *
+	 * @param DOMElement $wrap The span.wpcf7-form-control-wrap.
+	 * @return array{text: string, nodes: DOMNode[]}|null
+	 */
+	private function text_before_wrap( DOMElement $wrap ): ?array {
+		$nodes = array();
+		$node  = $wrap->previousSibling;
+
+		while ( null !== $node && $this->is_blank_text( $node ) ) {
+			array_unshift( $nodes, $node );
+			$node = $node->previousSibling;
+		}
+
+		if ( $node instanceof DOMElement && 'br' === strtolower( $node->tagName ) ) {
+			array_unshift( $nodes, $node );
+			$node = $node->previousSibling;
+		}
+
+		$parts = array();
+		while ( null !== $node ) {
+			if ( $node instanceof DOMComment ) {
+				$node = $node->previousSibling;
+				continue;
+			}
+
+			if ( $node instanceof DOMText ) {
+				array_unshift( $parts, (string) $node->nodeValue );
+			} elseif ( $node instanceof DOMElement && $this->is_text_source( $node ) ) {
+				array_unshift( $parts, $node->textContent );
+			} else {
+				break;
+			}
+
+			array_unshift( $nodes, $node );
+			$node = $node->previousSibling;
+		}
+
+		$text = $this->normalize_text( implode( '', $parts ) );
+		if ( '' === $text ) {
+			return null;
+		}
+
+		return array(
+			'text'  => $text,
+			'nodes' => $nodes,
+		);
+	}
+
+	/**
+	 * Text in the paragraph before a paragraph that holds only the wrap.
+	 *
+	 * The previous element sibling of the wrap's <p> (whitespace and comments
+	 * in between are skipped) must be a <p> made of text, <br>, comments and
+	 * text-source elements only; that whole paragraph is the node to remove.
+	 * A paragraph of explanation directly in front of a field without a
+	 * label of its own is taken as well: text mode is a heuristic, which is
+	 * why it is off by default.
+	 *
+	 * @param DOMElement $wrap      The span.wpcf7-form-control-wrap.
+	 * @param DOMElement $paragraph Parent of the wrap.
+	 * @return array{text: string, nodes: DOMNode[]}|null
+	 */
+	private function text_in_previous_paragraph( DOMElement $wrap, DOMElement $paragraph ): ?array {
+		if ( 'p' !== strtolower( $paragraph->tagName ) ) {
+			return null;
+		}
+
+		foreach ( $paragraph->childNodes as $node ) {
+			if ( $node->isSameNode( $wrap ) || $node instanceof DOMComment || $this->is_blank_text( $node ) ) {
+				continue;
+			}
+
+			return null;
+		}
+
+		$previous = $paragraph->previousSibling;
+		while ( null !== $previous && ( $previous instanceof DOMComment || $this->is_blank_text( $previous ) ) ) {
+			$previous = $previous->previousSibling;
+		}
+
+		if ( ! $previous instanceof DOMElement || 'p' !== strtolower( $previous->tagName ) ) {
+			return null;
+		}
+
+		$text = $this->loose_text( $previous );
+		if ( null === $text ) {
+			return null;
+		}
+
+		return array(
+			'text'  => $text,
+			'nodes' => array( $previous ),
+		);
+	}
+
+	/**
+	 * Returns the text of an element made of text, <br>, comments and
+	 * text-source elements only, or null when it holds anything else.
+	 *
+	 * @param DOMElement $element Element.
+	 * @return string|null Normalised text, or null.
+	 */
+	private function loose_text( DOMElement $element ): ?string {
+		$parts = array();
+
+		foreach ( $element->childNodes as $node ) {
+			if ( $node instanceof DOMText ) {
+				$parts[] = (string) $node->nodeValue;
+			} elseif ( $node instanceof DOMComment ) {
+				continue;
+			} elseif ( $node instanceof DOMElement && 'br' === strtolower( $node->tagName ) ) {
+				$parts[] = ' ';
+			} elseif ( $node instanceof DOMElement && $this->is_text_source( $node ) ) {
+				$parts[] = $node->textContent;
+			} else {
+				return null;
+			}
+		}
+
+		$text = $this->normalize_text( implode( '', $parts ) );
+
+		return '' === $text ? null : $text;
+	}
+
+	/**
+	 * Whether an element may contribute its text in text mode: an inline
+	 * element from INLINE_TAGS, or a <label> without a "for" attribute (a
+	 * label that is neither enclosing nor linked), in both cases without a
+	 * control inside.
+	 *
+	 * @param DOMElement $element Element.
+	 * @return bool
+	 */
+	private function is_text_source( DOMElement $element ): bool {
+		$tag = strtolower( $element->tagName );
+
+		if ( 'label' === $tag ) {
+			return ! $element->hasAttribute( 'for' ) && ! $this->contains_control( $element );
+		}
+
+		return in_array( $tag, self::INLINE_TAGS, true ) && ! $this->contains_control( $element );
+	}
+
+	/**
+	 * Whether a node is a text node with nothing but whitespace (no-break
+	 * spaces included).
+	 *
+	 * @param DOMNode $node Node.
+	 * @return bool
+	 */
+	private function is_blank_text( DOMNode $node ): bool {
+		return $node instanceof DOMText && '' === $this->normalize_text( (string) $node->nodeValue );
 	}
 
 	/**
