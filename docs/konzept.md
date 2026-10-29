@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.21 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
+Version: 2.22 · Stand: 29.10.2026 · Plugin-Version: 1.0.0 (Module 1–5 umgesetzt, Nachbesserungen aus der Sichtprüfung eingearbeitet, Release-Vorbereitung läuft)
 
 ## 1. Zweck
 
@@ -878,7 +878,12 @@ Ausprobieren nach der Installation, jederzeit wieder entfernbar.
 
   Die Seite: je Formular eine Überschrift (H2), ein Absatz mit einem Satz
   Erklärung und der CF7-Block (`contact-form-7/contact-form-selector` mit
-  `id` und `title`); am Ende zwei Platzierungsbeispiele mit dem Formular
+  `id` und `title`); beim alten Formular stehen dazwischen (seit 2.22,
+  Wunsch des Nutzers) zwei Code-Blöcke (`core/code`, Inhalt per
+  `esc_html()`) mit der alten Vorlage `<p>Your Name (required)<br />[text*
+  your-name] </p>` und dem heutigen `<label> Your name [text* your-name
+  autocomplete:name] </label>`, jeweils mit einem übersetzbaren Satz davor;
+  am Ende zwei Platzierungsbeispiele mit dem Formular
   „Default template“: ein CF7-Block mit `htmlClass`
   `jgor-flcf7-style-filled jgor-flcf7-effect-glow` und `jgorFlcf7Design`
   (`border-color`, `font-size`) sowie ein Shortcode-Block mit
@@ -1578,3 +1583,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.19 | 29.10.2026 | Lauflicht auffälliger (8, §14 Schritt 13): geschlossener Ring in 30 % der Effektfarbe mit hellem Kometen, Theme-Outline beim Lauflicht auf 30 % gedimmt, Ringbreite Default 3 px; Hostsharing nach 2.18 nachgezogen |
 | 2.20 | 29.10.2026 | Box „Sample page“: Überschrift ohne WordPress-Klasse `title` (floatete links), eigene Klasse mit Abstand per `admin.css` (9); Beispielseite per `datenbank` nach Hostsharing, Workflow-Hinweis (§14 Schritt 12) |
 | 2.21 | 29.10.2026 | Testformulare räumen sich auf: `verify-markup.php` legt B, C, D, F und die Seite „Contact“ über `create-test-forms.php` selbst an und entfernt sie am Ende (`FLCF7_KEEP=1`), alte Reste lokal gelöscht und per `datenbank` nach Hostsharing; Hostsharing-Vergleich über die Beispielseite (13) |
+| 2.22 | 29.10.2026 | Beispielseite: alte und heutige Vorlage als Code-Blöcke beim alten Formular (9.3), Prüfung in `verify-samples.php` |

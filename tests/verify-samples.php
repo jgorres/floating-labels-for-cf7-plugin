@@ -250,6 +250,7 @@ jgor_flcf7_check( 'notice: nothing while the sample page exists', '' === $jgor_f
 
 // Block content.
 $jgor_flcf7_content = (string) $jgor_flcf7_page->post_content;
+jgor_flcf7_check( 'content: old template section shows both templates as code blocks', 2 === substr_count( $jgor_flcf7_content, '<!-- wp:code -->' ) && str_contains( $jgor_flcf7_content, '<pre class="wp-block-code"><code>&lt;p&gt;Your Name (required)&lt;br /&gt;' ) && str_contains( $jgor_flcf7_content, '<code>&lt;label&gt; Your name' ) && str_contains( $jgor_flcf7_content, 'autocomplete:name] &lt;/label&gt;</code></pre>' ) );
 jgor_flcf7_check( 'content: intro, nine headings, eight Contact Form 7 blocks and one Shortcode block', 9 === substr_count( $jgor_flcf7_content, '<!-- wp:heading -->' ) && 8 === substr_count( $jgor_flcf7_content, '<!-- wp:contact-form-7/contact-form-selector ' ) && 1 === substr_count( $jgor_flcf7_content, '<!-- wp:shortcode -->' ) && str_contains( $jgor_flcf7_content, 'created by Floating Labels for CF7' ) );
 $jgor_flcf7_blocks  = array_values(
 	array_filter(

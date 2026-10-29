@@ -571,6 +571,15 @@ final class JGOR_FLCF7_Samples {
 
 			$blocks[] = $this->heading_block( $definition['heading'] );
 			$blocks[] = $this->paragraph_block( $definition['text'] );
+
+			// The old template next to the one Contact Form 7 writes today.
+			if ( 'old-template' === $key ) {
+				$blocks[] = $this->paragraph_block( __( 'Template of this form, as Contact Form 7 created it before version 5.4:', 'floating-labels-for-cf7' ) );
+				$blocks[] = $this->code_block( "<p>Your Name (required)<br />\n    [text* your-name] </p>" );
+				$blocks[] = $this->paragraph_block( __( 'The same field as Contact Form 7 writes it today (label mode):', 'floating-labels-for-cf7' ) );
+				$blocks[] = $this->code_block( "<label> Your name\n    [text* your-name autocomplete:name] </label>" );
+			}
+
 			$blocks[] = $this->form_block( $forms[ $key ] );
 		}
 
@@ -605,6 +614,16 @@ final class JGOR_FLCF7_Samples {
 	 */
 	private function paragraph_block( string $text ): string {
 		return "<!-- wp:paragraph -->\n<p>" . esc_html( $text ) . "</p>\n<!-- /wp:paragraph -->";
+	}
+
+	/**
+	 * Builds a code block, the code escaped as the editor stores it.
+	 *
+	 * @param string $code Code as plain text.
+	 * @return string
+	 */
+	private function code_block( string $code ): string {
+		return "<!-- wp:code -->\n<pre class=\"wp-block-code\"><code>" . esc_html( $code ) . "</code></pre>\n<!-- /wp:code -->";
 	}
 
 	/**
