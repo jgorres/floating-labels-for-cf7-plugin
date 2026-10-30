@@ -50,9 +50,10 @@ final class JGOR_FLCF7_Admin {
 	private const SCRIPT_PATH = 'assets/js/admin.js';
 
 	/**
-	 * Path of the settings screen stylesheet below the plugin directory.
+	 * Path of the settings screen stylesheet below the plugin directory;
+	 * module 7 loads the same file on the form editor of Contact Form 7.
 	 */
-	private const STYLE_PATH = 'assets/css/admin.css';
+	public const STYLE_PATH = 'assets/css/admin.css';
 
 	/**
 	 * Class of the fieldsets the stylesheet lays out in columns.
@@ -254,7 +255,7 @@ final class JGOR_FLCF7_Admin {
 	 */
 	private function help_controls(): string {
 		return '<p>' . esc_html__( 'The settings of this screen apply to every form. Override them per form, per placement or per field; later layers win.', 'floating-labels-for-cf7' ) . '</p>'
-			. '<p><strong>' . esc_html__( 'Per form', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add lines to the "Additional Settings" tab of the form:', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p><strong>' . esc_html__( 'Per form', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Open the tab "Floating labels" in the editor of the form and pick the values; they are saved as these lines in the "Additional Settings" tab, which you can also write by hand:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_additional_settings() ) . '</code></pre>'
 			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html( $this->text_per_placement() ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_html_classes() ) . '</code></pre>'
@@ -453,7 +454,7 @@ final class JGOR_FLCF7_Admin {
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Floating Labels for CF7', 'floating-labels-for-cf7' ); ?></h1>
 			<?php settings_errors( JGOR_FLCF7_Settings::GROUP ); ?>
-			<p><?php esc_html_e( 'These are the defaults for every Contact Form 7 form on this site. Override them per form in the "Additional Settings" tab of the form, or per placement in the block editor: select the Contact Form 7 block (or a Shortcode block with the shortcode of the form) and open the panels "Floating labels" in the block sidebar. The section "Per form, per placement, per field" at the end of this screen has the details.', 'floating-labels-for-cf7' ); ?></p>
+			<p><?php esc_html_e( 'These are the defaults for every Contact Form 7 form on this site. Override them per form in the tab "Floating labels" of the form editor (or in its "Additional Settings" tab), or per placement in the block editor: select the Contact Form 7 block (or a Shortcode block with the shortcode of the form) and open the panels "Floating labels" in the block sidebar. The section "Per form, per placement, per field" at the end of this screen has the details.', 'floating-labels-for-cf7' ); ?></p>
 			<?php
 			/**
 			 * Fires on the settings screen between the intro and the settings form.
@@ -686,7 +687,7 @@ final class JGOR_FLCF7_Admin {
 						<?php $this->print_name( $this->field_name( 'types' ) . '[]', $locked ); ?>
 						<?php checked( in_array( $type, $current, true ) ); ?>
 						<?php disabled( $locked ); ?>>
-					<?php echo esc_html( $this->type_label( $type ) ); ?>
+					<?php echo esc_html( self::type_label( $type ) ); ?>
 				</label>
 			<?php endforeach; ?>
 		</fieldset>
@@ -884,7 +885,7 @@ final class JGOR_FLCF7_Admin {
 		<p><?php esc_html_e( 'The settings above apply to every form. Override them per form, per placement or per field; later layers win.', 'floating-labels-for-cf7' ); ?></p>
 
 		<p><strong><?php esc_html_e( 'Per form', 'floating-labels-for-cf7' ); ?></strong><br>
-		<?php esc_html_e( 'Add lines to the "Additional Settings" tab of the form:', 'floating-labels-for-cf7' ); ?></p>
+		<?php esc_html_e( 'Open the tab "Floating labels" in the editor of the form and pick the values; they are saved as these lines in the "Additional Settings" tab, which you can also write by hand:', 'floating-labels-for-cf7' ); ?></p>
 		<pre><code><?php echo esc_html( $this->example_additional_settings() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per placement', 'floating-labels-for-cf7' ); ?></strong><br>
@@ -979,12 +980,12 @@ final class JGOR_FLCF7_Admin {
 	 * Returns the human-readable label of a field type.
 	 *
 	 * Types added through the filter jgor_flcf7_field_types are shown by
-	 * their form-tag type.
+	 * their form-tag type. Module 7 uses the same labels in the form editor.
 	 *
 	 * @param string $type Contact Form 7 base type.
 	 * @return string
 	 */
-	private function type_label( string $type ): string {
+	public static function type_label( string $type ): string {
 		$labels = array(
 			'text'     => __( 'Text', 'floating-labels-for-cf7' ),
 			'email'    => __( 'Email', 'floating-labels-for-cf7' ),

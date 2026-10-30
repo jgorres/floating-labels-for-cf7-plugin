@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.27 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–6 umgesetzt und sichtgeprüft; Schritte 14 bedingtes Laden und 15 Feldtypen date/select erledigt, Schritt 16 CF7-Editor-Tab offen)
+Version: 2.28 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt; Schritte 14–16 aus §15 erledigt, Schritt 17 Abschluss offen)
 
 ## 1. Zweck
 
@@ -1085,6 +1085,23 @@ die der Nutzer auch von Hand schreiben kann; Modul 2 liest weiter nur
   Settings; readme „Per form“ ebenso. Stubs: `WPCF7_ContactForm::prop()`,
   `pref()`, `id()`, `set_properties()` in `stubs/cf7.php`, soweit noch
   nicht vorhanden.
+- Umsetzung 2.28, Abweichungen von der Planung: Nonce per
+  `wp_verify_nonce()` auf `$data['_wpnonce']` mit stillem Abbruch statt
+  `check_admin_referer()` (ein `wp_die()` in `wpcf7_save_contact_form()`
+  träfe auch REST- und CLI-Aufrufer; auf dem Admin-Pfad hat CF7 vorher
+  schon geprüft); Werte aus `$data` (CF7 übergibt das unslashed
+  `$_REQUEST` mitsamt unseren Feldern), nicht aus `$_POST`; `admin.css`
+  über CF7s Action `wpcf7_admin_load` für die Seiten `wpcf7` und
+  `wpcf7-new` statt `get_plugin_page_hookname()`; Zähler über
+  `wpcf7_get_current_contact_form()`; `JGOR_FLCF7_Admin::type_label()`
+  ist `public static`, `STYLE_PATH` public; ohne Typen-Zeile zeigen die
+  Typ-Checkboxen die Typen der Einstellungsseite als Ausgangspunkt (Limit
+  aus), ein Limit ohne Haken schreibt `floating_labels_types:` (alle Typen
+  aus, 7.5); die Schreibweisen `no`/`false`/`0` und `yes`/`true`/`1`
+  erscheinen als Off/On; Panel-Markup `h2` + `fieldset.jgor-flcf7-form-panel`
+  mit `legend`, Zeilen `p.jgor-flcf7-form-panel__row`, Typen im Grid
+  `jgor-flcf7-columns`; die Hauptdatei lädt
+  `class-jgor-flcf7-form-panel.php` in ihrer Liste (6).
 
 ## 10. Modul 5: Block-Seitenleiste (`class-jgor-flcf7-editor.php`, `assets/js/block-editor.js`)
 
@@ -1428,16 +1445,20 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   bricht ohne `manage_options` ab), Entfernen (Posts endgültig weg, Option
   weg). Räumt nach sich auf; eine vorher vorhandene Beispielseite legt das
   Script am Ende wieder an (neue IDs).
-- `tests/verify-form-panel.php` prüft Modul 7 ohne Browser (Schritt 16):
+- `tests/verify-form-panel.php` prüft Modul 7 ohne Browser (28 Punkte):
   Panel im Ergebnis von `wpcf7_editor_panels` hinter „Additional
-  Settings“, Titel ohne und mit Zähler, Rendering (Selects mit dem Wert aus
-  den Additional Settings, „Default“ bei unbekanntem Wert, Typ-Checkboxen,
-  `name`-Attribute), Speichern (POST und Nonce simulieren, dann
-  `wpcf7_save_contact_form()` mit Kontext `save`: Zeilen ersetzt bzw.
-  angehängt, `skip_mail: on` bleibt, Default-Werte entfernen die Zeile,
-  Limit aus entfernt `floating_labels_types`), Abbruch ohne Capability und
-  ohne Nonce, Kontext `copy` ohne Wirkung. Legt ein eigenes Formular an und
-  entfernt es wieder.
+  Settings“, Titel ohne und mit Zähler, Rendering (Selects mit dem Wert
+  aus den Additional Settings, „Default“ bei unbekanntem Wert, `no`/`yes`
+  als Off/On, Typ-Checkboxen mit und ohne Limit, leere Typen-Zeile,
+  Beschreibung, nichts für ein Nicht-Formular), Speichern über
+  `wpcf7_save_contact_form()` mit Kontext `save` und Nonce in `$data`
+  (eigene Zeilen ersetzt und angehängt, fremde und leere Zeilen bleiben,
+  Defaults entfernen Zeilen, Limit ohne Haken schreibt die leere Zeile,
+  ungültige Werte verworfen, andere Schreibweise ersetzt), zweite Schicht
+  (ohne Nonce, falscher Nonce, Abonnent mit gültigem Nonce), Kontext
+  `copy` und Post ohne Panel ohne Wirkung, Hook auf `wpcf7_admin_load` nur
+  für die Editorseiten und Enqueue von `admin.css`. Legt ein eigenes
+  Formular und einen Abonnenten an und entfernt beide wieder.
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
@@ -1724,7 +1745,16 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     `wpcf7_editor_panels`, Action `wpcf7_save_contact_form`, `admin.css`
     auf dem CF7-Editor-Hook, Stubs, `verify-form-panel.php`, Hinweistexte
     (Einstellungsseite, Kontexthilfe, readme „Per form“), Screenshot 7 per
-    `docs/screenshots-admin-erzeugen.js`. Offen.
+    `docs/screenshots-admin-erzeugen.js`. Erledigt am 30.10.2026 (Konzept
+    2.28) bis auf Screenshot 7 und `.pot` (Schritt 17): Klasse mit
+    `add_panel()`, `render()`, `save()`, `on_admin_load()`,
+    `enqueue_assets()`, Abweichungen in 9.4, Ladeliste der Hauptdatei
+    ergänzt, Hinweistexte und readme (Features, Per form, Installation,
+    FAQ „How do I switch floating labels off for one form?“);
+    `verify-form-panel.php` 28 und `verify-admin.php` 65 Prüfungen,
+    `composer check` und PHPCS auf `tests/` ohne Befund (die Capability
+    `wpcf7_edit_contact_form` trägt ein `phpcs:ignore`, CF7-Meta-Capability).
+    Offen: Sichtprüfung des Tabs im CF7-Editor (Nutzer).
 17. Abschluss vor 5.6: `.pot`, ZIP und Plugin Check, Hostsharing `dateien`
     und `datenbank`, Browser-Matrix in Chromium, Firefox und Edge (Nutzer,
     13). Offen.
@@ -1803,3 +1833,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.25 | 30.10.2026 | Sichtprüfung des Nutzers ohne Befund (§14 Schritt 13); die Erweiterungen aus §15 kommen in das erste Release, Version bleibt 1.0.0: §14 Schritte 14 (bedingtes Laden: 6, 8, 9), 15 (Feldtypen `date` und `select`: neuer Abschnitt 7.8, dazu 7, 7.5, 7.7, 8, 9, achtes Beispielformular 9.3), 16 (Tab „Floating labels“ im CF7-Editor: neuer Abschnitt 9.4, dazu 3, 6, 7.5) und 17 (Abschluss); §13 `verify-form-panel.php` und Browser-Matrix; §15 bereinigt, `WP_HTML_Processor` mit Stand WP 7.1.4 (keine Einfüge-API) |
 | 2.26 | 30.10.2026 | Schritt 14 erledigt: Option `load_css_forms_only`, `enqueue()` mit Erkennung am Singular-Post, `ensure_enqueued()` als Sicherheitsnetz aus Modul 2, Abhängigkeit nur bei registriertem Handle (8), zweite Checkbox in der Zeile „Stylesheet“ und Hilfe (9), readme (Features, FAQ); §13 Prüfzähler 114/62/40 |
 | 2.27 | 30.10.2026 | Schritt 15 erledigt: Feldtypen `date` und `select` (7.8 mit Placeholder-Quelle aus dem Form-Tag statt Textvergleich, 7, 7.7, 8 Abschnitt „Field types“, 9 Beschriftungen und Hinweis, 9.3 achtes Formular „Date and select“); §13 Testformular H, Prüfzähler 128/63/39 |
+| 2.28 | 30.10.2026 | Schritt 16 erledigt: Tab „Floating labels“ im CF7-Editor (9.4 mit Abweichungen: `wp_verify_nonce()` statt `check_admin_referer()`, Werte aus `$data`, CSS über `wpcf7_admin_load`, Zähler über die aktuelle Form), Hauptdatei lädt `class-jgor-flcf7-form-panel.php`, Hinweistexte (9), `admin.css` (Panel-Zeilen, Spalten), readme (Features, Per form, Installation, FAQ); §13 `verify-form-panel.php` 28, `verify-admin.php` 65 |

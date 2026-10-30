@@ -9,10 +9,13 @@
  * group with the modifier class (the focus effect values), and narrower
  * screens get fewer columns. The box "Sample page" (module 6) gets room
  * between its heading and its text. Everything else on the screen uses the
- * WordPress admin classes.
+ * WordPress admin classes. The same file lays out the tab "Floating labels"
+ * in the Contact Form 7 form editor (module 7): one row per control, the
+ * field types in the same columns.
  */
 
-.form-table .jgor-flcf7-columns {
+.form-table .jgor-flcf7-columns,
+.jgor-flcf7-form-panel .jgor-flcf7-columns {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, 16em);
 	gap: 0.5em 1.5em;
@@ -27,8 +30,24 @@
 	max-width: 68.5em;
 }
 
-.form-table .jgor-flcf7-columns > p {
+.form-table .jgor-flcf7-columns > p,
+.jgor-flcf7-form-panel .jgor-flcf7-columns > p {
 	margin: 0;
+}
+
+/* The tab "Floating labels" in the form editor of Contact Form 7. */
+.jgor-flcf7-form-panel .jgor-flcf7-form-panel__row {
+	margin: 0 0 1em;
+}
+
+.jgor-flcf7-form-panel .jgor-flcf7-form-panel__row select {
+	display: block;
+	min-width: 16em;
+	margin-top: 0.25em;
+}
+
+.jgor-flcf7-form-panel .jgor-flcf7-columns {
+	margin-bottom: 1em;
 }
 
 /* The box "Sample page": its heading must not carry the WordPress class

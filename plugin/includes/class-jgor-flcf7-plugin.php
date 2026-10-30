@@ -102,6 +102,10 @@ final class JGOR_FLCF7_Plugin {
 			// Module 6: the sample page (box on the settings screen, notice
 			// after the activation, admin-post handler).
 			( new JGOR_FLCF7_Samples() )->init();
+
+			// Module 7: the tab "Floating labels" in the Contact Form 7 form
+			// editor, writing the per-form lines of the additional settings.
+			( new JGOR_FLCF7_Form_Panel( $settings ) )->init();
 		}
 	}
 

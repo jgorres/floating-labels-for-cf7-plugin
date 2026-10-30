@@ -25,7 +25,7 @@ Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server
 * Pure CSS on the front end: focus, filled, autofill and error states come from CSS pseudo-classes. No JavaScript on your pages; the only inline styles are the design values you change (one short rule after the stylesheet, and a style attribute on forms with their own design values).
 * Accessible: every rebuilt field gets a real `<label for>` with a matching `id`; the placeholder is replaced so screen readers do not hear two names. Contact Form 7's `aria-*` attributes stay untouched.
 * Clear error state: the label of an invalid field floats up in the error colour, Contact Form 7's message appears inside the field (no layout jump), and the submit button turns red with a text of your choice until the next attempt.
-* Control at every level: for the whole site, per form, per placement (page) and per field.
+* Control at every level: for the whole site, per form (a tab in the form editor), per placement (page) and per field.
 * Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get "Floating labels" panels in the sidebar: the placement settings, and colours, sizes, animation and focus effect for that placement only; no classes to type, and a reset button in every panel.
 * Design settings: colours with the WordPress colour picker, font size, padding, border, corner radius, the animation and the focus effect on the settings screen, or per placement in the block editor; every value is also a CSS custom property, so themes can set them too.
 * Sample page on request: a private page with forms that show every option, created and removed with one click on the settings screen.
@@ -37,7 +37,7 @@ Text, email, URL, telephone, number, date, textarea and select fields get floati
 
 = Per form =
 
-Add lines to the "Additional Settings" tab of a form:
+Open the tab "Floating labels" in the editor of a form and pick the values: on or off, the label source, the variant, the focus effect, the required marker and, optionally, a limit on the field types. They are saved as these lines in the form's "Additional Settings" tab, which you can also write by hand:
 
 `
 floating_labels: off
@@ -108,7 +108,7 @@ Contact Form 7 is a trademark of Rock Lobster, Inc. This plugin is an independen
 1. Install and activate Contact Form 7.
 2. Upload the plugin folder to `wp-content/plugins/` or install the ZIP via Plugins > Add New > Upload Plugin.
 3. Activate the plugin under Plugins.
-4. Open Contact > Floating Labels to choose the variant, the focus effect, the field types, the text of the submit button on errors and, under Design, colours and sizes. These are the defaults for every form; forms (Additional Settings) and placements (block editor) can override them. The defaults work out of the box: every text-like field of every form gets a floating label, required fields an asterisk. Forms without labels and placeholders (older templates) need the option "Text before the field" under "Label sources".
+4. Open Contact > Floating Labels to choose the variant, the focus effect, the field types, the text of the submit button on errors and, under Design, colours and sizes. These are the defaults for every form; forms (tab "Floating labels" in the form editor) and placements (block editor) can override them. The defaults work out of the box: every text-like field of every form gets a floating label, required fields an asterisk. Forms without labels and placeholders (older templates) need the option "Text before the field" under "Label sources".
 5. Optional: create the sample page. Right after the activation a notice offers it; later, use the box "Sample page" at the top of Contact > Floating Labels. The page "Testpage Floating Labels for CF7" is private, its forms "FL Test ... - may be deleted" send no mail, and the same box removes both again.
 
 == Frequently Asked Questions ==
@@ -127,7 +127,7 @@ The default template of Contact Form 7 before version 5.4 put the field name as 
 
 = How do I switch floating labels off for one form? =
 
-Add `floating_labels: off` to the "Additional Settings" tab of that form. To switch them off for one page only, add the class `jgor-flcf7-off` to the "Class" field of the Contact Form 7 block or to the `html_class` attribute of the shortcode.
+Open the tab "Floating labels" in the editor of that form and choose "Off", or add `floating_labels: off` to its "Additional Settings" tab. To switch them off for one page only, add the class `jgor-flcf7-off` to the "Class" field of the Contact Form 7 block or to the `html_class` attribute of the shortcode.
 
 = Can one form use a different variant on one page? =
 
