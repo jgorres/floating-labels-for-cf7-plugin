@@ -9,6 +9,13 @@
  * the handle "contact-form-7" keeps the plugin CSS behind the Contact Form 7
  * CSS in the output order.
  *
+ * Contact Form 7 loads its stylesheet on every page. With the setting
+ * "load_css_forms_only" the plugin stylesheet is enqueued only on single
+ * posts and pages whose content holds the Contact Form 7 block or shortcode.
+ * Forms rendered elsewhere (widgets, template parts, archives) are caught by
+ * a safety net: module 2 calls ensure_enqueued() after it rebuilt a form, and
+ * WordPress then prints the stylesheet late, in the footer.
+ *
  * Design values changed on the settings screen are printed as one short
  * inline style right after the stylesheet: a .wpcf7 rule with only the custom
  * properties that differ from the defaults. Nothing is printed while every
@@ -28,6 +35,11 @@ final class JGOR_FLCF7_Assets {
 	 * Style handle.
 	 */
 	public const HANDLE = 'jgor-flcf7';
+
+	/**
+	 * Handle of the Contact Form 7 stylesheet the plugin CSS follows.
+	 */
+	private const CF7_HANDLE = 'contact-form-7';
 
 	/**
 	 * Path of the stylesheet below the plugin directory.
@@ -61,7 +73,8 @@ final class JGOR_FLCF7_Assets {
 
 	/**
 	 * Enqueues the stylesheet and the changed design values unless the
-	 * setting "load_css" is off.
+	 * setting "load_css" is off or, with "load_css_forms_only", the queried
+	 * single post or page holds no form.
 	 *
 	 * Right-to-left scripts need no separate file: the stylesheet uses
 	 * logical properties throughout.
@@ -73,10 +86,81 @@ final class JGOR_FLCF7_Assets {
 			return;
 		}
 
+		if ( $this->settings->get( 'load_css_forms_only' ) && ! $this->page_has_form() ) {
+			return;
+		}
+
+		$this->enqueue_style();
+	}
+
+	/**
+	 * Safety net of "load_css_forms_only": enqueues the stylesheet when a form
+	 * was rebuilt on a page the detection in enqueue() did not cover.
+	 *
+	 * Module 2 calls this right after a rebuild, usually after the head was
+	 * printed; WordPress then prints the stylesheet in the footer. Nothing
+	 * happens while the setting is off (the stylesheet follows the Contact
+	 * Form 7 policy and is on the page already), while "load_css" is off, or
+	 * while Contact Form 7 does not load CSS on this site at all. Not in the
+	 * admin, where Contact Form 7 renders forms for previews.
+	 *
+	 * @return void
+	 */
+	public function ensure_enqueued(): void {
+		if ( is_admin() || wp_style_is( self::HANDLE, 'enqueued' ) ) {
+			return;
+		}
+
+		if ( ! $this->settings->get( 'load_css' ) || ! $this->settings->get( 'load_css_forms_only' ) ) {
+			return;
+		}
+
+		if ( ! function_exists( 'wpcf7_load_css' ) || ! wpcf7_load_css() ) {
+			return;
+		}
+
+		$this->enqueue_style();
+	}
+
+	/**
+	 * Whether the queried single post or page holds a Contact Form 7 block or
+	 * shortcode in its content.
+	 *
+	 * A Shortcode block with [contact-form-7] counts too: the shortcode text
+	 * is part of the content. Forms in widgets, template parts or archives
+	 * are not detected here; the safety net ensure_enqueued() covers them.
+	 *
+	 * @return bool
+	 */
+	private function page_has_form(): bool {
+		if ( ! is_singular() ) {
+			return false;
+		}
+
+		$post = get_queried_object();
+		if ( ! $post instanceof WP_Post ) {
+			return false;
+		}
+
+		return has_shortcode( (string) $post->post_content, 'contact-form-7' )
+			|| has_block( 'contact-form-7/contact-form-selector', $post );
+	}
+
+	/**
+	 * Enqueues the stylesheet with the inline style of the changed design
+	 * values after it.
+	 *
+	 * The dependency on the Contact Form 7 stylesheet is declared only while
+	 * that handle is registered: a dependency that is not registered would
+	 * keep the plugin stylesheet from being printed at all.
+	 *
+	 * @return void
+	 */
+	private function enqueue_style(): void {
 		wp_enqueue_style(
 			self::HANDLE,
 			JGOR_FLCF7_URL . self::STYLE_PATH,
-			array( 'contact-form-7' ),
+			wp_style_is( self::CF7_HANDLE, 'registered' ) ? array( self::CF7_HANDLE ) : array(),
 			JGOR_FLCF7_Plugin::asset_version( self::STYLE_PATH )
 		);
 

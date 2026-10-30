@@ -232,21 +232,24 @@ final class JGOR_FLCF7_Settings {
 	 * saved the settings screen. The default type list is BASE_TYPES minus
 	 * whatever the filter jgor_flcf7_field_types removed. An empty design
 	 * array means: every custom property keeps its stylesheet default.
+	 * "load_css_forms_only" is off by default: the stylesheet then follows
+	 * the loading policy of Contact Form 7, which loads it on every page.
 	 *
 	 * @return array<string, mixed>
 	 */
 	public function defaults(): array {
 		return array(
-			'mode_placeholder'  => true,
-			'mode_label'        => true,
-			'mode_text'         => false,
-			'types'             => array_values( array_intersect( self::BASE_TYPES, $this->field_types() ) ),
-			'style'             => 'outlined',
-			'effect'            => 'none',
-			'load_css'          => true,
-			'required_marker'   => true,
-			'submit_error_text' => self::DEFAULT_SUBMIT_ERROR_TEXT,
-			'design'            => array(),
+			'mode_placeholder'    => true,
+			'mode_label'          => true,
+			'mode_text'           => false,
+			'types'               => array_values( array_intersect( self::BASE_TYPES, $this->field_types() ) ),
+			'style'               => 'outlined',
+			'effect'              => 'none',
+			'load_css'            => true,
+			'load_css_forms_only' => false,
+			'required_marker'     => true,
+			'submit_error_text'   => self::DEFAULT_SUBMIT_ERROR_TEXT,
+			'design'              => array(),
 		);
 	}
 

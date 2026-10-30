@@ -470,6 +470,24 @@ jgor_flcf7_check( 'placement design: nothing with load_css off', ! str_contains(
 update_option( 'jgor_flcf7_settings', JGOR_FLCF7_Settings::instance()->defaults() );
 JGOR_FLCF7_Settings::instance()->reset_cache();
 
+// Safety net of load_css_forms_only: a rebuilt form enqueues the stylesheet.
+$jgor_flcf7_option                        = get_option( 'jgor_flcf7_settings' );
+$jgor_flcf7_option['load_css_forms_only'] = true;
+update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
+JGOR_FLCF7_Settings::instance()->reset_cache();
+wp_dequeue_style( JGOR_FLCF7_Assets::HANDLE );
+wp_deregister_style( JGOR_FLCF7_Assets::HANDLE );
+jgor_flcf7_render( $jgor_flcf7_id_d );
+jgor_flcf7_check( 'safety net: nothing for a form that is not rebuilt (floating_labels: off)', ! wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+jgor_flcf7_render( $jgor_flcf7_id_b );
+jgor_flcf7_check( 'safety net: stylesheet enqueued after a rebuild with load_css_forms_only on', wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+wp_dequeue_style( JGOR_FLCF7_Assets::HANDLE );
+wp_deregister_style( JGOR_FLCF7_Assets::HANDLE );
+update_option( 'jgor_flcf7_settings', JGOR_FLCF7_Settings::instance()->defaults() );
+JGOR_FLCF7_Settings::instance()->reset_cache();
+jgor_flcf7_render( $jgor_flcf7_id_b );
+jgor_flcf7_check( 'safety net: nothing with load_css_forms_only off (stylesheet follows the Contact Form 7 policy)', ! wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+
 // Restore the option as it was before the run.
 if ( false === $jgor_flcf7_saved_option ) {
 	delete_option( 'jgor_flcf7_settings' );

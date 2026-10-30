@@ -29,7 +29,7 @@ Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server
 * Block editor: the Contact Form 7 block, and a Shortcode block with the `[contact-form-7]` shortcode, get "Floating labels" panels in the sidebar: the placement settings, and colours, sizes, animation and focus effect for that placement only; no classes to type, and a reset button in every panel.
 * Design settings: colours with the WordPress colour picker, font size, padding, border, corner radius, the animation and the focus effect on the settings screen, or per placement in the block editor; every value is also a CSS custom property, so themes can set them too.
 * Sample page on request: a private page with forms that show every option, created and removed with one click on the settings screen.
-* Lightweight: one option, one stylesheet, no database tables, no cron, no external requests, no tracking.
+* Lightweight: one option, one stylesheet (on every page like the Contact Form 7 stylesheet, or only on pages with a form), no database tables, no cron, no external requests, no tracking.
 
 = Field types =
 
@@ -148,6 +148,10 @@ Yes. The Contact Form 7 block, and a Shortcode block that holds the `[contact-fo
 = Does the plugin load JavaScript? =
 
 Not on your pages. All front-end states are CSS. The plugin adds one stylesheet, loaded after the Contact Form 7 stylesheet and following its loading policy (`WPCF7_LOAD_CSS`, filter `wpcf7_load_css`). The only scripts are a small one for the block editor and the colour picker on the settings screen, both loaded in the admin only.
+
+= Why is the stylesheet loaded on every page? =
+
+Because Contact Form 7 loads its own stylesheet on every page, and the plugin follows that policy by default. Tick "Only on pages with a form" under Contact > Floating Labels, section Appearance, row "Stylesheet", to load it only on single posts and pages whose content holds the Contact Form 7 block or shortcode. A form rendered somewhere else, for example in a widget, a template part or on an archive page, still gets the stylesheet: the plugin adds it when it rebuilds the form, so it is printed late, in the footer, and the form may show unstyled for a moment. If Contact Form 7 does not load CSS at all (`WPCF7_LOAD_CSS` false), the plugin loads none either.
 
 = What happens on validation errors? =
 

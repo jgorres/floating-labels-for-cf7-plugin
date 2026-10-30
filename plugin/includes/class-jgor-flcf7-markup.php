@@ -25,6 +25,8 @@
  * span.jgor-flcf7-submit (the input itself stays untouched) so the
  * stylesheet can colour it and lay an error text over it while the form
  * carries the class "invalid" that Contact Form 7 sets on validation errors.
+ * A rebuilt form also tells module 3 that the stylesheet is needed now
+ * (safety net of the setting "load_css_forms_only").
  *
  * Nothing else changes: fields the module does not recognise keep their
  * markup, and when the rebuild fails at any point the original HTML is
@@ -131,6 +133,14 @@ final class JGOR_FLCF7_Markup {
 	private JGOR_FLCF7_Settings $settings;
 
 	/**
+	 * Module 3, asked to enqueue the stylesheet after a rebuild; null when
+	 * the module runs without it (tests).
+	 *
+	 * @var JGOR_FLCF7_Assets|null
+	 */
+	private ?JGOR_FLCF7_Assets $assets;
+
+	/**
 	 * Ids present in the form being rebuilt, including the ones generated so far.
 	 *
 	 * @var array<string, true>
@@ -140,10 +150,12 @@ final class JGOR_FLCF7_Markup {
 	/**
 	 * Constructor.
 	 *
-	 * @param JGOR_FLCF7_Settings $settings Plugin settings.
+	 * @param JGOR_FLCF7_Settings    $settings Plugin settings.
+	 * @param JGOR_FLCF7_Assets|null $assets   Module 3, for the safety net of "load_css_forms_only".
 	 */
-	public function __construct( JGOR_FLCF7_Settings $settings ) {
+	public function __construct( JGOR_FLCF7_Settings $settings, ?JGOR_FLCF7_Assets $assets = null ) {
 		$this->settings = $settings;
+		$this->assets   = $assets;
 	}
 
 	/**
@@ -188,8 +200,17 @@ final class JGOR_FLCF7_Markup {
 		}
 
 		$rebuilt = $this->rebuild( $html, $form, $fields, $config );
+		if ( null === $rebuilt ) {
+			return $html;
+		}
 
-		return null === $rebuilt ? $html : $rebuilt;
+		// Safety net of "load_css_forms_only": this page shows a rebuilt form,
+		// so the stylesheet is needed even if enqueue() did not detect it.
+		if ( null !== $this->assets ) {
+			$this->assets->ensure_enqueued();
+		}
+
+		return $rebuilt;
 	}
 
 	/**

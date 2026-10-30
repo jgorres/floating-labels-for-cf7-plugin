@@ -157,6 +157,7 @@ jgor_flcf7_check( 'assets: screen script file exists and calls wpColorPicker', f
 // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local plugin file, no URL.
 $jgor_flcf7_admin_css = file_exists( JGOR_FLCF7_PATH . 'assets/css/admin.css' ) ? (string) file_get_contents( JGOR_FLCF7_PATH . 'assets/css/admin.css' ) : '';
 jgor_flcf7_check( 'assets: screen stylesheet lays the column groups out as a grid of 16em columns, three at most', str_contains( $jgor_flcf7_admin_css, '.' . JGOR_FLCF7_Admin::COLUMNS_CLASS . ' {' ) && str_contains( $jgor_flcf7_admin_css, 'grid-template-columns: repeat(auto-fill, 16em);' ) && str_contains( $jgor_flcf7_admin_css, 'max-width: 51em;' ) && str_contains( $jgor_flcf7_admin_css, '.' . JGOR_FLCF7_Admin::COLUMNS_CLASS . '.' . JGOR_FLCF7_Admin::COLUMNS_FOUR_CLASS . ' {' ) && str_contains( $jgor_flcf7_admin_css, 'max-width: 68.5em;' ) );
+jgor_flcf7_check( 'help: overview tab mentions the conditional loading of the stylesheet', isset( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'] ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'], 'Tick &quot;Only on pages with a form&quot; under &quot;Stylesheet&quot;' ) );
 jgor_flcf7_check( 'help: overview tab escapes <label> and mentions the text option', isset( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'] ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'], 'a &lt;label&gt; that encloses' ) && str_contains( $jgor_flcf7_tabs['jgor-flcf7-help-overview']['content'], 'With the option &quot;Text before the field&quot;' ) );
 jgor_flcf7_check( 'help: sidebar links to the plugin page and the Contact Form 7 docs', $jgor_flcf7_screen instanceof WP_Screen && str_contains( $jgor_flcf7_screen->get_help_sidebar(), 'https://github.com/jgorres/floating-labels-for-cf7-plugin' ) && str_contains( $jgor_flcf7_screen->get_help_sidebar(), 'https://contactform7.com/additional-settings/' ) );
 
@@ -200,6 +201,7 @@ jgor_flcf7_check( 'page: outlined radio checked, 3 radios', 3 === preg_match_all
 jgor_flcf7_check( 'page: focus effect radios, 4 radios, none checked', 4 === preg_match_all( '#type="radio"[^>]*name="jgor_flcf7_settings\[effect\]"#s', $jgor_flcf7_html ) && (bool) preg_match( '#value="none"[^>]*name="jgor_flcf7_settings\[effect\]"[^>]*checked#s', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, '<strong>Running light</strong>' ) );
 jgor_flcf7_check( 'page: submit error text input with the default', (bool) preg_match( '#<input type="text" class="regular-text" id="jgor-flcf7-submit-error-text" value="Please check the highlighted fields"\s+name="jgor_flcf7_settings\[submit_error_text\]"#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: load_css and required_marker checked by default', (bool) preg_match( '#name="jgor_flcf7_settings\[load_css\]"[^>]*checked#s', $jgor_flcf7_html ) && (bool) preg_match( '#name="jgor_flcf7_settings\[required_marker\]"[^>]*checked#s', $jgor_flcf7_html ) );
+jgor_flcf7_check( 'page: load_css_forms_only in the same row, unchecked by default, with the footer hint', (bool) preg_match( '#<label for="jgor-flcf7-load-css-forms-only">\s*<input type="checkbox" id="jgor-flcf7-load-css-forms-only" value="1"\s+name="jgor_flcf7_settings\[load_css_forms_only\]"\s*>\s*Only on pages with a form#s', $jgor_flcf7_html ) && ! preg_match( '#name="jgor_flcf7_settings\[load_css_forms_only\]"[^>]*checked#s', $jgor_flcf7_html ) && (bool) preg_match( '#\[load_css\]"(?:(?!</td>).)*\[load_css_forms_only\]"#s', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, 'late in the footer, so it may show unstyled for a moment.' ) );
 // The type checkboxes are grid items: no line break inside their fieldset.
 jgor_flcf7_check( 'page: five column groups (types, colours, sizes, motion, effect), the effect row with four columns, no line breaks between the type checkboxes', 5 === preg_match_all( '#<fieldset class="' . JGOR_FLCF7_Admin::COLUMNS_CLASS . '(?: [a-z0-9-]+)?"#', $jgor_flcf7_html ) && 1 === preg_match_all( '#<fieldset class="' . JGOR_FLCF7_Admin::COLUMNS_CLASS . ' ' . JGOR_FLCF7_Admin::COLUMNS_FOUR_CLASS . '"\s*>\s*<legend class="screen-reader-text">Glow and running light</legend>#', $jgor_flcf7_html ) && (bool) preg_match( '#<fieldset class="' . JGOR_FLCF7_Admin::COLUMNS_CLASS . '"\s*>\s*<legend class="screen-reader-text">Fields with floating labels</legend>#', $jgor_flcf7_html ) && ! preg_match( '#<legend class="screen-reader-text">Fields with floating labels</legend>(?:(?!</fieldset>).)*<br>#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'page: no disabled controls and no locked notice by default', ! str_contains( $jgor_flcf7_html, 'disabled=' ) && ! str_contains( $jgor_flcf7_html, 'fixed in code' ) );
@@ -215,10 +217,11 @@ jgor_flcf7_check( 'page: no settings-saved notice without the flag', ! str_conta
 
 // Settings fixed in code: disabled controls without name attributes.
 $jgor_flcf7_lock = function ( $settings ) {
-	$settings['style']    = 'minimal';
-	$settings['load_css'] = false;
-	$settings['types']    = array( 'text', 'email' );
-	$settings['design']   = array( 'label-color' => '#000000' );
+	$settings['style']               = 'minimal';
+	$settings['load_css']            = false;
+	$settings['load_css_forms_only'] = true;
+	$settings['types']               = array( 'text', 'email' );
+	$settings['design']              = array( 'label-color' => '#000000' );
 	return $settings;
 };
 add_filter( 'jgor_flcf7_settings', $jgor_flcf7_lock );
@@ -227,11 +230,12 @@ $jgor_flcf7_html = jgor_flcf7_render_page( $jgor_flcf7_admin );
 jgor_flcf7_check( 'locked: notice at the top', str_contains( $jgor_flcf7_html, 'fixed in code through the filter jgor_flcf7_settings. They are shown disabled.' ) );
 jgor_flcf7_check( 'locked: style radios disabled without name, minimal checked', 0 === preg_match_all( '#name="jgor_flcf7_settings\[style\]"#', $jgor_flcf7_html ) && (bool) preg_match( '#value="minimal"\s+checked=\'checked\'\s+disabled=\'disabled\'#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'locked: load_css disabled, unchecked, without name', ! str_contains( $jgor_flcf7_html, 'name="jgor_flcf7_settings[load_css]"' ) && (bool) preg_match( '#id="jgor-flcf7-load-css" value="1"\s+disabled=\'disabled\'#s', $jgor_flcf7_html ) );
+jgor_flcf7_check( 'locked: load_css_forms_only disabled, checked, without name', ! str_contains( $jgor_flcf7_html, 'name="jgor_flcf7_settings[load_css_forms_only]"' ) && (bool) preg_match( '#id="jgor-flcf7-load-css-forms-only" value="1"\s+checked=\'checked\'\s+disabled=\'disabled\'#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'locked: type checkboxes disabled without name, 2 checked', 0 === preg_match_all( '#name="jgor_flcf7_settings\[types\]\[\]"#', $jgor_flcf7_html ) && 2 === preg_match_all( '#id="jgor-flcf7-type-[a-z]+" value="[a-z]+"\s+checked=\'checked\'\s+disabled=\'disabled\'#s', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'locked: free settings keep their name', str_contains( $jgor_flcf7_html, 'name="jgor_flcf7_settings[mode_label]"' ) && str_contains( $jgor_flcf7_html, 'name="jgor_flcf7_settings[required_marker]"' ) );
 jgor_flcf7_check( 'locked: design fields disabled without name, value in effect shown', 0 === preg_match_all( '#name="jgor_flcf7_settings\[design\]#', $jgor_flcf7_html ) && (bool) preg_match( '#id="jgor-flcf7-design-label-color" value="\#000000"\s+data-default-color="\#5f6368"\s+disabled=\'disabled\'#s', $jgor_flcf7_html ) && 22 === preg_match_all( '#id="jgor-flcf7-design-[a-z-]+"[^>]*disabled=\'disabled\'#', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'locked: snippet shows the value in effect', str_contains( $jgor_flcf7_html, "\t--jgor-flcf7-label-color: #000000;\n" ) );
-jgor_flcf7_check( 'locked: 7 notes below the locked settings (four design rows)', 7 === preg_match_all( '#Fixed in code through the filter jgor_flcf7_settings; the value shown is the one in effect\.#', $jgor_flcf7_html ) );
+jgor_flcf7_check( 'locked: 8 notes below the locked settings (four design rows, two stylesheet checkboxes)', 8 === preg_match_all( '#Fixed in code through the filter jgor_flcf7_settings; the value shown is the one in effect\.#', $jgor_flcf7_html ) );
 remove_filter( 'jgor_flcf7_settings', $jgor_flcf7_lock );
 $jgor_flcf7_settings->reset_cache();
 

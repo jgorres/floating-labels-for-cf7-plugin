@@ -11,8 +11,10 @@
  * Checks: the property lists, sanitizing per type (colour, length, number,
  * time), the option sanitize callback, the values in effect and the
  * overrides, the inline style module 3 adds after the stylesheet (and its
- * absence with default values or without the stylesheet), the lock through
- * the filter jgor_flcf7_settings, and the font-size hook in the stylesheet.
+ * absence with default values or without the stylesheet), the conditional
+ * loading with the setting load_css_forms_only (detection on single posts
+ * and pages, the safety net ensure_enqueued()), the lock through the filter
+ * jgor_flcf7_settings, and the font-size hook in the stylesheet.
  *
  * The script saves the stored option, runs on the defaults, changes the
  * option temporarily and restores the saved option afterwards.
@@ -162,6 +164,93 @@ $jgor_flcf7_settings->reset_cache();
 jgor_flcf7_reset_style();
 $jgor_flcf7_assets->enqueue();
 jgor_flcf7_check( 'enqueue(): nothing with load_css off', ! wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) && '' === jgor_flcf7_inline_after() );
+
+// Conditional loading: only on single posts and pages with a form.
+jgor_flcf7_check( 'defaults(): load_css_forms_only off', false === $jgor_flcf7_settings->defaults()['load_css_forms_only'] );
+jgor_flcf7_check( 'sanitize(): load_css_forms_only "1" -> true, missing -> false', true === $jgor_flcf7_settings->sanitize( array( 'load_css_forms_only' => '1' ) )['load_css_forms_only'] && false === $jgor_flcf7_settings->sanitize( array() )['load_css_forms_only'] );
+
+$jgor_flcf7_option['load_css']            = true;
+$jgor_flcf7_option['load_css_forms_only'] = true;
+update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
+$jgor_flcf7_settings->reset_cache();
+
+// Three published pages: shortcode, block, no form. Inserted as an
+// administrator so that the block comment survives the content filters.
+$jgor_flcf7_admins = get_users(
+	array(
+		'role'   => 'administrator',
+		'number' => 1,
+		'fields' => 'ID',
+	)
+);
+if ( empty( $jgor_flcf7_admins ) ) {
+	WP_CLI::error( 'No administrator found.' );
+}
+wp_set_current_user( (int) $jgor_flcf7_admins[0] );
+$jgor_flcf7_pages = array();
+foreach ( array(
+	'shortcode' => '<p>Write to us:</p><p>[contact-form-7 id="1" title="Contact form 1"]</p>',
+	'block'     => '<!-- wp:contact-form-7/contact-form-selector {"id":1,"title":"Contact form 1"} --><div class="wp-block-contact-form-7-contact-form-selector">[contact-form-7 id="1" title="Contact form 1"]</div><!-- /wp:contact-form-7/contact-form-selector -->',
+	'none'      => '<p>No form on this page.</p>',
+) as $jgor_flcf7_kind => $jgor_flcf7_content ) {
+	$jgor_flcf7_inserted = wp_insert_post(
+		array(
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+			'post_title'   => 'FL Test CSS ' . $jgor_flcf7_kind . ' - may be deleted',
+			'post_content' => $jgor_flcf7_content,
+		),
+		true
+	);
+	if ( is_wp_error( $jgor_flcf7_inserted ) ) {
+		WP_CLI::error( 'Could not create the test page: ' . $jgor_flcf7_inserted->get_error_message() );
+	}
+	$jgor_flcf7_pages[ $jgor_flcf7_kind ] = (int) $jgor_flcf7_inserted;
+}
+wp_set_current_user( 0 );
+
+$jgor_flcf7_saved_query = $GLOBALS['wp_query'];
+foreach ( array(
+	'shortcode' => true,
+	'block'     => true,
+	'none'      => false,
+) as $jgor_flcf7_kind => $jgor_flcf7_expected ) {
+	$GLOBALS['wp_query'] = new WP_Query( array( 'page_id' => $jgor_flcf7_pages[ $jgor_flcf7_kind ] ) ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- test script simulates the main query.
+	jgor_flcf7_reset_style();
+	$jgor_flcf7_assets->enqueue();
+	jgor_flcf7_check( 'enqueue(): load_css_forms_only on, page with ' . $jgor_flcf7_kind . ' -> ' . ( $jgor_flcf7_expected ? 'enqueued' : 'nothing' ), wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) === $jgor_flcf7_expected, is_singular() ? 'singular' : 'not singular' );
+}
+$GLOBALS['wp_query'] = new WP_Query( array( 'post_type' => 'page' ) ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- test script simulates the main query.
+jgor_flcf7_reset_style();
+$jgor_flcf7_assets->enqueue();
+jgor_flcf7_check( 'enqueue(): load_css_forms_only on, archive -> nothing', ! wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+
+// Safety net: a rebuilt form asks for the stylesheet.
+$jgor_flcf7_assets->ensure_enqueued();
+jgor_flcf7_check( 'ensure_enqueued(): enqueues on a page the detection missed', wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+$jgor_flcf7_assets->ensure_enqueued();
+jgor_flcf7_check( 'ensure_enqueued(): second call changes nothing', wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+jgor_flcf7_reset_style();
+add_filter( 'wpcf7_load_css', '__return_false' );
+$jgor_flcf7_assets->ensure_enqueued();
+jgor_flcf7_check( 'ensure_enqueued(): nothing while Contact Form 7 loads no CSS', ! wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+remove_filter( 'wpcf7_load_css', '__return_false' );
+$jgor_flcf7_option['load_css_forms_only'] = false;
+update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
+$jgor_flcf7_settings->reset_cache();
+$jgor_flcf7_assets->ensure_enqueued();
+jgor_flcf7_check( 'ensure_enqueued(): nothing with load_css_forms_only off (Contact Form 7 policy)', ! wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+$jgor_flcf7_option['load_css']            = false;
+$jgor_flcf7_option['load_css_forms_only'] = true;
+update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
+$jgor_flcf7_settings->reset_cache();
+$jgor_flcf7_assets->ensure_enqueued();
+jgor_flcf7_check( 'ensure_enqueued(): nothing with load_css off', ! wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+$GLOBALS['wp_query'] = $jgor_flcf7_saved_query; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- restores the main query.
+foreach ( $jgor_flcf7_pages as $jgor_flcf7_page_id ) {
+	wp_delete_post( $jgor_flcf7_page_id, true );
+}
+jgor_flcf7_reset_style();
 
 // Lock through the filter.
 update_option( 'jgor_flcf7_settings', $jgor_flcf7_settings->defaults() );

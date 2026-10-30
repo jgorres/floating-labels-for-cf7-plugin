@@ -79,12 +79,14 @@ final class JGOR_FLCF7_Plugin {
 
 		$settings = JGOR_FLCF7_Settings::instance();
 
+		// Module 3: stylesheet, enqueued from wpcf7_enqueue_styles; module 2
+		// calls its safety net after a rebuild (setting "load_css_forms_only").
+		$assets = new JGOR_FLCF7_Assets( $settings );
+		$assets->init();
+
 		// Module 2: markup rebuild. Runs on the front end and in the admin
 		// alike, because Contact Form 7 renders previews in the admin too.
-		( new JGOR_FLCF7_Markup( $settings ) )->init();
-
-		// Module 3: stylesheet, enqueued from wpcf7_enqueue_styles.
-		( new JGOR_FLCF7_Assets( $settings ) )->init();
+		( new JGOR_FLCF7_Markup( $settings, $assets ) )->init();
 
 		// Module 5, server side: declares the block attribute of the design
 		// values per placement and prints them on the rendered form. Runs

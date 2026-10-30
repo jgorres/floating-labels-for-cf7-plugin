@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.25 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–6 umgesetzt und sichtgeprüft; Schritte 14–16 aus §15 für das erste Release geplant)
+Version: 2.26 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–6 umgesetzt und sichtgeprüft; Schritt 14 bedingtes Laden erledigt, Schritte 15–16 aus §15 offen)
 
 ## 1. Zweck
 
@@ -1290,7 +1290,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 ```
 
 - `tests/verify-markup.php` rendert die Formulare per `form_html()` und
-  prüft 111 Punkte (Exit-Code ungleich 0 bei Fehlern): Label- und
+  prüft 114 Punkte (Exit-Code ungleich 0 bei Fehlern): Sicherheitsnetz von
+  `load_css_forms_only` (Handle nach dem Umbau enqueued, nicht bei
+  abgeschaltetem Formular, nicht ohne die Option), Label- und
   Placeholder-Modus, Ersatz des umschließenden Labels, Label-Text aus der
   Vorlage, Varianten- und Textarea-Klasse, IDs aus dem Unit-Tag, `for` =
   `id`, `placeholder=" "`, unberührte Felder (Submit, `nofloat`, Select,
@@ -1321,7 +1323,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   → Shortcode-Attribut per `render_block()`, vorhandenes Attribut bleibt,
   nur ungültige Werte → unverändert; nichts bei `load_css` aus).
   `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
-- `tests/verify-admin.php` prüft Modul 4 ohne Browser (59 Punkte): Box
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (62 Punkte): zweite
+  Checkbox „Only on pages with a form“ in der Zeile „Stylesheet“ (Default
+  aus, Hinweistext, gesperrt per Filter, Hilfe „Overview“), Box
   „Sample page“ zwischen Hinweisabsatz und Formular samt zweitem Nonce,
   Ergebnis-Notice von Modul 6, Menü
   unter `wpcf7-dashboard`, `wpcf7` und dem Fallback samt Seiten-URL,
@@ -1350,13 +1354,18 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   wieder her (seit 22.10.2026; vorher setzten sie die Defaults zurück, was
   eine im Browser gemachte Einstellung wie den Pflichtstern verwarf).
 - `tests/verify-design.php` prüft die Design-Einstellungen ohne Browser
-  (29 Punkte): Property-Listen (22, Typen 11/8/1/2), Sanitize je Typ
+  (40 Punkte): Property-Listen (22, Typen 11/8/1/2), Sanitize je Typ
   (gültig und ungültig, auch die `effect-*`), Setting `effect` (Auswahl,
   Default `none`),
   Sanitize-Callback der Option, `design()` und `design_overrides()`,
   `inline_css()` und der Inline-Style hinter dem Stylesheet (leer bei
   Defaults, nur Abweichungen, ungültige Optionswerte verworfen, nichts bei
-  `load_css` aus), Sperre per Filter, die Effekt-Regeln (Glow, Puls,
+  `load_css` aus), bedingtes Laden (Default und Sanitize von
+  `load_css_forms_only`; drei temporäre Seiten mit Shortcode, Block und
+  ohne Formular als simulierte Hauptabfrage per `WP_Query( page_id )`, dazu
+  ein Archiv; `ensure_enqueued()` greift, zweiter Aufruf ohne Wirkung,
+  nichts bei `wpcf7_load_css` false, bei Option aus und bei `load_css`
+  aus), Sperre per Filter, die Effekt-Regeln (Glow, Puls,
   `@property`, Ring mit `mask-composite`, Reduced Motion) und die
   `font-size`-Regel in der CSS.
 - `tests/verify-editor.php` prüft Modul 5 ohne Browser (28 Punkte): Klasse
@@ -1670,7 +1679,16 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     stylesheet loaded on every page?“), Prüfungen in `verify-admin.php`
     (Default, Checkbox, Sanitize) und `verify-markup.php` (Sicherheitsnetz:
     Handle nach dem Umbau enqueued, nicht ohne Option, nicht ohne
-    `wpcf7_load_css()`). Offen.
+    `wpcf7_load_css()`). Erledigt am 30.10.2026 (Konzept 2.26): wie
+    geplant; die zweite Checkbox steht in derselben Zeile „Stylesheet“ (kein
+    eigenes Settings-Feld, `label_for` zeigt auf die erste),
+    `enqueue_style()` erklärt die Abhängigkeit `contact-form-7` nur, wenn
+    der Handle registriert ist (eine nicht registrierte Abhängigkeit würde
+    das Plugin-CSS ganz unterdrücken), `ensure_enqueued()` tut im Admin
+    nichts (CF7 rendert dort Vorschauen); Modul 3 wird vor Modul 2 gestartet
+    und per Konstruktor durchgereicht. Prüfscripte 114/62/40/28/38 PASS,
+    `composer check` und PHPCS auf `tests/` ohne Befund. Offen: `.pot`, ZIP,
+    Hostsharing (Schritt 17), Sichtprüfung der Zeile „Stylesheet“ (Nutzer).
 15. Feldtypen `date` und `select` (7.8, 8, 9, 9.3): `BASE_TYPES` um `date`
     und `select`, `control()` nimmt `select` ohne `multiple`, Labelquellen
     und Leeroption, Wrap-Klassen `jgor-flcf7-date`/`-select`, CSS je
@@ -1763,3 +1781,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.23 | 29.10.2026 | Asset-Version = Plugin-Version plus `filemtime()` (`JGOR_FLCF7_Plugin::asset_version()`, 8, 10) gegen veraltete Browser-Caches; Prüfungen angepasst, `verify-admin.php` 59 |
 | 2.24 | 29.10.2026 | Reset-Buttons als `secondary` mit Rahmen (10, 10.1), damit sie auch inaktiv als Buttons erkennbar sind; Screenshots 5 und 6 neu |
 | 2.25 | 30.10.2026 | Sichtprüfung des Nutzers ohne Befund (§14 Schritt 13); die Erweiterungen aus §15 kommen in das erste Release, Version bleibt 1.0.0: §14 Schritte 14 (bedingtes Laden: 6, 8, 9), 15 (Feldtypen `date` und `select`: neuer Abschnitt 7.8, dazu 7, 7.5, 7.7, 8, 9, achtes Beispielformular 9.3), 16 (Tab „Floating labels“ im CF7-Editor: neuer Abschnitt 9.4, dazu 3, 6, 7.5) und 17 (Abschluss); §13 `verify-form-panel.php` und Browser-Matrix; §15 bereinigt, `WP_HTML_Processor` mit Stand WP 7.1.4 (keine Einfüge-API) |
+| 2.26 | 30.10.2026 | Schritt 14 erledigt: Option `load_css_forms_only`, `enqueue()` mit Erkennung am Singular-Post, `ensure_enqueued()` als Sicherheitsnetz aus Modul 2, Abhängigkeit nur bei registriertem Handle (8), zweite Checkbox in der Zeile „Stylesheet“ und Hilfe (9), readme (Features, FAQ); §13 Prüfzähler 114/62/40 |

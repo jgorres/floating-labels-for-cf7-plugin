@@ -243,6 +243,7 @@ final class JGOR_FLCF7_Admin {
 			. '<p>' . esc_html__( 'Text, email, URL, telephone, number and textarea fields get floating labels. Checkboxes, radio buttons, selects, file uploads, quizzes and CAPTCHAs keep their original markup.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'The label text comes from the form template (a <label> that encloses the field or points at its id) or from the placeholder option of the form-tag. A label in the template wins over a placeholder. With the option "Text before the field", loose text in front of the field, or in the paragraph just before it, is used when there is neither; that covers the default template of Contact Form 7 before version 5.4.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'Fields the plugin does not recognise are left exactly as Contact Form 7 renders them.', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p>' . esc_html__( 'The stylesheet follows the loading policy of Contact Form 7, which loads it on every page. Tick "Only on pages with a form" under "Stylesheet" to load it on single posts and pages with a form only; a form rendered elsewhere still gets it, late in the footer.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'The box "Sample page" at the top of this screen creates a private page with forms that show the options, and removes it again together with its forms.', 'floating-labels-for-cf7' ) . '</p>';
 	}
 
@@ -576,6 +577,11 @@ final class JGOR_FLCF7_Admin {
 					$key,
 					__( 'Load the stylesheet of the plugin', 'floating-labels-for-cf7' ),
 					__( 'Untick when your theme styles the classes jgor-flcf7-* itself; the design values below are then not printed either. The stylesheet follows the loading policy of Contact Form 7.', 'floating-labels-for-cf7' )
+				);
+				$this->render_checkbox(
+					'load_css_forms_only',
+					__( 'Only on pages with a form', 'floating-labels-for-cf7' ),
+					__( 'Contact Form 7 loads its stylesheet on every page, and so does this plugin by default. Tick to load it only on single posts and pages whose content holds the Contact Form 7 block or shortcode. A form rendered elsewhere, for example in a widget, a template part or an archive, still gets the stylesheet, but late in the footer, so it may show unstyled for a moment.', 'floating-labels-for-cf7' )
 				);
 				break;
 
