@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.31 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Nachbesserungen aus der Sichtprüfung des Tabs eingearbeitet; offen Hostsharing `dateien`, Browser-Matrix, dann 5.6 Veröffentlichung)
+Version: 2.32 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Hostsharing synchron; offen Browser-Matrix und Sichtprüfung Datum/Select, dann 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -1804,8 +1804,11 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     und -Logo bewusst nicht verwendet (10). Erledigt am 30.10.2026:
     `verify-editor-js.mjs` 99 (Prüfungen angepasst), `verify-form-panel.php`
     29, `.pot` 210 Texte, Screenshots 5–7 neu, `composer check` und PHPCS
-    auf `tests/` ohne Befund. Offen: Hostsharing `dateien` (Probelauf
-    zuerst), Sichtprüfung (Nutzer).
+    auf `tests/` ohne Befund. Hostsharing am 30.10.2026 mit `dateien
+    --ueberschreiben --ja` nachgezogen (Probelauf vorher: 5 geänderte
+    Plugin-Dateien, 0 Löschungen; Sicherung des Webroots 38 MB), lesend
+    geprüft: alle 18 Plugin-Dateien md5-identisch, Plugin Check auf dem
+    Server ohne Befund. Offen: Sichtprüfung (Nutzer).
 
 ## 15. Offen
 
@@ -1885,3 +1888,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.29 | 30.10.2026 | Schritt 17 lokal erledigt: Beispielseite neu (acht Formulare), Screenshot 7 und Script (3, 13), readme Screenshots, `.pot` 209, ZIP 18 Dateien 82 KB mit Plugin Check ohne Befund (13), lokale Option `types` um date/select ergänzt (14); offen Hostsharing und Browser-Matrix |
 | 2.30 | 30.10.2026 | Hostsharing nach den Schritten 14–17 mit `dateien` und `datenbank` nachgezogen und lesend geprüft (§14 Schritt 17): 18 Dateien md5-identisch, Option, Beispielseite 655, Plugin Check remote ohne Befund |
 | 2.31 | 30.10.2026 | Sichtprüfung des Tabs: Einleitungssatz im Panel „Floating labels“ (10, Blockbeschreibung und Logo von CF7 bewusst nicht genutzt), Link in der Legende und Beschriftung „Marker for required fields“ im Tab (9.4), `page_url()` statisch; §13 `verify-form-panel.php` 29, §14 Schritt 18 |
+| 2.32 | 30.10.2026 | Hostsharing nach Schritt 18 mit `dateien` nachgezogen und lesend geprüft (§14 Schritt 18): 18 Dateien md5-identisch, Plugin Check remote ohne Befund |
