@@ -9,15 +9,15 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-29T16:10:30+00:00\n"
+"POT-Creation-Date: 2026-10-30T13:48:21+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: floating-labels-for-cf7\n"
 
 #. Plugin Name of the plugin
 #: floating-labels-for-cf7.php
-#: includes/class-jgor-flcf7-admin.php:158
-#: includes/class-jgor-flcf7-admin.php:453
+#: includes/class-jgor-flcf7-admin.php:159
+#: includes/class-jgor-flcf7-admin.php:455
 #: includes/class-jgor-flcf7-samples.php:364
 msgid "Floating Labels for CF7"
 msgstr ""
@@ -43,531 +43,619 @@ msgid "https://joern.gorres.com"
 msgstr ""
 
 #. translators: %s: required PHP version
-#: floating-labels-for-cf7.php:98
+#: floating-labels-for-cf7.php:99
 #, php-format
 msgid "This plugin requires PHP %s or newer."
 msgstr ""
 
-#: floating-labels-for-cf7.php:102
+#: floating-labels-for-cf7.php:103
 msgid "Plugin activation stopped"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:159
+#: includes/class-jgor-flcf7-admin.php:160
 msgid "Floating Labels"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:215
+#: includes/class-jgor-flcf7-admin.php:216
 msgid "Overview"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:222
+#: includes/class-jgor-flcf7-admin.php:223
 msgid "Per form and placement"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:229
-#: includes/class-jgor-flcf7-admin.php:403
+#: includes/class-jgor-flcf7-admin.php:230
+#: includes/class-jgor-flcf7-admin.php:405
 msgid "Design"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:242
+#: includes/class-jgor-flcf7-admin.php:243
 msgid "A floating label sits inside the empty field like a placeholder and moves to the top edge, smaller, as soon as the field is focused or filled. The plugin rebuilds the markup Contact Form 7 renders and ships the stylesheet; your pages need no JavaScript for it."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:243
-msgid "Text, email, URL, telephone, number and textarea fields get floating labels. Checkboxes, radio buttons, selects, file uploads, quizzes and CAPTCHAs keep their original markup."
-msgstr ""
-
 #: includes/class-jgor-flcf7-admin.php:244
-msgid "The label text comes from the form template (a <label> that encloses the field or points at its id) or from the placeholder option of the form-tag. A label in the template wins over a placeholder. With the option \"Text before the field\", loose text in front of the field, or in the paragraph just before it, is used when there is neither; that covers the default template of Contact Form 7 before version 5.4."
+msgid "Text, email, URL, telephone, number, date, textarea and select fields get floating labels. The label of a date field stays floated, because browsers show a format mask in the empty field; the label of a select stays floated too, except while its blank option is selected. Checkboxes, radio buttons, selects with multiple choice, file uploads, quizzes and CAPTCHAs keep their original markup."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:245
-msgid "Fields the plugin does not recognise are left exactly as Contact Form 7 renders them."
+msgid "The label text comes from the form template (a <label> that encloses the field or points at its id) or from the placeholder option of the form-tag. A label in the template wins over a placeholder. With the option \"Text before the field\", loose text in front of the field, or in the paragraph just before it, is used when there is neither; that covers the default template of Contact Form 7 before version 5.4."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:246
+msgid "Fields the plugin does not recognise are left exactly as Contact Form 7 renders them."
+msgstr ""
+
+#: includes/class-jgor-flcf7-admin.php:247
+msgid "The stylesheet follows the loading policy of Contact Form 7, which loads it on every page. Tick \"Only on pages with a form\" under \"Stylesheet\" to load it on single posts and pages with a form only; a form rendered elsewhere still gets it, late in the footer."
+msgstr ""
+
+#: includes/class-jgor-flcf7-admin.php:248
 msgid "The box \"Sample page\" at the top of this screen creates a private page with forms that show the options, and removes it again together with its forms."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:255
+#: includes/class-jgor-flcf7-admin.php:257
 msgid "The settings of this screen apply to every form. Override them per form, per placement or per field; later layers win."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:256
-#: includes/class-jgor-flcf7-admin.php:880
+#: includes/class-jgor-flcf7-admin.php:258
+#: includes/class-jgor-flcf7-admin.php:887
 msgid "Per form"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:256
-#: includes/class-jgor-flcf7-admin.php:881
-msgid "Add lines to the \"Additional Settings\" tab of the form:"
+#: includes/class-jgor-flcf7-admin.php:258
+#: includes/class-jgor-flcf7-admin.php:888
+msgid "Open the tab \"Floating labels\" in the editor of the form and pick the values; they are saved as these lines in the \"Additional Settings\" tab, which you can also write by hand:"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:258
-#: includes/class-jgor-flcf7-admin.php:884
+#: includes/class-jgor-flcf7-admin.php:260
+#: includes/class-jgor-flcf7-admin.php:891
 msgid "Per placement"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:260
-#: includes/class-jgor-flcf7-admin.php:888
+#: includes/class-jgor-flcf7-admin.php:262
+#: includes/class-jgor-flcf7-admin.php:895
 msgid "Per field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:260
-#: includes/class-jgor-flcf7-admin.php:889
+#: includes/class-jgor-flcf7-admin.php:262
+#: includes/class-jgor-flcf7-admin.php:896
 msgid "Add the option nofloat to the form-tag, before any quoted value:"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:270
+#: includes/class-jgor-flcf7-admin.php:272
 msgid "Colours, sizes, timing and the look of the focus effect are set in the section \"Design\" of this screen. Leave a field empty to keep the default; only the values you change are printed, as CSS custom properties on the .wpcf7 wrapper, right after the stylesheet."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:271
+#: includes/class-jgor-flcf7-admin.php:273
 msgid "Themes can set the same properties in CSS, for example in Appearance > Customize > Additional CSS or a child theme. The snippet shows every property with the value in effect:"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:273
+#: includes/class-jgor-flcf7-admin.php:275
 msgid "To style one form only, replace .wpcf7 with the id of its wrapper, for example [id^=\"wpcf7-f123-\"], or with a class you add through the html_class attribute."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:282
+#: includes/class-jgor-flcf7-admin.php:284
 msgid "For more information:"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:283
+#: includes/class-jgor-flcf7-admin.php:285
 msgid "Plugin page and source code"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:284
+#: includes/class-jgor-flcf7-admin.php:286
 msgid "Contact Form 7: Additional Settings"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:285
+#: includes/class-jgor-flcf7-admin.php:287
 msgid "Contact Form 7: form-tag options"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:294
+#: includes/class-jgor-flcf7-admin.php:296
 msgid "Select the Contact Form 7 block, or a Shortcode block with the [contact-form-7] shortcode, and open the panel \"Floating labels\" in the block sidebar. It stores the choice as classes in the \"Class\" field of the block (panel \"Form attributes\") or in the html_class attribute of the shortcode, so one form can look different on different pages. A reset button at the end of each panel takes the placement back to the settings of the site and of the form. The panels \"Floating labels: colours\", \"Floating labels: sizes\", \"Floating labels: animation\" and \"Floating labels: focus effect\" below it hold design values for this placement only, stored with the block or in the jgor_flcf7_design attribute of the shortcode:"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:374
+#: includes/class-jgor-flcf7-admin.php:376
 msgid "Settings"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:388
+#: includes/class-jgor-flcf7-admin.php:390
 msgid "Label sources"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:389
+#: includes/class-jgor-flcf7-admin.php:391
 msgid "Form template labels"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:390
-#: includes/class-jgor-flcf7-samples.php:515
+#: includes/class-jgor-flcf7-admin.php:392
+#: includes/class-jgor-flcf7-samples.php:522
 msgid "Placeholders"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:391
+#: includes/class-jgor-flcf7-admin.php:393
 msgid "Text before the field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:393
+#: includes/class-jgor-flcf7-admin.php:395
+#: includes/class-jgor-flcf7-form-panel.php:223
 msgid "Field types"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:394
-#: includes/class-jgor-flcf7-admin.php:675
+#: includes/class-jgor-flcf7-admin.php:396
+#: includes/class-jgor-flcf7-admin.php:682
 msgid "Fields with floating labels"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:396
+#: includes/class-jgor-flcf7-admin.php:398
 msgid "Appearance"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:397
-#: includes/class-jgor-flcf7-admin.php:701
-#: assets/js/block-editor.js:210
+#: includes/class-jgor-flcf7-admin.php:399
+#: includes/class-jgor-flcf7-admin.php:708
+#: includes/class-jgor-flcf7-form-panel.php:187
+#: assets/js/block-editor.js:211
 msgid "Variant"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:398
-#: includes/class-jgor-flcf7-admin.php:729
-#: assets/js/block-editor.js:220
+#: includes/class-jgor-flcf7-admin.php:400
+#: includes/class-jgor-flcf7-admin.php:736
+#: includes/class-jgor-flcf7-form-panel.php:197
+#: assets/js/block-editor.js:221
 msgid "Focus effect"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:399
+#: includes/class-jgor-flcf7-admin.php:401
 msgid "Stylesheet"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:400
-#: assets/js/block-editor.js:231
+#: includes/class-jgor-flcf7-admin.php:402
+#: assets/js/block-editor.js:232
 msgid "Required fields"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:401
-#: includes/class-jgor-flcf7-admin.php:953
+#: includes/class-jgor-flcf7-admin.php:403
+#: includes/class-jgor-flcf7-admin.php:960
 msgid "Submit button on errors"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:404
-#: includes/class-jgor-flcf7-admin.php:923
+#: includes/class-jgor-flcf7-admin.php:406
+#: includes/class-jgor-flcf7-admin.php:930
 msgid "Colours"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:405
-#: includes/class-jgor-flcf7-admin.php:925
+#: includes/class-jgor-flcf7-admin.php:407
+#: includes/class-jgor-flcf7-admin.php:932
 msgid "Sizes"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:406
-#: includes/class-jgor-flcf7-admin.php:927
+#: includes/class-jgor-flcf7-admin.php:408
+#: includes/class-jgor-flcf7-admin.php:934
 msgid "Floated label and animation"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:407
-#: includes/class-jgor-flcf7-admin.php:929
+#: includes/class-jgor-flcf7-admin.php:409
+#: includes/class-jgor-flcf7-admin.php:936
 msgid "Glow and running light"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:408
+#: includes/class-jgor-flcf7-admin.php:410
 msgid "CSS for themes"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:410
+#: includes/class-jgor-flcf7-admin.php:412
 msgid "Per form, per placement, per field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:435
+#: includes/class-jgor-flcf7-admin.php:437
 msgid "Sorry, you are not allowed to access this page."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:442
+#: includes/class-jgor-flcf7-admin.php:444
 msgid "Settings saved."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:455
-msgid "These are the defaults for every Contact Form 7 form on this site. Override them per form in the \"Additional Settings\" tab of the form, or per placement in the block editor: select the Contact Form 7 block (or a Shortcode block with the shortcode of the form) and open the panels \"Floating labels\" in the block sidebar. The section \"Per form, per placement, per field\" at the end of this screen has the details."
+#: includes/class-jgor-flcf7-admin.php:457
+msgid "These are the defaults for every Contact Form 7 form on this site. Override them per form in the tab \"Floating labels\" of the form editor (or in its \"Additional Settings\" tab), or per placement in the block editor: select the Contact Form 7 block (or a Shortcode block with the shortcode of the form) and open the panels \"Floating labels\" in the block sidebar. The section \"Per form, per placement, per field\" at the end of this screen has the details."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:466
+#: includes/class-jgor-flcf7-admin.php:468
 msgid "Some settings are fixed in code through the filter jgor_flcf7_settings. They are shown disabled."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:488
+#: includes/class-jgor-flcf7-admin.php:490
 msgid "Sample page and forms created."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:489
+#: includes/class-jgor-flcf7-admin.php:491
 msgid "Sample page and forms removed."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:490
+#: includes/class-jgor-flcf7-admin.php:492
 msgid "The sample page already exists."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:491
+#: includes/class-jgor-flcf7-admin.php:493
 msgid "There is no sample page to remove."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:492
+#: includes/class-jgor-flcf7-admin.php:494
 msgid "Contact Form 7 is not active, so the sample forms cannot be created."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:493
+#: includes/class-jgor-flcf7-admin.php:495
 msgid "The sample page could not be created. Check that you may create pages and contact forms."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:507
+#: includes/class-jgor-flcf7-admin.php:509
 msgid "Where the text of a floating label comes from. All sources can be active: a label in the form template wins over a placeholder, and loose text is used only when there is neither."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:516
-msgid "Only fields of these Contact Form 7 types get a floating label. Checkboxes, radio buttons, selects, files and quizzes never do."
+#: includes/class-jgor-flcf7-admin.php:518
+msgid "Only fields of these Contact Form 7 types get a floating label. The label of a date field stays floated (browsers show a format mask), and so does the label of a select, except while its blank option is selected. Checkboxes, radio buttons, selects with multiple choice, files and quizzes never get one."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:525
+#: includes/class-jgor-flcf7-admin.php:527
 msgid "Colours, sizes and timing of the fields. Leave a field empty to keep the default; only the values you change are printed, as CSS custom properties on the .wpcf7 wrapper, right after the stylesheet."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:541
+#: includes/class-jgor-flcf7-admin.php:543
 msgid "Use the text of a label in the form template"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:542
+#: includes/class-jgor-flcf7-admin.php:544
 msgid "The <label> that encloses the field, as in the default template, or a <label for=\"...\"> that points at the id of the field."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:549
+#: includes/class-jgor-flcf7-admin.php:551
 msgid "Use the placeholder of the field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:550
+#: includes/class-jgor-flcf7-admin.php:552
 msgid "The placeholder option of the form-tag becomes the label text; the placeholder itself is replaced by a single space."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:557
+#: includes/class-jgor-flcf7-admin.php:559
 msgid "Use loose text in front of the field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:558
+#: includes/class-jgor-flcf7-admin.php:560
 msgid "For templates without a label and without a placeholder, such as the default template of Contact Form 7 before version 5.4: the text right in front of the field, or the paragraph just before it, becomes the label text. A heuristic, off by default; check the result and add the option nofloat to fields that should keep their text."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:577
+#: includes/class-jgor-flcf7-admin.php:579
 msgid "Load the stylesheet of the plugin"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:578
+#: includes/class-jgor-flcf7-admin.php:580
 msgid "Untick when your theme styles the classes jgor-flcf7-* itself; the design values below are then not printed either. The stylesheet follows the loading policy of Contact Form 7."
 msgstr ""
 
+#: includes/class-jgor-flcf7-admin.php:584
+msgid "Only on pages with a form"
+msgstr ""
+
 #: includes/class-jgor-flcf7-admin.php:585
+msgid "Contact Form 7 loads its stylesheet on every page, and so does this plugin by default. Tick to load it only on single posts and pages whose content holds the Contact Form 7 block or shortcode. A form rendered elsewhere, for example in a widget, a template part or an archive, still gets the stylesheet, but late in the footer, so it may show unstyled for a moment."
+msgstr ""
+
+#: includes/class-jgor-flcf7-admin.php:592
 msgid "Append an asterisk to the label of required fields"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:586
+#: includes/class-jgor-flcf7-admin.php:593
 msgid "Shown through CSS behind the label of fields with aria-required=\"true\"."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:593
+#: includes/class-jgor-flcf7-admin.php:600
 msgid "Shown on the submit button, in the error colour, while the form has validation errors; the label of each invalid field floats up and the message appears inside the field. Leave empty to change only the colour of the button."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:598
+#: includes/class-jgor-flcf7-admin.php:605
 msgid "Pick a colour or leave the field empty to keep the default shown as \"Default\" in the picker. The Filled variant uses a light grey, rgba(0, 0, 0, 0.06), as its default background."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:602
-#: assets/js/block-editor.js:162
+#: includes/class-jgor-flcf7-admin.php:609
+#: assets/js/block-editor.js:163
 msgid "A number with px, em, rem or %, for example 0.9em. The font size of the field also scales the label and the padding; 1em keeps the size of the surrounding text."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:606
-#: assets/js/block-editor.js:168
+#: includes/class-jgor-flcf7-admin.php:613
+#: assets/js/block-editor.js:169
 msgid "Scale of the floated label between 0.5 and 1; duration of the transitions with s or ms."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:610
+#: includes/class-jgor-flcf7-admin.php:617
 msgid "Used by the focus effect chosen under Appearance: the colour of the glow and of the running light, the size of the glow, the width of the running light, and the duration of one pulse or one round with s or ms."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:687
+#: includes/class-jgor-flcf7-admin.php:694
 msgid "Untick every type to switch floating labels off without losing the other settings."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:704
-#: assets/js/block-editor.js:213
+#: includes/class-jgor-flcf7-admin.php:711
+#: includes/class-jgor-flcf7-form-panel.php:189
+#: assets/js/block-editor.js:214
 msgid "Outlined"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:705
+#: includes/class-jgor-flcf7-admin.php:712
 msgid "Border all round; the label floats onto the border line."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:708
-#: assets/js/block-editor.js:214
+#: includes/class-jgor-flcf7-admin.php:715
+#: includes/class-jgor-flcf7-form-panel.php:190
+#: assets/js/block-editor.js:215
 msgid "Filled"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:709
+#: includes/class-jgor-flcf7-admin.php:716
 msgid "Tinted box with a bottom line; the label floats inside the box."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:712
-#: assets/js/block-editor.js:215
+#: includes/class-jgor-flcf7-admin.php:719
+#: includes/class-jgor-flcf7-form-panel.php:191
+#: assets/js/block-editor.js:216
 msgid "Minimal"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:713
+#: includes/class-jgor-flcf7-admin.php:720
 msgid "No colours, borders or backgrounds; your theme styles the field, the label floats above it."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:732
-#: assets/js/block-editor.js:223
+#: includes/class-jgor-flcf7-admin.php:739
+#: includes/class-jgor-flcf7-form-panel.php:199
+#: assets/js/block-editor.js:224
 msgid "None"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:733
+#: includes/class-jgor-flcf7-admin.php:740
 msgid "The border changes colour only."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:736
-#: assets/js/block-editor.js:224
+#: includes/class-jgor-flcf7-admin.php:743
+#: includes/class-jgor-flcf7-form-panel.php:200
+#: assets/js/block-editor.js:225
 msgid "Glow"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:737
+#: includes/class-jgor-flcf7-admin.php:744
 msgid "A soft glow around the focused field."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:740
-#: assets/js/block-editor.js:225
+#: includes/class-jgor-flcf7-admin.php:747
+#: includes/class-jgor-flcf7-form-panel.php:201
+#: assets/js/block-editor.js:226
 msgid "Pulsing glow"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:741
+#: includes/class-jgor-flcf7-admin.php:748
 msgid "The glow swells and fades while the field has focus."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:744
-#: assets/js/block-editor.js:226
+#: includes/class-jgor-flcf7-admin.php:751
+#: includes/class-jgor-flcf7-form-panel.php:202
+#: assets/js/block-editor.js:227
 msgid "Running light"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:745
+#: includes/class-jgor-flcf7-admin.php:752
 msgid "A light runs around the border of the focused field."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:748
+#: includes/class-jgor-flcf7-admin.php:755
 msgid "Pure CSS, shown while a field has focus. Colour, size, width and duration are set under Design. Visitors who prefer reduced motion see the glow and the running light without movement."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:851
+#: includes/class-jgor-flcf7-admin.php:858
 msgid "CSS custom properties in effect"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:853
+#: includes/class-jgor-flcf7-admin.php:860
 msgid "The values in effect as CSS custom properties, for a child theme or Appearance > Customize > Additional CSS. To style one form only, replace .wpcf7 with the id of its wrapper, for example [id^=\"wpcf7-f123-\"], or with a class you add through the html_class attribute."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:868
+#: includes/class-jgor-flcf7-admin.php:875
 msgid "Fixed in code through the filter jgor_flcf7_settings; the value shown is the one in effect."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:878
+#: includes/class-jgor-flcf7-admin.php:885
 msgid "The settings above apply to every form. Override them per form, per placement or per field; later layers win."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:892
+#: includes/class-jgor-flcf7-admin.php:899
 msgid "For developers"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:893
+#: includes/class-jgor-flcf7-admin.php:900
 msgid "Filters: jgor_flcf7_settings (fix settings in code), jgor_flcf7_form_settings (per rendering), jgor_flcf7_enabled (per form), jgor_flcf7_label_text (per field), jgor_flcf7_field_types (selectable types)."
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:945
+#: includes/class-jgor-flcf7-admin.php:952
 msgid "Label"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:946
+#: includes/class-jgor-flcf7-admin.php:953
 msgid "Label of the focused field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:947
+#: includes/class-jgor-flcf7-admin.php:954
 msgid "Label of an invalid field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:948
+#: includes/class-jgor-flcf7-admin.php:955
 msgid "Border"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:949
+#: includes/class-jgor-flcf7-admin.php:956
 msgid "Border of the focused field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:950
+#: includes/class-jgor-flcf7-admin.php:957
 msgid "Border of an invalid field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:951
+#: includes/class-jgor-flcf7-admin.php:958
 msgid "Field background (Outlined)"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:952
+#: includes/class-jgor-flcf7-admin.php:959
 msgid "Field background (Filled)"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:954
+#: includes/class-jgor-flcf7-admin.php:961
 msgid "Text of the submit button on errors"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:955
+#: includes/class-jgor-flcf7-admin.php:962
 msgid "Font size of the field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:956
+#: includes/class-jgor-flcf7-admin.php:963
 msgid "Font size of the label at rest"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:957
+#: includes/class-jgor-flcf7-admin.php:964
 msgid "Horizontal padding"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:958
+#: includes/class-jgor-flcf7-admin.php:965
 msgid "Vertical padding"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:959
+#: includes/class-jgor-flcf7-admin.php:966
 msgid "Border width"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:960
+#: includes/class-jgor-flcf7-admin.php:967
 msgid "Corner radius"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:961
+#: includes/class-jgor-flcf7-admin.php:968
 msgid "Scale of the floated label"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:962
+#: includes/class-jgor-flcf7-admin.php:969
 msgid "Transition duration"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:963
+#: includes/class-jgor-flcf7-admin.php:970
 msgid "Colour of the focus effect"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:964
+#: includes/class-jgor-flcf7-admin.php:971
 msgid "Size of the glow"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:965
+#: includes/class-jgor-flcf7-admin.php:972
 msgid "Width of the running light"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:966
+#: includes/class-jgor-flcf7-admin.php:973
 msgid "Duration of one pulse or round"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:983
+#: includes/class-jgor-flcf7-admin.php:990
 msgid "Text"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:984
+#: includes/class-jgor-flcf7-admin.php:991
 msgid "Email"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:985
+#: includes/class-jgor-flcf7-admin.php:992
 msgid "URL"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:986
+#: includes/class-jgor-flcf7-admin.php:993
 msgid "Telephone"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:987
+#: includes/class-jgor-flcf7-admin.php:994
 msgid "Number"
 msgstr ""
 
-#: includes/class-jgor-flcf7-admin.php:988
+#: includes/class-jgor-flcf7-admin.php:995
+msgid "Date"
+msgstr ""
+
+#: includes/class-jgor-flcf7-admin.php:996
 msgid "Text area"
 msgstr ""
 
-#: includes/class-jgor-flcf7-markup.php:218
+#: includes/class-jgor-flcf7-admin.php:997
+msgid "Select"
+msgstr ""
+
+#. translators: %d: number of floating-label settings set for this form
+#: includes/class-jgor-flcf7-form-panel.php:148
+#, php-format
+msgid "Floating labels (%d)"
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:149
+#: includes/class-jgor-flcf7-form-panel.php:170
+#: includes/class-jgor-flcf7-form-panel.php:176
+#: assets/js/block-editor.js:192
+#: assets/js/block-editor.js:907
+msgid "Floating labels"
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:172
+msgid "These choices apply to this form only and override the defaults of Contact > Floating Labels. They are saved as lines in the tab \"Additional Settings\", where you can edit them as well; a placement in the block editor overrides them in turn."
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:178
+#: includes/class-jgor-flcf7-form-panel.php:211
+#: assets/js/block-editor.js:196
+msgid "Off"
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:179
+msgid "Placeholder only"
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:180
+msgid "Label only"
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:181
+#: assets/js/block-editor.js:206
+msgid "Text before the field only"
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:208
+msgid "Required marker"
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:210
+#: assets/js/block-editor.js:195
+msgid "On"
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:219
+msgid "Limit the field types for this form"
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:233
+msgid "Without the limit, the field types ticked on the settings screen apply. The lines this tab writes: floating_labels, floating_labels_style, floating_labels_effect, floating_labels_marker, floating_labels_types."
+msgstr ""
+
+#: includes/class-jgor-flcf7-form-panel.php:334
+msgid "Default (settings page)"
+msgstr ""
+
+#: includes/class-jgor-flcf7-markup.php:261
 msgid "Please check the highlighted fields"
 msgstr ""
 
-#: includes/class-jgor-flcf7-plugin.php:143
+#: includes/class-jgor-flcf7-plugin.php:149
 msgid "Floating Labels for CF7 requires the plugin Contact Form 7. Install and activate Contact Form 7 to use floating labels."
 msgstr ""
 
-#: includes/class-jgor-flcf7-plugin.php:144
+#: includes/class-jgor-flcf7-plugin.php:150
 msgid "Floating Labels for CF7 requires the PHP extension DOM (ext-dom), which is missing on this server. Forms are rendered without floating labels."
 msgstr ""
 
-#: includes/class-jgor-flcf7-plugin.php:173
+#: includes/class-jgor-flcf7-plugin.php:179
 msgid "Settings of Floating Labels for CF7."
 msgstr ""
 
@@ -596,7 +684,7 @@ msgid "Sample page"
 msgstr ""
 
 #: includes/class-jgor-flcf7-samples.php:321
-msgid "A private page \"Testpage Floating Labels for CF7\" with forms that show the options: the default form of Contact Form 7, placeholders, an old template, the variants and focus effects, the limits of the rebuild, a form switched off, and two placements with settings of their own. The forms are named \"FL Test ... - may be deleted\" and send no mail. Only logged-in users who may read private pages see the page."
+msgid "A private page \"Testpage Floating Labels for CF7\" with forms that show the options: the default form of Contact Form 7, placeholders, an old template, the variants and focus effects, the limits of the rebuild, date and select fields, a form switched off, and two placements with settings of their own. The forms are named \"FL Test ... - may be deleted\" and send no mail. Only logged-in users who may read private pages see the page."
 msgstr ""
 
 #: includes/class-jgor-flcf7-samples.php:323
@@ -639,198 +727,189 @@ msgstr ""
 msgid "Not now"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:508
+#: includes/class-jgor-flcf7-samples.php:515
 msgid "Default template"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:509
+#: includes/class-jgor-flcf7-samples.php:516
 msgid "The form Contact Form 7 creates by default: the labels of the template become floating labels (label mode). Variant and focus effect follow the settings screen."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:516
+#: includes/class-jgor-flcf7-samples.php:523
 msgid "Fields with a placeholder option only: the placeholder becomes the floating label (placeholder mode)."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:522
+#: includes/class-jgor-flcf7-samples.php:529
 msgid "Old template: text before the field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:523
+#: includes/class-jgor-flcf7-samples.php:530
 msgid "A form as Contact Form 7 created it before version 5.4, with loose text in front of the fields instead of labels or placeholders. The additional setting \"floating_labels: text\" switches text mode on for this form."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:529
+#: includes/class-jgor-flcf7-samples.php:536
 msgid "Filled variant with glow"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:530
+#: includes/class-jgor-flcf7-samples.php:537
 msgid "The default template with \"floating_labels_style: filled\" and \"floating_labels_effect: glow\" in its additional settings."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:536
+#: includes/class-jgor-flcf7-samples.php:543
 msgid "Minimal variant with running light"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:537
+#: includes/class-jgor-flcf7-samples.php:544
 msgid "The placeholder form with \"floating_labels_style: minimal\", \"floating_labels_effect: sweep\" and \"floating_labels_marker: off\": your theme styles the fields, a light runs around the focused field, and required fields get no asterisk."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:543
+#: includes/class-jgor-flcf7-samples.php:550
 msgid "Mixed form with pulsing glow"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:544
-msgid "A linked label, a field with the option nofloat, inline markup inside a label, telephone and number fields, and a select, checkboxes and a file upload that keep their original markup; \"floating_labels_effect: pulse\" in the additional settings."
-msgstr ""
-
-#: includes/class-jgor-flcf7-samples.php:550
-msgid "Switched off"
-msgstr ""
-
 #: includes/class-jgor-flcf7-samples.php:551
-msgid "The placeholder form with \"floating_labels: off\": rendered exactly as Contact Form 7 renders it."
+msgid "A linked label, a field with the option nofloat, inline markup inside a label, telephone and number fields, a select without label (left as it is), and checkboxes and a file upload that keep their original markup; \"floating_labels_effect: pulse\" in the additional settings."
+msgstr ""
+
+#: includes/class-jgor-flcf7-samples.php:557
+msgid "Date and select fields"
+msgstr ""
+
+#: includes/class-jgor-flcf7-samples.php:558
+msgid "A date field, whose label stays floated because browsers show a format mask in the empty field; a select with a blank option (\"include_blank\"), whose label rests in the field until a choice is made; a required select whose first option serves as its label (\"first_as_label\"); and a select without a blank option, which always holds a value, so its label stays floated."
 msgstr ""
 
 #: includes/class-jgor-flcf7-samples.php:564
+msgid "Switched off"
+msgstr ""
+
+#: includes/class-jgor-flcf7-samples.php:565
+msgid "The placeholder form with \"floating_labels: off\": rendered exactly as Contact Form 7 renders it."
+msgstr ""
+
+#: includes/class-jgor-flcf7-samples.php:578
 msgid "This page was created by Floating Labels for CF7 to show its options. It is private. You can remove it together with the forms \"FL Test ... - may be deleted\" at any time under Contact > Floating Labels."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:577
+#: includes/class-jgor-flcf7-samples.php:591
 msgid "Template of this form, as Contact Form 7 created it before version 5.4:"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:579
+#: includes/class-jgor-flcf7-samples.php:593
 msgid "The same field as Contact Form 7 writes it today (label mode):"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:587
+#: includes/class-jgor-flcf7-samples.php:601
 msgid "Per placement: block settings"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:588
+#: includes/class-jgor-flcf7-samples.php:602
 msgid "The default form once more, with the panel \"Floating labels\" of the block set to Filled and Glow and with a border colour and font size from the design panels. Both are stored with this block only; select it to see the panels in the sidebar."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:591
+#: includes/class-jgor-flcf7-samples.php:605
 msgid "Per placement: shortcode attributes"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:592
+#: includes/class-jgor-flcf7-samples.php:606
 msgid "The same form in a Shortcode block, with the attributes html_class and jgor_flcf7_design written by hand."
 msgstr ""
 
-#: assets/js/block-editor.js:155
+#: assets/js/block-editor.js:156
 msgid "Floating labels: colours"
 msgstr ""
 
-#: assets/js/block-editor.js:157
+#: assets/js/block-editor.js:158
 msgid "Reset colours"
 msgstr ""
 
-#: assets/js/block-editor.js:161
+#: assets/js/block-editor.js:162
 msgid "Floating labels: sizes"
 msgstr ""
 
-#: assets/js/block-editor.js:163
+#: assets/js/block-editor.js:164
 msgid "Reset sizes"
 msgstr ""
 
-#: assets/js/block-editor.js:167
+#: assets/js/block-editor.js:168
 msgid "Floating labels: animation"
 msgstr ""
 
-#: assets/js/block-editor.js:169
+#: assets/js/block-editor.js:170
 msgid "Reset animation"
 msgstr ""
 
-#: assets/js/block-editor.js:173
+#: assets/js/block-editor.js:174
 msgid "Floating labels: focus effect"
 msgstr ""
 
-#: assets/js/block-editor.js:174
+#: assets/js/block-editor.js:175
 msgid "Colour of the glow and of the running light; size of the glow and width of the running light with px, em, rem or %; duration of one pulse or one round with s or ms. The effect itself is chosen in the panel \"Floating labels\"."
 msgstr ""
 
-#: assets/js/block-editor.js:175
+#: assets/js/block-editor.js:176
 msgid "Reset focus effect"
 msgstr ""
 
-#: assets/js/block-editor.js:191
-#: assets/js/block-editor.js:906
-msgid "Floating labels"
-msgstr ""
-
-#: assets/js/block-editor.js:193
-#: assets/js/block-editor.js:202
-#: assets/js/block-editor.js:212
-#: assets/js/block-editor.js:222
-#: assets/js/block-editor.js:233
+#: assets/js/block-editor.js:194
+#: assets/js/block-editor.js:203
+#: assets/js/block-editor.js:213
+#: assets/js/block-editor.js:223
+#: assets/js/block-editor.js:234
 msgid "Default"
 msgstr ""
 
-#: assets/js/block-editor.js:194
-msgid "On"
-msgstr ""
-
-#: assets/js/block-editor.js:195
-msgid "Off"
-msgstr ""
-
-#: assets/js/block-editor.js:200
+#: assets/js/block-editor.js:201
 msgid "Label source"
 msgstr ""
 
-#: assets/js/block-editor.js:203
+#: assets/js/block-editor.js:204
 msgid "Form template labels only"
 msgstr ""
 
-#: assets/js/block-editor.js:204
+#: assets/js/block-editor.js:205
 msgid "Placeholders only"
 msgstr ""
 
-#: assets/js/block-editor.js:205
-msgid "Text before the field only"
-msgstr ""
-
-#: assets/js/block-editor.js:234
+#: assets/js/block-editor.js:235
 msgid "Asterisk on"
 msgstr ""
 
-#: assets/js/block-editor.js:235
+#: assets/js/block-editor.js:236
 msgid "Asterisk off"
 msgstr ""
 
-#: assets/js/block-editor.js:474
+#: assets/js/block-editor.js:475
 msgctxt "colour palette group"
 msgid "Theme"
 msgstr ""
 
-#: assets/js/block-editor.js:478
+#: assets/js/block-editor.js:479
 msgctxt "colour palette group"
 msgid "Default"
 msgstr ""
 
-#: assets/js/block-editor.js:482
+#: assets/js/block-editor.js:483
 msgctxt "colour palette group"
 msgid "Custom"
 msgstr ""
 
-#: assets/js/block-editor.js:632
+#: assets/js/block-editor.js:633
 msgid "\"Default\" keeps the settings of the site and of the form. The choices are stored as classes in the \"Class\" field of the panel \"Form attributes\"."
 msgstr ""
 
-#: assets/js/block-editor.js:644
+#: assets/js/block-editor.js:645
 msgid "Empty keeps the values of the settings screen. The values are stored with the block and apply to this placement only."
 msgstr ""
 
-#: assets/js/block-editor.js:663
+#: assets/js/block-editor.js:664
 msgid "\"Default\" keeps the settings of the site and of the form. The choices are stored in the html_class attribute of the shortcode."
 msgstr ""
 
-#: assets/js/block-editor.js:670
+#: assets/js/block-editor.js:671
 msgid "Empty keeps the values of the settings screen. The values are stored in the jgor_flcf7_design attribute of the shortcode and apply to this placement only."
 msgstr ""
 
-#: assets/js/block-editor.js:903
+#: assets/js/block-editor.js:904
 msgid "Reset this placement"
 msgstr ""

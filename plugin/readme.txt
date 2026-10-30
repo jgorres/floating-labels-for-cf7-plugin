@@ -177,6 +177,7 @@ Every rebuilt field keeps or gets an `id` and a real `<label for>` pointing at i
 4. Validation error: label and border in the error colour, the message inside the field, the submit button in the error colour.
 5. Settings screen under Contact > Floating Labels.
 6. The panels "Floating labels" in the sidebar of the Contact Form 7 block (also shown for a Shortcode block with the shortcode).
+7. The tab "Floating labels" in the Contact Form 7 form editor: choices for this form, saved as lines in its Additional Settings.
 
 == Changelog ==
 

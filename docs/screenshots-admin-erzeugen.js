@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Creates the WordPress.org screenshots 5 and 6 of Floating Labels for CF7
- * on the local test site.
+ * Creates the WordPress.org screenshots 5, 6 and 7 of Floating Labels for
+ * CF7 on the local test site.
  *
  * Screenshot 5: the settings screen (Contact > Floating Labels) with the
  * admin menu, from the page title down to the end of the colour fields,
@@ -9,11 +9,15 @@
  * Screenshot 6: the block editor with a Contact Form 7 block selected and
  * the block sidebar scrolled to the panels "Floating labels" and
  * "Floating labels: colours".
+ * Screenshot 7: the form editor of Contact Form 7 with the tab "Floating
+ * labels" open, for a temporary form that overrides the variant, the focus
+ * effect and the field types.
  *
  * The script creates a temporary administrator (locale en_US, display name
- * "Jane Doe") and a draft page, logs in with headless Chromium through
- * playwright-core, takes both screenshots and removes the account, the page
- * and a contact form it had to create. Nothing is saved on the site.
+ * "Jane Doe"), a draft page and a temporary form, logs in with headless
+ * Chromium through playwright-core, takes the screenshots and removes the
+ * account, the page, the temporary form and a contact form it had to
+ * create. Nothing is saved on the site.
  *
  * Requirements: wp-cli, /usr/bin/chromium (or CHROMIUM=...), playwright-core
  * (installed globally or left in ~/.npm/_npx by @playwright/mcp).
@@ -44,6 +48,9 @@ const FORM_TITLE = 'Contact form 1';
 const WIDTH = 1280;
 const HEIGHT_SETTINGS = 1000;
 const HEIGHT_EDITOR = 1400;
+const HEIGHT_FORM = 1000;
+const SHOT_FORM_TITLE = 'FL Shot Form - may be deleted';
+const PANEL_ID = 'jgor-flcf7-panel';
 const SETTINGS_PAGE = 'wpcf7-floating-labels';
 const BLOCK_NAME = 'contact-form-7/contact-form-selector';
 const HIDE_CSS = '#wp-admin-bar-query-monitor, #query-monitor-main { display: none !important; }';
@@ -122,14 +129,33 @@ if ( $jgor_posts ) {
 }
 
 /**
+ * Creates the temporary form for screenshot 7 with per-form lines in its
+ * additional settings.
+ *
+ * @return {{id: number}} Form data.
+ */
+function prepareShotForm() {
+	const php = `
+$jgor_cf = WPCF7_ContactForm::get_template( array( 'title' => '${ SHOT_FORM_TITLE }', 'locale' => 'en_US' ) );
+$jgor_cf->set_properties( array( 'additional_settings' => "floating_labels_style: filled\\nfloating_labels_effect: glow\\nfloating_labels_types: text email textarea" ) );
+$jgor_cf->save();
+echo wp_json_encode( array( 'id' => $jgor_cf->id() ) );`;
+	return JSON.parse( wp( [ 'eval', php ] ) );
+}
+
+/**
  * Removes everything the script created on the site. Safe to call twice.
  *
- * @param {Object} state Created objects: pageId, userId, form.
+ * @param {Object} state Created objects: pageId, userId, form, shotFormId.
  */
 function cleanup( state ) {
 	if ( state.pageId ) {
 		wp( [ 'post', 'delete', String( state.pageId ), '--force' ] );
 		state.pageId = 0;
+	}
+	if ( state.shotFormId ) {
+		wp( [ 'post', 'delete', String( state.shotFormId ), '--force' ] );
+		state.shotFormId = 0;
 	}
 	if ( state.userId ) {
 		const posts = wp( [ 'post', 'list', '--post_type=any', '--post_status=any', '--author=' + state.userId, '--format=ids' ] );
@@ -285,9 +311,45 @@ async function shootEditor( page, pageId, form ) {
 	console.log( '  ok  assets/screenshot-6.png (' + WIDTH + 'x' + HEIGHT_EDITOR + ')' );
 }
 
+/**
+ * Takes screenshot 7: the Contact Form 7 form editor with the tab
+ * "Floating labels" open (the active tab comes from the query string).
+ *
+ * @param {Object} page   Playwright page.
+ * @param {number} formId ID of the temporary form.
+ */
+async function shootFormEditor( page, formId ) {
+	await page.setViewportSize( { width: WIDTH, height: HEIGHT_FORM } );
+	await page.goto( SITE_URL + '/wp-admin/admin.php?page=wpcf7&post=' + formId + '&action=edit&active-tab=' + PANEL_ID, { waitUntil: 'networkidle' } );
+	await page.addStyleTag( { content: HIDE_CSS } );
+	const tab = page.locator( '#' + PANEL_ID + '-tab' );
+	if ( ! ( await tab.count() ) ) {
+		fail( 'Der Tab "Floating labels" fehlt im Formular-Editor.' );
+	}
+	if ( ( await tab.getAttribute( 'aria-selected' ) ) !== 'true' ) {
+		await tab.click();
+		await page.waitForTimeout( 500 );
+	}
+	await page.evaluate( () => {
+		if ( document.activeElement ) {
+			document.activeElement.blur();
+		}
+		window.scrollTo( 0, 0 );
+	} );
+	await page.mouse.move( 40, HEIGHT_FORM - 40 );
+	await page.waitForTimeout( 300 );
+	const bottom = await page.evaluate( ( id ) => {
+		const panel = document.getElementById( id );
+		return panel ? Math.round( panel.getBoundingClientRect().bottom + window.scrollY ) + 24 : document.documentElement.scrollHeight;
+	}, PANEL_ID );
+	const file = path.join( OUT_DIR, 'screenshot-7.png' );
+	await page.screenshot( { path: file, fullPage: true, clip: { x: 0, y: 0, width: WIDTH, height: bottom }, timeout: 20000 } );
+	console.log( '  ok  assets/screenshot-7.png (' + WIDTH + 'x' + bottom + ')' );
+}
+
 ( async () => {
 	console.log( '====================================================' );
-	console.log( '   FLOATING LABELS FOR CF7: SCREENSHOTS 5 UND 6' );
+	console.log( '   FLOATING LABELS FOR CF7: SCREENSHOTS 5, 6 UND 7' );
 	console.log( '====================================================' );
 	console.log( '' );
 
@@ -306,12 +368,13 @@ async function shootEditor( page, pageId, form ) {
 	}
 	const { chromium } = loadPlaywright();
 
-	const state = { pageId: 0, userId: 0, form: null };
+	const state = { pageId: 0, userId: 0, form: null, shotFormId: 0 };
 	const password = crypto.randomBytes( 12 ).toString( 'hex' );
 	let browser = null;
 	try {
 		console.log( 'Formular, Seite und Testkonto anlegen ...' );
 		state.form = prepareForm();
+		state.shotFormId = prepareShotForm().id;
 		state.pageId = Number( wp( [ 'post', 'create', '--post_type=page', '--post_status=draft', '--post_title=FL Editor Shot', '--post_name=' + PAGE_SLUG, '--porcelain' ] ) );
 		let existing = '';
 		try {
@@ -324,7 +387,7 @@ async function shootEditor( page, pageId, form ) {
 		}
 		state.userId = Number( wp( [ 'user', 'create', USER_LOGIN, USER_EMAIL, '--role=administrator', '--user_pass=' + password, '--display_name=Jane Doe', '--porcelain' ] ) );
 		wp( [ 'user', 'meta', 'update', USER_LOGIN, 'locale', 'en_US' ] );
-		console.log( '  ok  Formular ' + state.form.id + ( state.form.created ? ' (neu)' : '' ) + ', Seite ' + state.pageId + ', Benutzer ' + state.userId );
+		console.log( '  ok  Formular ' + state.form.id + ( state.form.created ? ' (neu)' : '' ) + ', Formular für Screenshot 7 ' + state.shotFormId + ', Seite ' + state.pageId + ', Benutzer ' + state.userId );
 
 		console.log( '' );
 		console.log( 'Screenshots aufnehmen ...' );
@@ -343,12 +406,13 @@ async function shootEditor( page, pageId, form ) {
 
 		await shootSettings( page );
 		await shootEditor( page, state.pageId, state.form );
+		await shootFormEditor( page, state.shotFormId );
 	} finally {
 		if ( browser ) {
 			await browser.close();
 		}
 		console.log( '' );
-		console.log( 'Seite, Testkonto und Formular entfernen ...' );
+		console.log( 'Seite, Testkonto und Formulare entfernen ...' );
 		cleanup( state );
 		console.log( '  ok' );
 	}

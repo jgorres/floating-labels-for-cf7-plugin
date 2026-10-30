@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.28 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt; Schritte 14–16 aus §15 erledigt, Schritt 17 Abschluss offen)
+Version: 2.29 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt; Schritte 14–17 erledigt bis auf Hostsharing und Browser-Matrix, nächster Schritt 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -98,9 +98,9 @@ floating-labels-for-cf7/
 │   ├── konzept.md                    dieses Dokument
 │   ├── assets-erzeugen.py            Icon (SVG und APNG) und Banner (APNG), Pillow
 │   ├── screenshots-erzeugen.sh       Screenshots 1–4 auf der lokalen Testsite, Chromium headless
-│   └── screenshots-admin-erzeugen.js Screenshots 5–6 (Einstellungsseite, Block-Seitenleiste), playwright-core + Chromium
+│   └── screenshots-admin-erzeugen.js Screenshots 5–7 (Einstellungsseite, Block-Seitenleiste, Tab im CF7-Editor), playwright-core + Chromium
 ├── assets/                           WP.org-Assets: icon.svg, icon-128x128.png, icon-256x256.png,
-│                                     banner-772x250.png, banner-1544x500.png, screenshot-1..6.png
+│                                     banner-772x250.png, banner-1544x500.png, screenshot-1..7.png
 ├── glotpress/
 ├── composer.json, phpcs.xml.dist, phpstan.neon.dist, phpstan-bootstrap.php, stubs/
 └── build.sh, .distignore, .gitignore, LICENSE
@@ -1270,10 +1270,11 @@ Dateien.
   `dist/floating-labels-for-cf7-<version>.zip`; das ZIP in einen frischen
   Ordner entpacken und `wp plugin check <Ordner> --path=<Site>` laufen
   lassen (`Tested up to` nur in `readme.txt`, Kurzbeschreibung höchstens
-  150 Zeichen). Stand 29.10.2026: 17 Dateien, 72 KB (mit Modul 5,
+  150 Zeichen). Stand 30.10.2026: 18 Dateien, 82 KB (mit Modul 5,
   Design-Einstellungen, Design je Platzierung, `admin.css`, `editor.css`,
-  Fokus-Effekten, Text-Modus, Reset-Buttons und Beispielseite; `.pot`
-  192 Texte, per `--slug` mit korrektem Support-Link), ohne Befund; am 22.10.2026 ebenso
+  Fokus-Effekten, Text-Modus, Reset-Buttons, Beispielseite, bedingtem
+  Laden, Feldtypen date/select und Modul 7; `.pot` 209 Texte, per
+  `--slug` mit korrektem Support-Link), ohne Befund; am 22.10.2026 ebenso
   ohne Befund auf dem Symlink-Ordner der Testsite und auf der
   Hostsharing-Site.
 - Testsite `floating-labels-for-cf7.gorres.local` (CF7, Plugin Check, Query
@@ -1757,7 +1758,17 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     Offen: Sichtprüfung des Tabs im CF7-Editor (Nutzer).
 17. Abschluss vor 5.6: `.pot`, ZIP und Plugin Check, Hostsharing `dateien`
     und `datenbank`, Browser-Matrix in Chromium, Firefox und Edge (Nutzer,
-    13). Offen.
+    13). Lokaler Teil erledigt am 30.10.2026 (Konzept 2.29): Beispielseite
+    lokal neu angelegt (Seite 655, acht Formulare 647–654), Screenshot 7
+    (Tab im CF7-Editor mit einem temporären Formular, das Variante, Effekt
+    und Typen übersteuert; `docs/screenshots-admin-erzeugen.js` erweitert,
+    5 und 6 dabei neu), readme-Eintrag 7, `.pot` 209 Texte, ZIP 18 Dateien
+    82 KB, Plugin Check ohne Befund. Dabei die lokale Option `types` um
+    `date` und `select` ergänzt: eine gespeicherte Option behält sonst die
+    sechs alten Typen (7.8), und die Beispielseite „Date and select“
+    braucht beide; Hostsharing bekommt den Stand per `datenbank`. Offen:
+    Hostsharing `dateien` und `datenbank` (Probelauf zuerst),
+    Browser-Matrix (Nutzer), Sichtprüfung des Tabs (Nutzer).
 
 ## 15. Offen
 
@@ -1834,3 +1845,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.26 | 30.10.2026 | Schritt 14 erledigt: Option `load_css_forms_only`, `enqueue()` mit Erkennung am Singular-Post, `ensure_enqueued()` als Sicherheitsnetz aus Modul 2, Abhängigkeit nur bei registriertem Handle (8), zweite Checkbox in der Zeile „Stylesheet“ und Hilfe (9), readme (Features, FAQ); §13 Prüfzähler 114/62/40 |
 | 2.27 | 30.10.2026 | Schritt 15 erledigt: Feldtypen `date` und `select` (7.8 mit Placeholder-Quelle aus dem Form-Tag statt Textvergleich, 7, 7.7, 8 Abschnitt „Field types“, 9 Beschriftungen und Hinweis, 9.3 achtes Formular „Date and select“); §13 Testformular H, Prüfzähler 128/63/39 |
 | 2.28 | 30.10.2026 | Schritt 16 erledigt: Tab „Floating labels“ im CF7-Editor (9.4 mit Abweichungen: `wp_verify_nonce()` statt `check_admin_referer()`, Werte aus `$data`, CSS über `wpcf7_admin_load`, Zähler über die aktuelle Form), Hauptdatei lädt `class-jgor-flcf7-form-panel.php`, Hinweistexte (9), `admin.css` (Panel-Zeilen, Spalten), readme (Features, Per form, Installation, FAQ); §13 `verify-form-panel.php` 28, `verify-admin.php` 65 |
+| 2.29 | 30.10.2026 | Schritt 17 lokal erledigt: Beispielseite neu (acht Formulare), Screenshot 7 und Script (3, 13), readme Screenshots, `.pot` 209, ZIP 18 Dateien 82 KB mit Plugin Check ohne Befund (13), lokale Option `types` um date/select ergänzt (14); offen Hostsharing und Browser-Matrix |
