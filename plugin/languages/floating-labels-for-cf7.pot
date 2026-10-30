@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-30T13:48:21+00:00\n"
+"POT-Creation-Date: 2026-10-30T14:35:11+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: floating-labels-for-cf7\n"
@@ -53,6 +53,7 @@ msgid "Plugin activation stopped"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:160
+#: includes/class-jgor-flcf7-form-panel.php:174
 msgid "Floating Labels"
 msgstr ""
 
@@ -176,7 +177,7 @@ msgid "Text before the field"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:395
-#: includes/class-jgor-flcf7-form-panel.php:223
+#: includes/class-jgor-flcf7-form-panel.php:235
 msgid "Field types"
 msgstr ""
 
@@ -191,15 +192,15 @@ msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:399
 #: includes/class-jgor-flcf7-admin.php:708
-#: includes/class-jgor-flcf7-form-panel.php:187
-#: assets/js/block-editor.js:211
+#: includes/class-jgor-flcf7-form-panel.php:199
+#: assets/js/block-editor.js:215
 msgid "Variant"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:400
 #: includes/class-jgor-flcf7-admin.php:736
-#: includes/class-jgor-flcf7-form-panel.php:197
-#: assets/js/block-editor.js:221
+#: includes/class-jgor-flcf7-form-panel.php:209
+#: assets/js/block-editor.js:225
 msgid "Focus effect"
 msgstr ""
 
@@ -208,7 +209,7 @@ msgid "Stylesheet"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:402
-#: assets/js/block-editor.js:232
+#: assets/js/block-editor.js:236
 msgid "Required fields"
 msgstr ""
 
@@ -354,12 +355,12 @@ msgid "Pick a colour or leave the field empty to keep the default shown as \"Def
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:609
-#: assets/js/block-editor.js:163
+#: assets/js/block-editor.js:167
 msgid "A number with px, em, rem or %, for example 0.9em. The font size of the field also scales the label and the padding; 1em keeps the size of the surrounding text."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:613
-#: assets/js/block-editor.js:169
+#: assets/js/block-editor.js:173
 msgid "Scale of the floated label between 0.5 and 1; duration of the transitions with s or ms."
 msgstr ""
 
@@ -372,8 +373,8 @@ msgid "Untick every type to switch floating labels off without losing the other 
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:711
-#: includes/class-jgor-flcf7-form-panel.php:189
-#: assets/js/block-editor.js:214
+#: includes/class-jgor-flcf7-form-panel.php:201
+#: assets/js/block-editor.js:218
 msgid "Outlined"
 msgstr ""
 
@@ -382,8 +383,8 @@ msgid "Border all round; the label floats onto the border line."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:715
-#: includes/class-jgor-flcf7-form-panel.php:190
-#: assets/js/block-editor.js:215
+#: includes/class-jgor-flcf7-form-panel.php:202
+#: assets/js/block-editor.js:219
 msgid "Filled"
 msgstr ""
 
@@ -392,8 +393,8 @@ msgid "Tinted box with a bottom line; the label floats inside the box."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:719
-#: includes/class-jgor-flcf7-form-panel.php:191
-#: assets/js/block-editor.js:216
+#: includes/class-jgor-flcf7-form-panel.php:203
+#: assets/js/block-editor.js:220
 msgid "Minimal"
 msgstr ""
 
@@ -402,8 +403,8 @@ msgid "No colours, borders or backgrounds; your theme styles the field, the labe
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:739
-#: includes/class-jgor-flcf7-form-panel.php:199
-#: assets/js/block-editor.js:224
+#: includes/class-jgor-flcf7-form-panel.php:211
+#: assets/js/block-editor.js:228
 msgid "None"
 msgstr ""
 
@@ -412,8 +413,8 @@ msgid "The border changes colour only."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:743
-#: includes/class-jgor-flcf7-form-panel.php:200
-#: assets/js/block-editor.js:225
+#: includes/class-jgor-flcf7-form-panel.php:212
+#: assets/js/block-editor.js:229
 msgid "Glow"
 msgstr ""
 
@@ -422,8 +423,8 @@ msgid "A soft glow around the focused field."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:747
-#: includes/class-jgor-flcf7-form-panel.php:201
-#: assets/js/block-editor.js:226
+#: includes/class-jgor-flcf7-form-panel.php:213
+#: assets/js/block-editor.js:230
 msgid "Pulsing glow"
 msgstr ""
 
@@ -432,8 +433,8 @@ msgid "The glow swells and fades while the field has focus."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:751
-#: includes/class-jgor-flcf7-form-panel.php:202
-#: assets/js/block-editor.js:227
+#: includes/class-jgor-flcf7-form-panel.php:214
+#: assets/js/block-editor.js:231
 msgid "Running light"
 msgstr ""
 
@@ -593,53 +594,55 @@ msgstr ""
 
 #: includes/class-jgor-flcf7-form-panel.php:149
 #: includes/class-jgor-flcf7-form-panel.php:170
-#: includes/class-jgor-flcf7-form-panel.php:176
-#: assets/js/block-editor.js:192
-#: assets/js/block-editor.js:907
+#: includes/class-jgor-flcf7-form-panel.php:188
+#: assets/js/block-editor.js:196
+#: assets/js/block-editor.js:912
 msgid "Floating labels"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:172
-msgid "These choices apply to this form only and override the defaults of Contact > Floating Labels. They are saved as lines in the tab \"Additional Settings\", where you can edit them as well; a placement in the block editor overrides them in turn."
+#. translators: %s: link "Floating Labels" to the settings screen
+#: includes/class-jgor-flcf7-form-panel.php:178
+#, php-format
+msgid "These choices apply to this form only and override the defaults of Contact > %s. They are saved as lines in the tab \"Additional Settings\", where you can edit them as well; a placement in the block editor overrides them in turn."
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:178
-#: includes/class-jgor-flcf7-form-panel.php:211
-#: assets/js/block-editor.js:196
+#: includes/class-jgor-flcf7-form-panel.php:190
+#: includes/class-jgor-flcf7-form-panel.php:223
+#: assets/js/block-editor.js:200
 msgid "Off"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:179
+#: includes/class-jgor-flcf7-form-panel.php:191
 msgid "Placeholder only"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:180
+#: includes/class-jgor-flcf7-form-panel.php:192
 msgid "Label only"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:181
-#: assets/js/block-editor.js:206
+#: includes/class-jgor-flcf7-form-panel.php:193
+#: assets/js/block-editor.js:210
 msgid "Text before the field only"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:208
-msgid "Required marker"
+#: includes/class-jgor-flcf7-form-panel.php:220
+msgid "Marker for required fields"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:210
-#: assets/js/block-editor.js:195
+#: includes/class-jgor-flcf7-form-panel.php:222
+#: assets/js/block-editor.js:199
 msgid "On"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:219
+#: includes/class-jgor-flcf7-form-panel.php:231
 msgid "Limit the field types for this form"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:233
+#: includes/class-jgor-flcf7-form-panel.php:245
 msgid "Without the limit, the field types ticked on the settings screen apply. The lines this tab writes: floating_labels, floating_labels_style, floating_labels_effect, floating_labels_marker, floating_labels_types."
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:334
+#: includes/class-jgor-flcf7-form-panel.php:346
 msgid "Default (settings page)"
 msgstr ""
 
@@ -815,101 +818,105 @@ msgstr ""
 msgid "The same form in a Shortcode block, with the attributes html_class and jgor_flcf7_design written by hand."
 msgstr ""
 
-#: assets/js/block-editor.js:156
+#: assets/js/block-editor.js:160
 msgid "Floating labels: colours"
 msgstr ""
 
-#: assets/js/block-editor.js:158
+#: assets/js/block-editor.js:162
 msgid "Reset colours"
 msgstr ""
 
-#: assets/js/block-editor.js:162
+#: assets/js/block-editor.js:166
 msgid "Floating labels: sizes"
 msgstr ""
 
-#: assets/js/block-editor.js:164
+#: assets/js/block-editor.js:168
 msgid "Reset sizes"
 msgstr ""
 
-#: assets/js/block-editor.js:168
+#: assets/js/block-editor.js:172
 msgid "Floating labels: animation"
 msgstr ""
 
-#: assets/js/block-editor.js:170
+#: assets/js/block-editor.js:174
 msgid "Reset animation"
 msgstr ""
 
-#: assets/js/block-editor.js:174
+#: assets/js/block-editor.js:178
 msgid "Floating labels: focus effect"
 msgstr ""
 
-#: assets/js/block-editor.js:175
+#: assets/js/block-editor.js:179
 msgid "Colour of the glow and of the running light; size of the glow and width of the running light with px, em, rem or %; duration of one pulse or one round with s or ms. The effect itself is chosen in the panel \"Floating labels\"."
 msgstr ""
 
-#: assets/js/block-editor.js:176
+#: assets/js/block-editor.js:180
 msgid "Reset focus effect"
 msgstr ""
 
-#: assets/js/block-editor.js:194
-#: assets/js/block-editor.js:203
-#: assets/js/block-editor.js:213
-#: assets/js/block-editor.js:223
-#: assets/js/block-editor.js:234
+#: assets/js/block-editor.js:198
+#: assets/js/block-editor.js:207
+#: assets/js/block-editor.js:217
+#: assets/js/block-editor.js:227
+#: assets/js/block-editor.js:238
 msgid "Default"
 msgstr ""
 
-#: assets/js/block-editor.js:201
+#: assets/js/block-editor.js:205
 msgid "Label source"
 msgstr ""
 
-#: assets/js/block-editor.js:204
+#: assets/js/block-editor.js:208
 msgid "Form template labels only"
 msgstr ""
 
-#: assets/js/block-editor.js:205
+#: assets/js/block-editor.js:209
 msgid "Placeholders only"
 msgstr ""
 
-#: assets/js/block-editor.js:235
+#: assets/js/block-editor.js:239
 msgid "Asterisk on"
 msgstr ""
 
-#: assets/js/block-editor.js:236
+#: assets/js/block-editor.js:240
 msgid "Asterisk off"
-msgstr ""
-
-#: assets/js/block-editor.js:475
-msgctxt "colour palette group"
-msgid "Theme"
 msgstr ""
 
 #: assets/js/block-editor.js:479
 msgctxt "colour palette group"
-msgid "Default"
+msgid "Theme"
 msgstr ""
 
 #: assets/js/block-editor.js:483
 msgctxt "colour palette group"
+msgid "Default"
+msgstr ""
+
+#: assets/js/block-editor.js:487
+msgctxt "colour palette group"
 msgid "Custom"
 msgstr ""
 
-#: assets/js/block-editor.js:633
+#: assets/js/block-editor.js:637
 msgid "\"Default\" keeps the settings of the site and of the form. The choices are stored as classes in the \"Class\" field of the panel \"Form attributes\"."
 msgstr ""
 
-#: assets/js/block-editor.js:645
+#: assets/js/block-editor.js:649
 msgid "Empty keeps the values of the settings screen. The values are stored with the block and apply to this placement only."
 msgstr ""
 
-#: assets/js/block-editor.js:664
+#: assets/js/block-editor.js:668
 msgid "\"Default\" keeps the settings of the site and of the form. The choices are stored in the html_class attribute of the shortcode."
 msgstr ""
 
-#: assets/js/block-editor.js:671
+#: assets/js/block-editor.js:675
 msgid "Empty keeps the values of the settings screen. The values are stored in the jgor_flcf7_design attribute of the shortcode and apply to this placement only."
 msgstr ""
 
-#: assets/js/block-editor.js:904
+#: assets/js/block-editor.js:905
+msgid "Modify the floating label settings in your Contact Form 7 forms."
+msgstr ""
+
+#: assets/js/block-editor.js:909
 msgid "Reset this placement"
 msgstr ""

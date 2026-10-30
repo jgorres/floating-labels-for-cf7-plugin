@@ -169,7 +169,19 @@ final class JGOR_FLCF7_Form_Panel {
 		?>
 		<h2><?php esc_html_e( 'Floating labels', 'floating-labels-for-cf7' ); ?></h2>
 		<fieldset class="<?php echo esc_attr( self::PANEL_CLASS ); ?>">
-			<legend><?php esc_html_e( 'These choices apply to this form only and override the defaults of Contact > Floating Labels. They are saved as lines in the tab "Additional Settings", where you can edit them as well; a placement in the block editor overrides them in turn.', 'floating-labels-for-cf7' ); ?></legend>
+			<legend>
+				<?php
+				$settings_link = '<a href="' . esc_url( JGOR_FLCF7_Admin::page_url() ) . '">' . esc_html__( 'Floating Labels', 'floating-labels-for-cf7' ) . '</a>';
+				echo wp_kses(
+					sprintf(
+						/* translators: %s: link "Floating Labels" to the settings screen */
+						__( 'These choices apply to this form only and override the defaults of Contact > %s. They are saved as lines in the tab "Additional Settings", where you can edit them as well; a placement in the block editor overrides them in turn.', 'floating-labels-for-cf7' ),
+						$settings_link
+					),
+					array( 'a' => array( 'href' => array() ) )
+				);
+				?>
+			</legend>
 			<?php
 			$this->render_select(
 				'mode',
@@ -205,7 +217,7 @@ final class JGOR_FLCF7_Form_Panel {
 			);
 			$this->render_select(
 				'marker',
-				__( 'Required marker', 'floating-labels-for-cf7' ),
+				__( 'Marker for required fields', 'floating-labels-for-cf7' ),
 				array(
 					'on'  => __( 'On', 'floating-labels-for-cf7' ),
 					'off' => __( 'Off', 'floating-labels-for-cf7' ),

@@ -31,6 +31,10 @@
  *   of this placement, the design panels reset their own group only. The
  *   buttons are disabled while there is nothing to reset.
  *
+ * The panel "Floating labels" starts with one sentence that names its
+ * purpose: the block card above the panels belongs to Contact Form 7 and
+ * cannot describe the plugin without changing the inserter text too.
+ *
  * Every panel is a collapsible PanelBody; the controls sit directly inside
  * it and take the spacing of the block inspector (16px between controls,
  * as in the panels of the core blocks). A colour is one full-width button
@@ -898,6 +902,7 @@
 			} );
 		} );
 
+		controls.unshift( el( 'p', { key: 'intro', className: 'jgor-flcf7-intro' }, __( 'Modify the floating label settings in your Contact Form 7 forms.', 'floating-labels-for-cf7' ) ) );
 		controls.push( helpElement( store.help ) );
 
 		var canReset = hasGroupValue( htmlClass ) || Object.keys( store.readDesign() ).length > 0;

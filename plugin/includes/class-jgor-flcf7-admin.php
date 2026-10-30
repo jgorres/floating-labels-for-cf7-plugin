@@ -348,7 +348,7 @@ final class JGOR_FLCF7_Admin {
 	 *
 	 * @return string
 	 */
-	public function page_url(): string {
+	public static function page_url(): string {
 		$url = menu_page_url( self::PAGE_SLUG, false );
 
 		if ( '' === $url ) {
@@ -373,7 +373,7 @@ final class JGOR_FLCF7_Admin {
 
 		array_unshift(
 			$links,
-			'<a href="' . esc_url( $this->page_url() ) . '">' . esc_html__( 'Settings', 'floating-labels-for-cf7' ) . '</a>'
+			'<a href="' . esc_url( self::page_url() ) . '">' . esc_html__( 'Settings', 'floating-labels-for-cf7' ) . '</a>'
 		);
 
 		return $links;

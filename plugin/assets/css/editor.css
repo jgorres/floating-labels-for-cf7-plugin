@@ -6,9 +6,14 @@
  * with the indicator of the chosen colour (hatched while the colour is
  * unset) and the name of the property; the colour palette opens in a
  * popover next to the sidebar, sized like the colour popovers of the core
- * blocks. The other controls of the panels need no styles: they take the
- * spacing of the block inspector.
+ * blocks. The intro sentence of the panel "Floating labels" gets the
+ * spacing of a control. The other controls of the panels need no styles:
+ * they take the spacing of the block inspector.
  */
+
+.jgor-flcf7-intro {
+	margin: 0 0 16px;
+}
 
 .jgor-flcf7-color__toggle.jgor-flcf7-color__toggle {
 	width: 100%;

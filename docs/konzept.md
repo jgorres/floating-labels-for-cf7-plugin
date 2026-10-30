@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.30 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Hostsharing synchron; offen Browser-Matrix und Sichtprüfung des Tabs, dann 5.6 Veröffentlichung)
+Version: 2.31 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Nachbesserungen aus der Sichtprüfung des Tabs eingearbeitet; offen Hostsharing `dateien`, Browser-Matrix, dann 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -1051,12 +1051,16 @@ die der Nutzer auch von Hand schreiben kann; Modul 2 liest weiter nur
   page)“ als erstem Eintrag: Select „Floating labels“ (Off, Placeholder
   only, Label only, Text before the field only → `floating_labels`), „Style“
   (Outlined, Filled, Minimal → `floating_labels_style`), „Focus effect“
-  (None, Glow, Pulse, Running light → `floating_labels_effect`), „Required
-  marker“ (On, Off → `floating_labels_marker`); dazu die Checkbox „Limit the
+  (None, Glow, Pulse, Running light → `floating_labels_effect`), „Marker
+  for required fields“ (seit 2.31, vorher „Required marker“; On, Off →
+  `floating_labels_marker`); dazu die Checkbox „Limit the
   field types for this form“ mit den Typ-Checkboxen aus `field_types()`
   (Grid `jgor-flcf7-columns`) → `floating_labels_types`, ohne Limit keine
   Zeile. Ein Absatz erklärt: Werte gelten nur für dieses Formular,
-  übersteuern die Einstellungsseite, werden als Zeilen in den Additional
+  übersteuern die Einstellungsseite (seit 2.31 ist „Floating Labels“ darin
+  ein Link auf die Einstellungsseite über das statische
+  `JGOR_FLCF7_Admin::page_url()`, Ausgabe per `wp_kses`; das einzelne
+  `>` wird dabei zu `&gt;`), werden als Zeilen in den Additional
   Settings gespeichert (dort sichtbar und editierbar) und werden ihrerseits
   von der Platzierung übersteuert (10). Ein unbekannter Wert in einer Zeile
   (etwa `floating_labels: maybe`) zeigt „Default“ und wird beim Speichern
@@ -1180,6 +1184,17 @@ einem Klassenfeld oder im Shortcode-Text.
   Ein Shortcode in einem Absatz-Block (ohne
   Shortcode-Block) bekommt kein Panel, dort gelten `html_class="…"` und
   `jgor_flcf7_design="…"` von Hand.
+- Seit 2.31 beginnt das Panel „Floating labels“ mit dem Satz „Modify the
+  floating label settings in your Contact Form 7 forms.“ (`p.jgor-flcf7-intro`,
+  16 px Abstand in `editor.css`), in beiden Blöcken. Hintergrund (Wunsch des
+  Nutzers nach der Sichtprüfung): Die Blockkarte über den Panels zeigt die
+  Blockbeschreibung von CF7 („Insert a contact form you have created with
+  Contact Form 7.“); sie per `register_block_type_args` zu ersetzen würde
+  auch den Text im Block-Inserter ändern, deshalb bleibt sie unverändert.
+  Das CF7-Logo neben dem Satz entfällt bewusst: CF7 ist zwar GPL, „Contact
+  Form 7“ und sein Logo sind aber Marken von Rock Lobster, und
+  WP.org-Richtlinie 17 untersagt fremde Marken in einer Weise, die eine
+  Zugehörigkeit nahelegt.
 
 ### 10.1 Design je Platzierung
 
@@ -1446,7 +1461,8 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   bricht ohne `manage_options` ab), Entfernen (Posts endgültig weg, Option
   weg). Räumt nach sich auf; eine vorher vorhandene Beispielseite legt das
   Script am Ende wieder an (neue IDs).
-- `tests/verify-form-panel.php` prüft Modul 7 ohne Browser (28 Punkte):
+- `tests/verify-form-panel.php` prüft Modul 7 ohne Browser (29 Punkte,
+  seit 2.31 mit Link in der Legende und Beschriftungen der Selects):
   Panel im Ergebnis von `wpcf7_editor_panels` hinter „Additional
   Settings“, Titel ohne und mit Zähler, Rendering (Selects mit dem Wert
   aus den Additional Settings, „Default“ bei unbekanntem Wert, `no`/`yes`
@@ -1781,6 +1797,15 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     Zugangsdaten), Frontend lädt `floating-labels.css?ver=1.0.0.<Zeit>`.
     Offen: Browser-Matrix (Nutzer), Sichtprüfung des Tabs im CF7-Editor und
     der Felder Datum/Select (Nutzer); danach 5.6.
+18. Nachbesserungen aus der Sichtprüfung des Nutzers vom 30.10.2026 (Block-
+    Seitenleiste und Tab, Konzept 2.31): Einleitungssatz im Panel „Floating
+    labels“ (10), Link „Floating Labels“ in der Legende des Tabs und
+    Beschriftung „Marker for required fields“ (9.4); CF7-Blockbeschreibung
+    und -Logo bewusst nicht verwendet (10). Erledigt am 30.10.2026:
+    `verify-editor-js.mjs` 99 (Prüfungen angepasst), `verify-form-panel.php`
+    29, `.pot` 210 Texte, Screenshots 5–7 neu, `composer check` und PHPCS
+    auf `tests/` ohne Befund. Offen: Hostsharing `dateien` (Probelauf
+    zuerst), Sichtprüfung (Nutzer).
 
 ## 15. Offen
 
@@ -1859,3 +1884,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.28 | 30.10.2026 | Schritt 16 erledigt: Tab „Floating labels“ im CF7-Editor (9.4 mit Abweichungen: `wp_verify_nonce()` statt `check_admin_referer()`, Werte aus `$data`, CSS über `wpcf7_admin_load`, Zähler über die aktuelle Form), Hauptdatei lädt `class-jgor-flcf7-form-panel.php`, Hinweistexte (9), `admin.css` (Panel-Zeilen, Spalten), readme (Features, Per form, Installation, FAQ); §13 `verify-form-panel.php` 28, `verify-admin.php` 65 |
 | 2.29 | 30.10.2026 | Schritt 17 lokal erledigt: Beispielseite neu (acht Formulare), Screenshot 7 und Script (3, 13), readme Screenshots, `.pot` 209, ZIP 18 Dateien 82 KB mit Plugin Check ohne Befund (13), lokale Option `types` um date/select ergänzt (14); offen Hostsharing und Browser-Matrix |
 | 2.30 | 30.10.2026 | Hostsharing nach den Schritten 14–17 mit `dateien` und `datenbank` nachgezogen und lesend geprüft (§14 Schritt 17): 18 Dateien md5-identisch, Option, Beispielseite 655, Plugin Check remote ohne Befund |
+| 2.31 | 30.10.2026 | Sichtprüfung des Tabs: Einleitungssatz im Panel „Floating labels“ (10, Blockbeschreibung und Logo von CF7 bewusst nicht genutzt), Link in der Legende und Beschriftung „Marker for required fields“ im Tab (9.4), `page_url()` statisch; §13 `verify-form-panel.php` 29, §14 Schritt 18 |
