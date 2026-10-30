@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.26 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–6 umgesetzt und sichtgeprüft; Schritt 14 bedingtes Laden erledigt, Schritte 15–16 aus §15 offen)
+Version: 2.27 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–6 umgesetzt und sichtgeprüft; Schritte 14 bedingtes Laden und 15 Feldtypen date/select erledigt, Schritt 16 CF7-Editor-Tab offen)
 
 ## 1. Zweck
 
@@ -597,11 +597,13 @@ Release.
   `jgor-flcf7-select`, das `select` bekommt kein `placeholder`-Attribut
   (dort ungültig). Labelquellen: Label-Modus (7.2) und Text-Modus (7.3) wie
   bei Textfeldern; im Placeholder-Modus (7.1) gilt der Text der ersten
-  Option mit `value=""` als Placeholder, sofern er nicht CF7s generischer
-  Text ist (Vergleich mit `__( '&#8212;Please choose an option&#8212;',
-  'contact-form-7' )` nach `html_entity_decode()`), denn `first_as_label`
-  ist CF7s Placeholder für Selects. Ohne Leeroption zählen nur Label- und
-  Text-Modus. Nach dem Umbau leert das Plugin den Text der ersten Option
+  Option als Placeholder, wenn der Form-Tag `first_as_label` ohne
+  `include_blank` trägt (`fields()` merkt sich das Flag per
+  `has_option()`; so braucht es keinen Vergleich mit CF7s übersetztem
+  Leertext und keinen Aufruf mit fremder Text-Domain, Entscheidung 2.27),
+  denn `first_as_label` ist CF7s Placeholder für Selects. Der generische
+  Leertext von `include_blank` ist keine Labelquelle; ohne Leeroption
+  zählen nur Label- und Text-Modus. Nach dem Umbau leert das Plugin den Text der ersten Option
   mit `value=""`: Im Leerzustand zeigt das Feld dann nichts, und das ruhende
   Label übernimmt den Hinweis (in der aufgeklappten Liste bleibt eine leere
   Zeile, wie bei Material Design). Validierung bleibt CF7: `select*` mit
@@ -1290,7 +1292,10 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 ```
 
 - `tests/verify-markup.php` rendert die Formulare per `form_html()` und
-  prüft 114 Punkte (Exit-Code ungleich 0 bei Fehlern): Sicherheitsnetz von
+  prüft 128 Punkte (Exit-Code ungleich 0 bei Fehlern): Formular (h) mit
+  Datum und Selects (7.8: Wrap-Klassen, geleerte Leeroption, Label aus
+  `first_as_label`, `multiple` und label-loses `include_blank` unberührt,
+  Typen- und Modus-Steuerung), Sicherheitsnetz von
   `load_css_forms_only` (Handle nach dem Umbau enqueued, nicht bei
   abgeschaltetem Formular, nicht ohne die Option), Label- und
   Placeholder-Modus, Ersatz des umschließenden Labels, Label-Text aus der
@@ -1323,7 +1328,8 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   → Shortcode-Attribut per `render_block()`, vorhandenes Attribut bleibt,
   nur ungültige Werte → unverändert; nichts bei `load_css` aus).
   `FLCF7_DUMP=1` gibt das HTML der Formulare (a) und (c) aus.
-- `tests/verify-admin.php` prüft Modul 4 ohne Browser (62 Punkte): zweite
+- `tests/verify-admin.php` prüft Modul 4 ohne Browser (63 Punkte): acht
+  Typen-Checkboxen mit Date/Select und Sektions-Hinweis (7.8), zweite
   Checkbox „Only on pages with a form“ in der Zeile „Stylesheet“ (Default
   aus, Hinweistext, gesperrt per Filter, Hilfe „Overview“), Box
   „Sample page“ zwischen Hinweisabsatz und Formular samt zweitem Nonce,
@@ -1412,7 +1418,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Design-Panel nur die eigene Gruppe; CF7- und Shortcode-Block) und das
   Script ohne Server-Daten (nur das erste Panel). `node --check` läuft
   davor.
-- `tests/verify-samples.php` prüft Modul 6 ohne Browser (37 Punkte):
+- `tests/verify-samples.php` prüft Modul 6 ohne Browser (39 Punkte,
+  achtes Formular „Date and select“ mit fünf Labels und zwei geleerten
+  Leeroptionen):
   Anlegen (Seite privat mit Slug, sieben (seit Schritt 15 acht) Formulare mit Suffix und
   `skip_mail: on`, Blöcke und Platzierungsbeispiele im Inhalt, Option),
   zweiter Aufruf ohne Duplikate, von Hand gelöschte Seite → Option
@@ -1698,7 +1706,19 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     and select“, Testformular in `create-test-forms.php`, Prüfungen in
     `verify-markup.php`, `verify-admin.php` und `verify-samples.php`,
     readme (Features, FAQ „Which field types get a floating label?“),
-    Kontexthilfe. Offen.
+    Kontexthilfe. Erledigt am 30.10.2026 (Konzept 2.27): wie geplant, mit
+    einer Abweichung in 7.8: die Placeholder-Quelle beim Select kommt aus
+    dem Form-Tag (`first_as_label` ohne `include_blank`, Flag in
+    `fields()`) statt aus einem Textvergleich mit CF7s Leertext;
+    `blank_option()` liefert die erste Option nur, wenn sie `value=""`
+    trägt, `clear_blank_option()` leert sie, `placeholder_text()` ersetzt
+    das Attribut-Lesen. CSS: ein Abschnitt „Field types“ mit je drei
+    Float- und Ruheregeln (`:has()`, ohne Fokus, ohne Fehler) und dem Tip
+    neben dem Pfeil. Testformular H in `create-test-forms.php` (zusätzlich
+    `multiple` und label-loses `include_blank`), Prüfscripte 128/63/40/28/39
+    PASS, `composer check` und PHPCS auf `tests/` ohne Befund. Offen:
+    Sichtprüfung von Datum und Select in den drei Varianten (Nutzer,
+    Browser-Matrix Schritt 17).
 16. Tab „Floating labels“ im CF7-Editor (9.4): Klasse
     `JGOR_FLCF7_Form_Panel` (`class-jgor-flcf7-form-panel.php`), Filter
     `wpcf7_editor_panels`, Action `wpcf7_save_contact_form`, `admin.css`
@@ -1782,3 +1802,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.24 | 29.10.2026 | Reset-Buttons als `secondary` mit Rahmen (10, 10.1), damit sie auch inaktiv als Buttons erkennbar sind; Screenshots 5 und 6 neu |
 | 2.25 | 30.10.2026 | Sichtprüfung des Nutzers ohne Befund (§14 Schritt 13); die Erweiterungen aus §15 kommen in das erste Release, Version bleibt 1.0.0: §14 Schritte 14 (bedingtes Laden: 6, 8, 9), 15 (Feldtypen `date` und `select`: neuer Abschnitt 7.8, dazu 7, 7.5, 7.7, 8, 9, achtes Beispielformular 9.3), 16 (Tab „Floating labels“ im CF7-Editor: neuer Abschnitt 9.4, dazu 3, 6, 7.5) und 17 (Abschluss); §13 `verify-form-panel.php` und Browser-Matrix; §15 bereinigt, `WP_HTML_Processor` mit Stand WP 7.1.4 (keine Einfüge-API) |
 | 2.26 | 30.10.2026 | Schritt 14 erledigt: Option `load_css_forms_only`, `enqueue()` mit Erkennung am Singular-Post, `ensure_enqueued()` als Sicherheitsnetz aus Modul 2, Abhängigkeit nur bei registriertem Handle (8), zweite Checkbox in der Zeile „Stylesheet“ und Hilfe (9), readme (Features, FAQ); §13 Prüfzähler 114/62/40 |
+| 2.27 | 30.10.2026 | Schritt 15 erledigt: Feldtypen `date` und `select` (7.8 mit Placeholder-Quelle aus dem Form-Tag statt Textvergleich, 7, 7.7, 8 Abschnitt „Field types“, 9 Beschriftungen und Hinweis, 9.3 achtes Formular „Date and select“); §13 Testformular H, Prüfzähler 128/63/39 |

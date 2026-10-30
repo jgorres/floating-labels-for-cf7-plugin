@@ -6,7 +6,8 @@
  * (.jgor-flcf7-wrap). The label is the sibling right after the control, so
  * every state is reached through sibling selectors. No JavaScript: the states
  * come from :focus, :placeholder-shown (the placeholder is a single space),
- * :autofill and the class .wpcf7-not-valid that Contact Form 7 sets.
+ * :autofill and the class .wpcf7-not-valid that Contact Form 7 sets; date
+ * inputs and selects keep their label floated, see "Field types" below.
  *
  * Errors: the label floats as on focus, the validation tip of Contact Form 7
  * sits inside the field on the text line (so the page does not reflow), and
@@ -272,6 +273,63 @@
 	top: 0;
 	inset-inline-start: 0;
 	transform: scale(var(--jgor-flcf7-label-scale));
+}
+
+/* ------------------------------------------------------------------
+ * Field types: date and select
+ *
+ * A date input shows a format mask instead of its placeholder, and a select
+ * always shows a value, so :placeholder-shown cannot tell their empty state:
+ * the label of both stays floated (class jgor-flcf7-date or jgor-flcf7-select
+ * on the wrap). Only a select whose blank option (value="") is selected takes
+ * the label back to the rest position while it has neither focus nor an
+ * error; the plugin empties the text of that option, so the label is the
+ * only hint. :has() detects the blank option; a browser without it keeps the
+ * label floated. The validation tip of a select keeps clear of the arrow.
+ * ---------------------------------------------------------------- */
+
+.wpcf7 .jgor-flcf7-outlined.jgor-flcf7-date .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-outlined.jgor-flcf7-select .jgor-flcf7-label {
+	top: 0;
+	background-color: var(--jgor-flcf7-background);
+	transform: translateY(-50%) scale(var(--jgor-flcf7-label-scale));
+}
+
+.wpcf7 .jgor-flcf7-filled.jgor-flcf7-date .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-filled.jgor-flcf7-select .jgor-flcf7-label {
+	top: 0.1em;
+	transform: scale(var(--jgor-flcf7-label-scale));
+}
+
+.wpcf7 .jgor-flcf7-minimal.jgor-flcf7-date .jgor-flcf7-label,
+.wpcf7 .jgor-flcf7-minimal.jgor-flcf7-select .jgor-flcf7-label {
+	top: 0;
+	inset-inline-start: 0;
+	transform: scale(var(--jgor-flcf7-label-scale));
+}
+
+/* Blank option selected, no focus, no error: the label rests in the field. */
+.wpcf7 .jgor-flcf7-outlined.jgor-flcf7-select .jgor-flcf7-control:has(option[value=""]:checked):not(:focus):not(.wpcf7-not-valid):not([aria-invalid="true"]) + .jgor-flcf7-label {
+	top: calc(var(--jgor-flcf7-padding-y) + var(--jgor-flcf7-border-width));
+	background-color: transparent;
+	transform: none;
+}
+
+.wpcf7 .jgor-flcf7-filled.jgor-flcf7-select .jgor-flcf7-control:has(option[value=""]:checked):not(:focus):not(.wpcf7-not-valid):not([aria-invalid="true"]) + .jgor-flcf7-label {
+	top: calc(var(--jgor-flcf7-padding-y) + 0.6em);
+	transform: none;
+}
+
+.wpcf7 .jgor-flcf7-minimal.jgor-flcf7-select .jgor-flcf7-control:has(option[value=""]:checked):not(:focus):not(.wpcf7-not-valid):not([aria-invalid="true"]) + .jgor-flcf7-label {
+	top: calc(var(--jgor-flcf7-label-size) * var(--jgor-flcf7-label-scale) * 1.6 + var(--jgor-flcf7-padding-y) + var(--jgor-flcf7-border-width));
+	inset-inline-start: calc(var(--jgor-flcf7-padding-x) - 0.25em);
+	transform: none;
+}
+
+/* The tip sits at the inline end for both types (:placeholder-shown never
+ * matches them); on a select it keeps clear of the arrow. */
+.wpcf7 .jgor-flcf7-wrap.jgor-flcf7-select .jgor-flcf7-control ~ .wpcf7-not-valid-tip {
+	inset-inline-end: calc(var(--jgor-flcf7-padding-x) + 1.5em);
 }
 
 /* ------------------------------------------------------------------

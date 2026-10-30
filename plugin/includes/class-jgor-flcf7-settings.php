@@ -40,13 +40,15 @@ final class JGOR_FLCF7_Settings {
 	/**
 	 * Contact Form 7 base types the plugin handles out of the box.
 	 *
-	 * Types that render a text-like control with a placeholder attribute.
-	 * "date" and "select" are deliberately left out for 1.0 (see the concept,
-	 * section 15); checkbox, radio, file, range, quiz and captcha never fit.
+	 * Types that render a single text-like control: inputs with a placeholder
+	 * attribute, the textarea, the date input (browsers show a format mask,
+	 * so its label stays floated) and the select without "multiple" (its
+	 * blank option marks the empty state). Checkbox, radio, file, range,
+	 * quiz and captcha never fit.
 	 *
 	 * @var string[]
 	 */
-	public const BASE_TYPES = array( 'text', 'email', 'url', 'tel', 'number', 'textarea' );
+	public const BASE_TYPES = array( 'text', 'email', 'url', 'tel', 'number', 'date', 'textarea', 'select' );
 
 	/**
 	 * Available CSS variants.

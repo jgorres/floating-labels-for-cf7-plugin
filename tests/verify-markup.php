@@ -20,6 +20,9 @@
  *
  * Form F (the Contact Form 7 template before 5.4, no labels and no
  * placeholders) covers text mode (concept 7.3), which is off by default.
+ * Form H covers date and select fields (concept 7.8): the wrap classes, the
+ * emptied blank option, the label from first_as_label, and the selects the
+ * module leaves alone (multiple, include_blank without a label).
  *
  * Form C is rendered a second time to cover the id option Contact Form 7
  * prints only once per request (same form twice on a page). The design
@@ -163,7 +166,7 @@ function jgor_flcf7_labels_match( string $html ): void {
 		$for = $label[1];
 		jgor_flcf7_check(
 			'label for="' . $for . '" has a control with that id directly before it',
-			(bool) preg_match( '#<(input|textarea)[^>]*\sid="' . preg_quote( $for, '#' ) . '"[^>]*>(?:[^<]*</textarea>)?<label for="' . preg_quote( $for, '#' ) . '" class="jgor-flcf7-label"#s', $html )
+			(bool) preg_match( '#<(input|textarea|select)[^>]*\sid="' . preg_quote( $for, '#' ) . '"[^>]*>(?:[^<]*</textarea>|(?:\s*<option[^>]*>[^<]*</option>)*\s*</select>)?<label for="' . preg_quote( $for, '#' ) . '" class="jgor-flcf7-label"#s', $html )
 		);
 	}
 }
@@ -183,6 +186,7 @@ $jgor_flcf7_id_b = jgor_flcf7_form_id( 'FL Test B Placeholder' );
 $jgor_flcf7_id_c = jgor_flcf7_form_id( 'FL Test C Mixed' );
 $jgor_flcf7_id_d = jgor_flcf7_form_id( 'FL Test D Off' );
 $jgor_flcf7_id_f = jgor_flcf7_form_id( 'FL Test F Old template' );
+$jgor_flcf7_id_h = jgor_flcf7_form_id( 'FL Test H Date and select' );
 
 // (a) Standard template, label mode.
 $jgor_flcf7_a = jgor_flcf7_render( $jgor_flcf7_id_a );
@@ -287,6 +291,21 @@ add_filter( 'jgor_flcf7_label_text', $jgor_flcf7_f10 );
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'floating_labels: text' );
 jgor_flcf7_check( 'F: filter jgor_flcf7_label_text strips "(required)"', str_contains( $jgor_flcf7_p, '>Your Name</label>' ) && ! str_contains( $jgor_flcf7_p, '(required)' ) );
 remove_filter( 'jgor_flcf7_label_text', $jgor_flcf7_f10 );
+
+// (h) Date and select fields (concept 7.8).
+$jgor_flcf7_h = jgor_flcf7_render( $jgor_flcf7_id_h );
+jgor_flcf7_check( 'H: 5 floating labels (date, three selects, text); multiple select and label-less include_blank select untouched', 5 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_h ) );
+jgor_flcf7_check( 'H: date wrap carries jgor-flcf7-date, placeholder replaced, label from the placeholder', (bool) preg_match( '#<span class="wpcf7-form-control-wrap jgor-flcf7-wrap jgor-flcf7-outlined jgor-flcf7-date jgor-flcf7-marker" data-name="your-date"><input(?=[^>]*type="date")(?=[^>]*placeholder=" ")(?=[^>]*jgor-flcf7-control)[^>]*><label for="[^"]+" class="jgor-flcf7-label">Preferred date</label></span>#', $jgor_flcf7_h ), jgor_flcf7_wrap( $jgor_flcf7_h, 'your-date' ) );
+jgor_flcf7_check( 'H: select with include_blank in a label: field span, wrap jgor-flcf7-select, no placeholder attribute, blank option emptied, label "Topic"', (bool) preg_match( '#<span class="jgor-flcf7-field"><span class="wpcf7-form-control-wrap jgor-flcf7-wrap jgor-flcf7-outlined jgor-flcf7-select jgor-flcf7-marker" data-name="your-topic"><select(?![^>]*placeholder)[^>]*jgor-flcf7-control[^>]*>\s*<option value=""></option>\s*<option value="Sales">Sales</option>\s*<option value="Support">Support</option>\s*</select><label for="[^"]+" class="jgor-flcf7-label">Topic</label></span></span>#', $jgor_flcf7_h ), jgor_flcf7_wrap( $jgor_flcf7_h, 'your-topic' ) );
+jgor_flcf7_check( 'H: required select with first_as_label: label text from the first option, that option emptied', (bool) preg_match( '#data-name="your-reason"><select(?=[^>]*aria-required="true")[^>]*jgor-flcf7-control[^>]*>\s*<option value=""></option>\s*<option value="Question">Question</option>#', $jgor_flcf7_h ) && str_contains( $jgor_flcf7_h, '>Reason for contact</label>' ), jgor_flcf7_wrap( $jgor_flcf7_h, 'your-reason' ) );
+jgor_flcf7_check( 'H: select without blank option: first option kept, label "Country"', (bool) preg_match( '#data-name="your-country"><select[^>]*jgor-flcf7-control[^>]*>\s*<option value="Germany">Germany</option>#', $jgor_flcf7_h ) && str_contains( $jgor_flcf7_h, '>Country</label>' ) );
+jgor_flcf7_check( 'H: multiple select untouched, enclosing label kept', (bool) preg_match( '#<label>\s*Languages\s*(?:<br\s*/?>)?\s*<span class="wpcf7-form-control-wrap" data-name="your-langs"><select[^>]*multiple#', $jgor_flcf7_h ) && ! preg_match( '#data-name="your-langs"><select[^>]*jgor-flcf7#', $jgor_flcf7_h ), jgor_flcf7_wrap( $jgor_flcf7_h, 'your-langs' ) );
+jgor_flcf7_check( 'H: include_blank select without a label untouched, generic option text kept', (bool) preg_match( '#data-name="your-plain"><select(?![^>]*jgor-flcf7)[^>]*>\s*<option value="">(?:&\#8212;|—)Please choose an option(?:&\#8212;|—)</option>#u', $jgor_flcf7_h ), jgor_flcf7_wrap( $jgor_flcf7_h, 'your-plain' ) );
+jgor_flcf7_labels_match( $jgor_flcf7_h );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_h, true, 'floating_labels_types: text' );
+jgor_flcf7_check( 'H: floating_labels_types: text -> date and selects untouched', 1 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-select' ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-date' ) && str_contains( $jgor_flcf7_p, 'placeholder="Preferred date"' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_h, true, 'floating_labels: label' );
+jgor_flcf7_check( 'H: floating_labels: label -> only the two selects with a label rebuilt, first_as_label text kept elsewhere', 2 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && str_contains( $jgor_flcf7_p, '<option value="">Reason for contact</option>' ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-date' ) );
 
 // Per form: additional settings (concept 7.5).
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, "floating_labels_style: filled\nfloating_labels_marker: on" );

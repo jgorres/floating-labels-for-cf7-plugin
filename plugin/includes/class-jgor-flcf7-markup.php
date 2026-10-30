@@ -17,6 +17,16 @@
  * id option of the form-tag; the control then gets a fresh id and the label
  * points at it.
  *
+ * A date input and a single select (no "multiple") qualify as well. The
+ * date input keeps the placeholder logic; the wrap class jgor-flcf7-date
+ * tells the stylesheet to keep its label floated (browsers show a format
+ * mask in the empty field). A select gets no placeholder attribute: the
+ * text of its blank option (value="", from include_blank or first_as_label)
+ * is emptied, because the floating label takes over the hint, and in
+ * placeholder mode the text of a first_as_label option is the label text;
+ * the wrap class jgor-flcf7-select lets the stylesheet rest the label while
+ * the blank option is selected.
+ *
  * What applies to one rendering is decided in layers, see form_settings():
  * the plugin settings, the additional settings of the form, the classes in
  * the html_class attribute of the shortcode or block, and filters.
@@ -67,6 +77,18 @@ final class JGOR_FLCF7_Markup {
 	 * Class added to the wrap when the control is a textarea.
 	 */
 	public const TEXTAREA_CLASS = 'jgor-flcf7-textarea';
+
+	/**
+	 * Class added to the wrap when the control is a date input: the label
+	 * stays floated, because browsers show a format mask in the empty field.
+	 */
+	public const DATE_CLASS = 'jgor-flcf7-date';
+
+	/**
+	 * Class added to the wrap when the control is a select: the label stays
+	 * floated unless the blank option (value="") is selected.
+	 */
+	public const SELECT_CLASS = 'jgor-flcf7-select';
 
 	/**
 	 * Class added to the wrap when the required marker is on.
@@ -604,11 +626,13 @@ final class JGOR_FLCF7_Markup {
 	 * kept because Contact Form 7 prints every id option only once per
 	 * request: when the same form is rendered twice on a page, the second
 	 * control has no id, while the <label for> of the template still names
-	 * the option (see linked_label()).
+	 * the option (see linked_label()). For a select the flag first_as_label
+	 * records whether the text of its first option may serve as placeholder
+	 * (option first_as_label without include_blank, see placeholder_text()).
 	 *
 	 * @param WPCF7_ContactForm $form  The contact form being rendered.
 	 * @param string[]          $types Base types allowed for this rendering.
-	 * @return array<string, array{type: string, id: string}> Field name => base type and id option ('' when none).
+	 * @return array<string, array{type: string, id: string, first_as_label: bool}> Field name => base type, id option ('' when none) and first_as_label flag.
 	 */
 	private function fields( WPCF7_ContactForm $form, array $types ): array {
 		if ( empty( $types ) ) {
@@ -639,8 +663,9 @@ final class JGOR_FLCF7_Markup {
 			$id = $tag->get_option( 'id', 'id', true );
 
 			$fields[ $name ] = array(
-				'type' => $basetype,
-				'id'   => is_string( $id ) ? $id : '',
+				'type'           => $basetype,
+				'id'             => is_string( $id ) ? $id : '',
+				'first_as_label' => 'select' === $basetype && $tag->has_option( 'first_as_label' ) && ! $tag->has_option( 'include_blank' ),
 			);
 		}
 
@@ -650,10 +675,10 @@ final class JGOR_FLCF7_Markup {
 	/**
 	 * Parses the form HTML, rebuilds the qualifying fields and serialises it again.
 	 *
-	 * @param string                                         $html   Form HTML.
-	 * @param WPCF7_ContactForm                              $form   The contact form being rendered.
-	 * @param array<string, array{type: string, id: string}> $fields Field names mapped to base type and id option, see fields().
-	 * @param array<string, mixed>                           $config Settings for this rendering, see form_settings().
+	 * @param string                                                               $html   Form HTML.
+	 * @param WPCF7_ContactForm                                                    $form   The contact form being rendered.
+	 * @param array<string, array{type: string, id: string, first_as_label: bool}> $fields Field names mapped to base type, id option and first_as_label, see fields().
+	 * @param array<string, mixed>                                                 $config Settings for this rendering, see form_settings().
 	 * @return string|null Rebuilt HTML, or null when nothing changed or parsing failed.
 	 *
 	 * @phpstan-param array{placeholder: bool, label: bool, text: bool, types: string[], style: string, effect: string, marker: bool, submit_error: string} $config
@@ -717,7 +742,7 @@ final class JGOR_FLCF7_Markup {
 			}
 
 			if ( null === $text && $config['placeholder'] ) {
-				$text = $this->normalize_text( $control->getAttribute( 'placeholder' ) );
+				$text = $this->normalize_text( $this->placeholder_text( $control, $fields[ $name ]['first_as_label'] ) );
 				if ( '' === $text ) {
 					$text = null;
 				}
@@ -849,13 +874,25 @@ final class JGOR_FLCF7_Markup {
 			$control->setAttribute( 'id', $id );
 		}
 
-		// A single space keeps :placeholder-shown working without showing text.
-		$control->setAttribute( 'placeholder', ' ' );
+		$tag_name = strtolower( $control->tagName );
+
+		// A single space keeps :placeholder-shown working without showing
+		// text. A select carries no placeholder: its blank option is emptied
+		// instead, and the stylesheet reads the empty state from :has().
+		if ( 'select' === $tag_name ) {
+			$this->clear_blank_option( $control );
+		} else {
+			$control->setAttribute( 'placeholder', ' ' );
+		}
 		$this->add_class( $control, self::CONTROL_CLASS );
 		$this->add_class( $wrap, self::WRAP_CLASS );
 		$this->add_class( $wrap, 'jgor-flcf7-' . $style );
-		if ( 'textarea' === strtolower( $control->tagName ) ) {
+		if ( 'textarea' === $tag_name ) {
 			$this->add_class( $wrap, self::TEXTAREA_CLASS );
+		} elseif ( 'select' === $tag_name ) {
+			$this->add_class( $wrap, self::SELECT_CLASS );
+		} elseif ( 'date' === strtolower( $control->getAttribute( 'type' ) ) ) {
+			$this->add_class( $wrap, self::DATE_CLASS );
 		}
 		if ( $marker ) {
 			$this->add_class( $wrap, self::MARKER_CLASS );
@@ -920,7 +957,9 @@ final class JGOR_FLCF7_Markup {
 	/**
 	 * Returns the single text-like control inside a wrap, or null.
 	 *
-	 * Besides the control the wrap may only hold whitespace and the
+	 * An input (except the blocked types), a textarea or a select without
+	 * "multiple" (a multiple select shows a list and has no rest line for a
+	 * label). Besides the control the wrap may only hold whitespace and the
 	 * validation tip Contact Form 7 renders for non-Ajax submissions.
 	 *
 	 * @param DOMElement $wrap The span.wpcf7-form-control-wrap.
@@ -933,7 +972,7 @@ final class JGOR_FLCF7_Markup {
 			if ( $node instanceof DOMElement ) {
 				$tag = strtolower( $node->tagName );
 
-				if ( 'input' === $tag || 'textarea' === $tag ) {
+				if ( 'input' === $tag || 'textarea' === $tag || 'select' === $tag ) {
 					if ( null !== $control ) {
 						return null;
 					}
@@ -961,7 +1000,88 @@ final class JGOR_FLCF7_Markup {
 			}
 		}
 
+		if ( 'select' === strtolower( $control->tagName ) && $control->hasAttribute( 'multiple' ) ) {
+			return null;
+		}
+
 		return $control;
+	}
+
+	/**
+	 * Returns the placeholder text of a control for placeholder mode.
+	 *
+	 * Inputs and textareas carry it in the placeholder attribute. A select
+	 * has none; the Contact Form 7 option first_as_label is its counterpart:
+	 * the first option gets value="" and keeps its text, which is used here.
+	 * The generic blank option of include_blank ("Please choose an option")
+	 * is no label text and is not used; fields() tells the two apart from
+	 * the form-tag.
+	 *
+	 * @param DOMElement $control        The control.
+	 * @param bool       $first_as_label Whether the form-tag of a select carries first_as_label (and not include_blank).
+	 * @return string Raw text, '' when there is none.
+	 */
+	private function placeholder_text( DOMElement $control, bool $first_as_label ): string {
+		if ( 'select' !== strtolower( $control->tagName ) ) {
+			return $control->getAttribute( 'placeholder' );
+		}
+
+		if ( ! $first_as_label ) {
+			return '';
+		}
+
+		$option = $this->blank_option( $control );
+
+		return null === $option ? '' : $option->textContent;
+	}
+
+	/**
+	 * Returns the first option of a select when it is the blank option
+	 * (value=""), or null.
+	 *
+	 * Contact Form 7 puts the blank option first, for include_blank as well
+	 * as for first_as_label.
+	 *
+	 * @param DOMElement $select The select.
+	 * @return DOMElement|null
+	 */
+	private function blank_option( DOMElement $select ): ?DOMElement {
+		foreach ( $select->childNodes as $node ) {
+			if ( ! $node instanceof DOMElement ) {
+				continue;
+			}
+
+			if ( 'option' === strtolower( $node->tagName ) && $node->hasAttribute( 'value' ) && '' === $node->getAttribute( 'value' ) ) {
+				return $node;
+			}
+
+			return null;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Empties the text of the blank option of a select.
+	 *
+	 * The floating label takes over the hint the option text gave ("Please
+	 * choose an option" or the text of first_as_label): with an empty option
+	 * the closed select shows nothing while the label rests inside it, and
+	 * the stylesheet reads that state from :has(option[value=""]:checked).
+	 * The open list keeps an empty first row.
+	 *
+	 * @param DOMElement $select The select.
+	 * @return void
+	 */
+	private function clear_blank_option( DOMElement $select ): void {
+		$option = $this->blank_option( $select );
+		if ( null === $option ) {
+			return;
+		}
+
+		while ( null !== $option->firstChild ) {
+			$option->removeChild( $option->firstChild );
+		}
 	}
 
 	/**

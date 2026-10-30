@@ -203,7 +203,7 @@ $jgor_flcf7_published = true;
 foreach ( $jgor_flcf7_stored['forms'] as $jgor_flcf7_id ) {
 	$jgor_flcf7_published = $jgor_flcf7_published && 'publish' === get_post_status( $jgor_flcf7_id );
 }
-jgor_flcf7_check( 'forms: seven published contact forms with prefix and suffix, ids stored', 7 === count( $jgor_flcf7_forms ) && $jgor_flcf7_forms === $jgor_flcf7_sorted && $jgor_flcf7_published );
+jgor_flcf7_check( 'forms: eight published contact forms with prefix and suffix, ids stored', 8 === count( $jgor_flcf7_forms ) && $jgor_flcf7_forms === $jgor_flcf7_sorted && $jgor_flcf7_published );
 $jgor_flcf7_titles = array_map(
 	static function ( int $id ): string {
 		$post = get_post( $id );
@@ -214,10 +214,10 @@ $jgor_flcf7_titles = array_map(
 );
 jgor_flcf7_check(
 	'forms: titles in the order of the page',
-	array( 'FL Test Default template - may be deleted', 'FL Test Placeholders - may be deleted', 'FL Test Old template - may be deleted', 'FL Test Filled and glow - may be deleted', 'FL Test Minimal and running light - may be deleted', 'FL Test Mixed - may be deleted', 'FL Test Off - may be deleted' ) === $jgor_flcf7_titles,
+	array( 'FL Test Default template - may be deleted', 'FL Test Placeholders - may be deleted', 'FL Test Old template - may be deleted', 'FL Test Filled and glow - may be deleted', 'FL Test Minimal and running light - may be deleted', 'FL Test Mixed - may be deleted', 'FL Test Date and select - may be deleted', 'FL Test Off - may be deleted' ) === $jgor_flcf7_titles,
 	implode( ' | ', $jgor_flcf7_titles )
 );
-list( $jgor_flcf7_f_default, $jgor_flcf7_f_placeholders, $jgor_flcf7_f_old, $jgor_flcf7_f_filled, $jgor_flcf7_f_minimal, $jgor_flcf7_f_mixed, $jgor_flcf7_f_off ) = $jgor_flcf7_stored['forms'];
+list( $jgor_flcf7_f_default, $jgor_flcf7_f_placeholders, $jgor_flcf7_f_old, $jgor_flcf7_f_filled, $jgor_flcf7_f_minimal, $jgor_flcf7_f_mixed, $jgor_flcf7_f_dateselect, $jgor_flcf7_f_off ) = $jgor_flcf7_stored['forms'];
 $jgor_flcf7_skip = true;
 foreach ( $jgor_flcf7_stored['forms'] as $jgor_flcf7_id ) {
 	$jgor_flcf7_skip = $jgor_flcf7_skip && jgor_flcf7_cf( $jgor_flcf7_id )->is_true( 'skip_mail' );
@@ -256,7 +256,7 @@ jgor_flcf7_check( 'notice: nothing while the sample page exists', '' === $jgor_f
 // Block content.
 $jgor_flcf7_content = (string) $jgor_flcf7_page->post_content;
 jgor_flcf7_check( 'content: old template section shows both templates as code blocks', 2 === substr_count( $jgor_flcf7_content, '<!-- wp:code -->' ) && str_contains( $jgor_flcf7_content, '<pre class="wp-block-code"><code>&lt;p&gt;Your Name (required)&lt;br /&gt;' ) && str_contains( $jgor_flcf7_content, '<code>&lt;label&gt; Your name' ) && str_contains( $jgor_flcf7_content, 'autocomplete:name] &lt;/label&gt;</code></pre>' ) );
-jgor_flcf7_check( 'content: intro, nine headings, eight Contact Form 7 blocks and one Shortcode block', 9 === substr_count( $jgor_flcf7_content, '<!-- wp:heading -->' ) && 8 === substr_count( $jgor_flcf7_content, '<!-- wp:contact-form-7/contact-form-selector ' ) && 1 === substr_count( $jgor_flcf7_content, '<!-- wp:shortcode -->' ) && str_contains( $jgor_flcf7_content, 'created by Floating Labels for CF7' ) );
+jgor_flcf7_check( 'content: intro, ten headings, nine Contact Form 7 blocks and one Shortcode block', 10 === substr_count( $jgor_flcf7_content, '<!-- wp:heading -->' ) && 9 === substr_count( $jgor_flcf7_content, '<!-- wp:contact-form-7/contact-form-selector ' ) && 1 === substr_count( $jgor_flcf7_content, '<!-- wp:shortcode -->' ) && str_contains( $jgor_flcf7_content, 'created by Floating Labels for CF7' ) );
 $jgor_flcf7_blocks  = array_values(
 	array_filter(
 		parse_blocks( $jgor_flcf7_content ),
@@ -267,28 +267,30 @@ $jgor_flcf7_blocks  = array_values(
 );
 $jgor_flcf7_hash    = jgor_flcf7_cf( $jgor_flcf7_f_default )->hash();
 $jgor_flcf7_attrs0  = $jgor_flcf7_blocks[0]['attrs'] ?? array();
-$jgor_flcf7_attrs7  = $jgor_flcf7_blocks[7]['attrs'] ?? array();
+$jgor_flcf7_attrs7  = $jgor_flcf7_blocks[8]['attrs'] ?? array();
 $jgor_flcf7_id0     = $jgor_flcf7_attrs0['id'] ?? 0;
 $jgor_flcf7_hash0   = $jgor_flcf7_attrs0['hash'] ?? '';
 $jgor_flcf7_design7 = $jgor_flcf7_attrs7['jgorFlcf7Design'] ?? null;
-jgor_flcf7_check( 'content: blocks carry id, hash and title; the shortcode uses the hash as Contact Form 7 saves it', 8 === count( $jgor_flcf7_blocks ) && $jgor_flcf7_id0 === $jgor_flcf7_f_default && $jgor_flcf7_hash0 === $jgor_flcf7_hash && 'FL Test Default template - may be deleted' === ( $jgor_flcf7_blocks[0]['attrs']['title'] ?? '' ) && str_contains( $jgor_flcf7_blocks[0]['innerHTML'], '<div class="wp-block-contact-form-7-contact-form-selector">[contact-form-7 id="' . $jgor_flcf7_hash . '" title="FL Test Default template - may be deleted"]</div>' ) );
+jgor_flcf7_check( 'content: blocks carry id, hash and title; the shortcode uses the hash as Contact Form 7 saves it', 9 === count( $jgor_flcf7_blocks ) && $jgor_flcf7_id0 === $jgor_flcf7_f_default && $jgor_flcf7_hash0 === $jgor_flcf7_hash && 'FL Test Default template - may be deleted' === ( $jgor_flcf7_blocks[0]['attrs']['title'] ?? '' ) && str_contains( $jgor_flcf7_blocks[0]['innerHTML'], '<div class="wp-block-contact-form-7-contact-form-selector">[contact-form-7 id="' . $jgor_flcf7_hash . '" title="FL Test Default template - may be deleted"]</div>' ) );
 $jgor_flcf7_design_expected = array(
 	'border-color' => '#0a7d3e',
 	'font-size'    => '1.1em',
 );
-jgor_flcf7_check( 'content: placement block with htmlClass and jgorFlcf7Design, html_class in its shortcode', 'jgor-flcf7-style-filled jgor-flcf7-effect-glow' === ( $jgor_flcf7_blocks[7]['attrs']['htmlClass'] ?? '' ) && $jgor_flcf7_design7 === $jgor_flcf7_design_expected && str_contains( $jgor_flcf7_blocks[7]['innerHTML'], ' html_class="jgor-flcf7-style-filled jgor-flcf7-effect-glow"]' ) );
+jgor_flcf7_check( 'content: placement block with htmlClass and jgorFlcf7Design, html_class in its shortcode', 'jgor-flcf7-style-filled jgor-flcf7-effect-glow' === ( $jgor_flcf7_blocks[8]['attrs']['htmlClass'] ?? '' ) && $jgor_flcf7_design7 === $jgor_flcf7_design_expected && str_contains( $jgor_flcf7_blocks[8]['innerHTML'], ' html_class="jgor-flcf7-style-filled jgor-flcf7-effect-glow"]' ) );
 jgor_flcf7_check( 'content: Shortcode block with html_class and jgor_flcf7_design', str_contains( $jgor_flcf7_content, "<!-- wp:shortcode -->\n[contact-form-7 id=\"" . $jgor_flcf7_hash . '" title="FL Test Default template - may be deleted" html_class="jgor-flcf7-style-minimal" jgor_flcf7_design="border-color:#0a7d3e;font-size:1.1em"]' ) );
 
 // Rendered output: blocks, shortcodes, module 2 and the design per placement.
 // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- the core content filter, applied on purpose.
 $jgor_flcf7_html = (string) apply_filters( 'the_content', $jgor_flcf7_content );
-jgor_flcf7_check( 'rendered: nine forms', 9 === preg_match_all( '#<form[^>]*class="wpcf7-form#', $jgor_flcf7_html ) );
-$jgor_flcf7_old     = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_old );
-$jgor_flcf7_off     = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_off );
-$jgor_flcf7_filled  = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_filled );
-$jgor_flcf7_minimal = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_minimal );
-$jgor_flcf7_mixed   = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_mixed );
-$jgor_flcf7_default = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_default );
+jgor_flcf7_check( 'rendered: ten forms', 10 === preg_match_all( '#<form[^>]*class="wpcf7-form#', $jgor_flcf7_html ) );
+$jgor_flcf7_old        = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_old );
+$jgor_flcf7_off        = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_off );
+$jgor_flcf7_filled     = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_filled );
+$jgor_flcf7_minimal    = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_minimal );
+$jgor_flcf7_mixed      = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_mixed );
+$jgor_flcf7_default    = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_default );
+$jgor_flcf7_dateselect = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_dateselect );
+jgor_flcf7_check( 'rendered: date and select form: five labels, date and select wraps, two blank options emptied, first option without blank kept, label from first_as_label', 1 === count( $jgor_flcf7_dateselect ) && 5 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_dateselect[0] ) && 1 === preg_match_all( '#jgor-flcf7-date#', $jgor_flcf7_dateselect[0] ) && 3 === preg_match_all( '#jgor-flcf7-select#', $jgor_flcf7_dateselect[0] ) && 2 === preg_match_all( '#<option value="">\s*</option>#', $jgor_flcf7_dateselect[0] ) && str_contains( $jgor_flcf7_dateselect[0], '<option value="Germany">Germany</option>' ) && str_contains( $jgor_flcf7_dateselect[0], '>Reason for contact</label>' ) );
 jgor_flcf7_check( 'rendered: old template gets four floating labels through floating_labels: text', 1 === count( $jgor_flcf7_old ) && 4 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_old[0] ) );
 jgor_flcf7_check( 'rendered: switched-off form untouched', 1 === count( $jgor_flcf7_off ) && ! str_contains( $jgor_flcf7_off[0], 'jgor-flcf7' ) );
 jgor_flcf7_check( 'rendered: filled variant with glow', 1 === count( $jgor_flcf7_filled ) && str_contains( $jgor_flcf7_filled[0], 'jgor-flcf7-filled' ) && str_contains( $jgor_flcf7_filled[0], 'jgor-flcf7-glow' ) );
@@ -298,14 +300,14 @@ jgor_flcf7_check( 'rendered: default form three times: plain, block placement (f
 jgor_flcf7_check( 'rendered: design values of both placements as a style on their wrappers', 2 === substr_count( $jgor_flcf7_html, 'style="--jgor-flcf7-font-size: 1.1em; --jgor-flcf7-border-color: #0a7d3e;"' ) );
 
 // Idempotent.
-jgor_flcf7_check( 'create() again: exists, still seven forms', 'exists' === $jgor_flcf7_samples->create() && 7 === count( jgor_flcf7_sample_forms() ) );
+jgor_flcf7_check( 'create() again: exists, still eight forms', 'exists' === $jgor_flcf7_samples->create() && 8 === count( jgor_flcf7_sample_forms() ) );
 
 // Page deleted by hand (trashed): leftovers are removed on the next create().
 wp_trash_post( $jgor_flcf7_stored['page'] );
 jgor_flcf7_check( 'trashed page: no longer created, option still there', ! $jgor_flcf7_samples->is_created() && false !== get_option( JGOR_FLCF7_Samples::OPTION, false ) );
-jgor_flcf7_check( 'create() after trashing: created again, old page and forms removed', 'created' === $jgor_flcf7_samples->create() && null === get_post( $jgor_flcf7_stored['page'] ) && 7 === count( jgor_flcf7_sample_forms() ) && ! in_array( $jgor_flcf7_f_default, jgor_flcf7_sample_forms(), true ) );
+jgor_flcf7_check( 'create() after trashing: created again, old page and forms removed', 'created' === $jgor_flcf7_samples->create() && null === get_post( $jgor_flcf7_stored['page'] ) && 8 === count( jgor_flcf7_sample_forms() ) && ! in_array( $jgor_flcf7_f_default, jgor_flcf7_sample_forms(), true ) );
 $jgor_flcf7_stored2 = $jgor_flcf7_samples->stored();
-jgor_flcf7_check( 'new page and seven new forms stored', $jgor_flcf7_stored2['page'] !== $jgor_flcf7_stored['page'] && $jgor_flcf7_samples->is_created() && 7 === count( $jgor_flcf7_stored2['forms'] ) );
+jgor_flcf7_check( 'new page and eight new forms stored', $jgor_flcf7_stored2['page'] !== $jgor_flcf7_stored['page'] && $jgor_flcf7_samples->is_created() && 8 === count( $jgor_flcf7_stored2['forms'] ) );
 
 // Remove.
 jgor_flcf7_check( 'perform( remove ): removed, nothing left', 'removed' === $jgor_flcf7_samples->perform( 'remove' ) && null === get_post( $jgor_flcf7_stored2['page'] ) && empty( jgor_flcf7_sample_forms() ) && false === get_option( JGOR_FLCF7_Samples::OPTION, false ) && ! $jgor_flcf7_samples->is_created() );

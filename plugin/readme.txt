@@ -33,7 +33,7 @@ Floating Labels for CF7 rebuilds the markup Contact Form 7 renders on the server
 
 = Field types =
 
-Text, email, URL, telephone, number and textarea fields get floating labels. Checkboxes, radio buttons, selects, file uploads, quizzes and CAPTCHAs never do; they keep their original markup.
+Text, email, URL, telephone, number, date, textarea and select fields get floating labels. The label of a date field stays floated, because browsers show a format mask in the empty field. So does the label of a select, except while its blank option (`include_blank` or `first_as_label`) is selected: then the label rests in the field and the text of that option is hidden, so the label is the only hint. Checkboxes, radio buttons, selects with multiple choice, file uploads, quizzes and CAPTCHAs never get floating labels; they keep their original markup.
 
 = Per form =
 
@@ -115,11 +115,11 @@ Contact Form 7 is a trademark of Rock Lobster, Inc. This plugin is an independen
 
 = Is there a sample page to try the options? =
 
-Yes. After the activation a notice offers to create it; later, open Contact > Floating Labels and use the box "Sample page" at the top. It creates a private page "Testpage Floating Labels for CF7" (only logged-in users who may read private pages see it) with the default form of Contact Form 7, a placeholder form, an old template, the variants and focus effects, a mixed form that shows the limits, a form switched off, and two placements with settings of their own. The forms are named "FL Test ... - may be deleted" and send no mail. The same box removes the page and the forms again; uninstalling the plugin removes them too.
+Yes. After the activation a notice offers to create it; later, open Contact > Floating Labels and use the box "Sample page" at the top. It creates a private page "Testpage Floating Labels for CF7" (only logged-in users who may read private pages see it) with the default form of Contact Form 7, a placeholder form, an old template, the variants and focus effects, a mixed form that shows the limits, date and select fields, a form switched off, and two placements with settings of their own. The forms are named "FL Test ... - may be deleted" and send no mail. The same box removes the page and the forms again; uninstalling the plugin removes them too.
 
 = A field does not get a floating label. Why? =
 
-Check these points in order: the field type is one of text, email, URL, telephone, number or textarea and ticked in the settings; the form-tag has no `nofloat` option; the form has no `floating_labels: off` line in its Additional Settings; the field has a label text, either a `<label>` that encloses the field or points at its `id`, or a `placeholder` option, or, with the option "Text before the field" switched on, loose text right in front of the field or in the paragraph just before it. Labels that contain more than one field or block-level HTML are left alone on purpose.
+Check these points in order: the field type is one of text, email, URL, telephone, number, date, textarea or select (without `multiple`) and ticked in the settings; the form-tag has no `nofloat` option; the form has no `floating_labels: off` line in its Additional Settings; the field has a label text, either a `<label>` that encloses the field or points at its `id`, or a `placeholder` option, or, with the option "Text before the field" switched on, loose text right in front of the field or in the paragraph just before it. Labels that contain more than one field or block-level HTML are left alone on purpose.
 
 = My forms come from an older Contact Form 7 and have neither labels nor placeholders. =
 
@@ -163,7 +163,7 @@ So that it does not jump when Contact Form 7 appends its validation message to t
 
 = Which field types are not supported? =
 
-Date fields (browsers show a format mask) and selects are planned for a later version. Checkboxes, radio buttons, acceptance, quiz, file and CAPTCHA fields never get floating labels.
+Checkboxes, radio buttons, acceptance, quiz, file, range and CAPTCHA fields, and selects with multiple choice, never get floating labels. Date fields and single selects are supported: their label stays floated, because a date field shows a format mask and a select always shows a value. A select with a blank option (`include_blank` or `first_as_label`) rests its label in the field until a choice is made; in placeholder mode the text of a `first_as_label` option serves as the label.
 
 = Is the plugin accessible? =
 

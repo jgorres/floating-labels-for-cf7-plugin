@@ -240,7 +240,7 @@ final class JGOR_FLCF7_Admin {
 	 */
 	private function help_overview(): string {
 		return '<p>' . esc_html__( 'A floating label sits inside the empty field like a placeholder and moves to the top edge, smaller, as soon as the field is focused or filled. The plugin rebuilds the markup Contact Form 7 renders and ships the stylesheet; your pages need no JavaScript for it.', 'floating-labels-for-cf7' ) . '</p>'
-			. '<p>' . esc_html__( 'Text, email, URL, telephone, number and textarea fields get floating labels. Checkboxes, radio buttons, selects, file uploads, quizzes and CAPTCHAs keep their original markup.', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p>' . esc_html__( 'Text, email, URL, telephone, number, date, textarea and select fields get floating labels. The label of a date field stays floated, because browsers show a format mask in the empty field; the label of a select stays floated too, except while its blank option is selected. Checkboxes, radio buttons, selects with multiple choice, file uploads, quizzes and CAPTCHAs keep their original markup.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'The label text comes from the form template (a <label> that encloses the field or points at its id) or from the placeholder option of the form-tag. A label in the template wins over a placeholder. With the option "Text before the field", loose text in front of the field, or in the paragraph just before it, is used when there is neither; that covers the default template of Contact Form 7 before version 5.4.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'Fields the plugin does not recognise are left exactly as Contact Form 7 renders them.', 'floating-labels-for-cf7' ) . '</p>'
 			. '<p>' . esc_html__( 'The stylesheet follows the loading policy of Contact Form 7, which loads it on every page. Tick "Only on pages with a form" under "Stylesheet" to load it on single posts and pages with a form only; a form rendered elsewhere still gets it, late in the footer.', 'floating-labels-for-cf7' ) . '</p>'
@@ -514,7 +514,7 @@ final class JGOR_FLCF7_Admin {
 	 * @return void
 	 */
 	public function render_types_intro(): void {
-		echo '<p>' . esc_html__( 'Only fields of these Contact Form 7 types get a floating label. Checkboxes, radio buttons, selects, files and quizzes never do.', 'floating-labels-for-cf7' ) . '</p>';
+		echo '<p>' . esc_html__( 'Only fields of these Contact Form 7 types get a floating label. The label of a date field stays floated (browsers show a format mask), and so does the label of a select, except while its blank option is selected. Checkboxes, radio buttons, selects with multiple choice, files and quizzes never get one.', 'floating-labels-for-cf7' ) . '</p>';
 	}
 
 	/**
@@ -991,7 +991,9 @@ final class JGOR_FLCF7_Admin {
 			'url'      => __( 'URL', 'floating-labels-for-cf7' ),
 			'tel'      => __( 'Telephone', 'floating-labels-for-cf7' ),
 			'number'   => __( 'Number', 'floating-labels-for-cf7' ),
+			'date'     => __( 'Date', 'floating-labels-for-cf7' ),
 			'textarea' => __( 'Text area', 'floating-labels-for-cf7' ),
+			'select'   => __( 'Select', 'floating-labels-for-cf7' ),
 		);
 
 		if ( ! isset( $labels[ $type ] ) ) {

@@ -29,6 +29,12 @@
  *                                           on one line, a paragraph of
  *                                           explanation, a <label> without
  *                                           for (text mode)
+ *   H  FL Test H Date and select            date with placeholder, select
+ *                                           with include_blank in a label,
+ *                                           required select first_as_label,
+ *                                           select without blank option,
+ *                                           multiple select, select with
+ *                                           include_blank and no label
  *
  * Contact Form 7 syntax: options without quotes (nofloat, id:, min:) must
  * precede the quoted values, otherwise the tag is printed as plain text.
@@ -119,6 +125,15 @@ function jgor_flcf7_create_test_forms(): array {
 		. "<label>Nickname</label>\n[text your-nick]\n\n"
 		. '<p>[submit "Send"]</p>';
 
+	$jgor_flcf7_form_h = "[date your-date placeholder \"Preferred date\"]\n\n"
+		. "<label> Topic\n    [select your-topic include_blank \"Sales\" \"Support\"] </label>\n\n"
+		. "[select* your-reason first_as_label \"Reason for contact\" \"Question\" \"Feedback\"]\n\n"
+		. "<label> Country\n    [select your-country \"Germany\" \"Austria\"] </label>\n\n"
+		. "<label> Languages\n    [select your-langs multiple \"DE\" \"EN\"] </label>\n\n"
+		. "[select your-plain include_blank \"X\" \"Y\"]\n\n"
+		. "[text* your-name placeholder \"Your name\"]\n\n"
+		. '[submit "Send"]';
+
 	// Form A: the default form of Contact Form 7, created from its template if missing.
 	$jgor_flcf7_default = get_posts(
 		array(
@@ -145,13 +160,15 @@ function jgor_flcf7_create_test_forms(): array {
 	$jgor_flcf7_c = jgor_flcf7_test_form( 'FL Test C Mixed', $jgor_flcf7_form_c );
 	$jgor_flcf7_d = jgor_flcf7_test_form( 'FL Test D Off', $jgor_flcf7_form_b, 'floating_labels: off' );
 	$jgor_flcf7_f = jgor_flcf7_test_form( 'FL Test F Old template', $jgor_flcf7_form_f );
+	$jgor_flcf7_h = jgor_flcf7_test_form( 'FL Test H Date and select', $jgor_flcf7_form_h );
 
 	$jgor_flcf7_content = jgor_flcf7_test_block( 'A: Standard template (label mode)', $jgor_flcf7_a )
 		. jgor_flcf7_test_block( 'B: Placeholder template', $jgor_flcf7_b )
 		. jgor_flcf7_test_block( 'C: Mixed (linked label, nofloat, enclosing label, select, checkbox, file)', $jgor_flcf7_c )
 		. jgor_flcf7_test_block( 'D: floating_labels: off', $jgor_flcf7_d )
 		. jgor_flcf7_test_block( 'E: B again (same form twice)', $jgor_flcf7_b )
-		. jgor_flcf7_test_block( 'F: Old template (text in front of the fields, text mode)', $jgor_flcf7_f );
+		. jgor_flcf7_test_block( 'F: Old template (text in front of the fields, text mode)', $jgor_flcf7_f )
+		. jgor_flcf7_test_block( 'H: Date and select fields', $jgor_flcf7_h );
 
 	$jgor_flcf7_page = get_page_by_path( 'contact', OBJECT, 'page' );
 	if ( $jgor_flcf7_page instanceof WP_Post ) {
@@ -180,12 +197,13 @@ function jgor_flcf7_create_test_forms(): array {
 		'c'    => $jgor_flcf7_c,
 		'd'    => $jgor_flcf7_d,
 		'f'    => $jgor_flcf7_f,
+		'h'    => $jgor_flcf7_h,
 		'page' => $jgor_flcf7_page_id,
 	);
 }
 
 /**
- * Deletes the test forms B, C, D and F and the page "Contact" permanently.
+ * Deletes the test forms B, C, D, F and H and the page "Contact" permanently.
  * "Contact form 1" (A) stays: Contact Form 7 creates it itself and the
  * screenshot scripts use it.
  *
@@ -194,7 +212,7 @@ function jgor_flcf7_create_test_forms(): array {
 function jgor_flcf7_remove_test_forms(): int {
 	$deleted = 0;
 
-	foreach ( array( 'FL Test B Placeholder', 'FL Test C Mixed', 'FL Test D Off', 'FL Test F Old template' ) as $title ) {
+	foreach ( array( 'FL Test B Placeholder', 'FL Test C Mixed', 'FL Test D Off', 'FL Test F Old template', 'FL Test H Date and select' ) as $title ) {
 		$posts = get_posts(
 			array(
 				'post_type'   => 'wpcf7_contact_form',

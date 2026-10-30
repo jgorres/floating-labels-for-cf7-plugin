@@ -13,8 +13,8 @@
  * The sample forms are named "FL Test <name> - may be deleted". The first
  * one is the default form of Contact Form 7 (label mode), the others show
  * placeholder mode, text mode for old templates, the variants and focus
- * effects through additional settings, the limits of the rebuild and a form
- * with floating labels switched off. Two placements of the default form at
+ * effects through additional settings, the limits of the rebuild, date and
+ * select fields and a form with floating labels switched off. Two placements of the default form at
  * the end carry classes and design values of their own (block attributes
  * and shortcode attributes).
  *
@@ -318,7 +318,7 @@ final class JGOR_FLCF7_Samples {
 		?>
 		<div class="card jgor-flcf7-samples">
 			<h2 class="jgor-flcf7-samples__title"><?php esc_html_e( 'Sample page', 'floating-labels-for-cf7' ); ?></h2>
-			<p><?php esc_html_e( 'A private page "Testpage Floating Labels for CF7" with forms that show the options: the default form of Contact Form 7, placeholders, an old template, the variants and focus effects, the limits of the rebuild, a form switched off, and two placements with settings of their own. The forms are named "FL Test ... - may be deleted" and send no mail. Only logged-in users who may read private pages see the page.', 'floating-labels-for-cf7' ); ?></p>
+			<p><?php esc_html_e( 'A private page "Testpage Floating Labels for CF7" with forms that show the options: the default form of Contact Form 7, placeholders, an old template, the variants and focus effects, the limits of the rebuild, date and select fields, a form switched off, and two placements with settings of their own. The forms are named "FL Test ... - may be deleted" and send no mail. Only logged-in users who may read private pages see the page.', 'floating-labels-for-cf7' ); ?></p>
 			<?php if ( ! class_exists( 'WPCF7_ContactForm' ) ) : ?>
 				<p><em><?php esc_html_e( 'Contact Form 7 is not active.', 'floating-labels-for-cf7' ); ?></em></p>
 			<?php else : ?>
@@ -500,6 +500,13 @@ final class JGOR_FLCF7_Samples {
 			. "[file your-file]\n\n"
 			. '[submit "Send"]';
 
+		$date_select = "[date your-date placeholder \"Preferred date\"]\n\n"
+			. "<label> Topic\n    [select your-topic include_blank \"Sales\" \"Support\" \"Other\"] </label>\n\n"
+			. "[select* your-reason first_as_label \"Reason for contact\" \"Question\" \"Feedback\"]\n\n"
+			. "<label> Country\n    [select your-country \"Germany\" \"Austria\" \"Switzerland\"] </label>\n\n"
+			. "[text* your-name placeholder \"Your name\"]\n\n"
+			. '[submit "Send"]';
+
 		return array(
 			'default'      => array(
 				'name'     => 'Default template',
@@ -541,7 +548,14 @@ final class JGOR_FLCF7_Samples {
 				'template' => $mixed,
 				'settings' => "skip_mail: on\nfloating_labels_effect: pulse",
 				'heading'  => __( 'Mixed form with pulsing glow', 'floating-labels-for-cf7' ),
-				'text'     => __( 'A linked label, a field with the option nofloat, inline markup inside a label, telephone and number fields, and a select, checkboxes and a file upload that keep their original markup; "floating_labels_effect: pulse" in the additional settings.', 'floating-labels-for-cf7' ),
+				'text'     => __( 'A linked label, a field with the option nofloat, inline markup inside a label, telephone and number fields, a select without label (left as it is), and checkboxes and a file upload that keep their original markup; "floating_labels_effect: pulse" in the additional settings.', 'floating-labels-for-cf7' ),
+			),
+			'date-select'  => array(
+				'name'     => 'Date and select',
+				'template' => $date_select,
+				'settings' => 'skip_mail: on',
+				'heading'  => __( 'Date and select fields', 'floating-labels-for-cf7' ),
+				'text'     => __( 'A date field, whose label stays floated because browsers show a format mask in the empty field; a select with a blank option ("include_blank"), whose label rests in the field until a choice is made; a required select whose first option serves as its label ("first_as_label"); and a select without a blank option, which always holds a value, so its label stays floated.', 'floating-labels-for-cf7' ),
 			),
 			'off'          => array(
 				'name'     => 'Off',
