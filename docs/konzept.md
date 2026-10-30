@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.29 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt; Schritte 14–17 erledigt bis auf Hostsharing und Browser-Matrix, nächster Schritt 5.6 Veröffentlichung)
+Version: 2.30 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Hostsharing synchron; offen Browser-Matrix und Sichtprüfung des Tabs, dann 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -1766,9 +1766,21 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     82 KB, Plugin Check ohne Befund. Dabei die lokale Option `types` um
     `date` und `select` ergänzt: eine gespeicherte Option behält sonst die
     sechs alten Typen (7.8), und die Beispielseite „Date and select“
-    braucht beide; Hostsharing bekommt den Stand per `datenbank`. Offen:
-    Hostsharing `dateien` und `datenbank` (Probelauf zuerst),
-    Browser-Matrix (Nutzer), Sichtprüfung des Tabs (Nutzer).
+    braucht beide; Hostsharing bekommt den Stand per `datenbank`.
+    Hostsharing am 30.10.2026 nachgezogen (Konzept 2.30): `dateien
+    --ueberschreiben --ja` nach Probelauf (Sicherung des Webroots 38 MB
+    vorher; 1 neue und 311 geänderte Dateien, 0 Löschungen, überwiegend
+    WordPress-Sprachdateien mit neuem Zeitstempel), `datenbank
+    --ueberschreiben --ja` (lokale und Remote-DB gesichert, 43
+    URL-Ersetzungen; der Nachlauf meldete einmalig einen Fehler beim
+    `rewrite flush` und keine Site-URL, ein erneuter `rewrite flush` per
+    SSH lief sauber, `siteurl`/`home` stimmen). Lesend geprüft: alle 18
+    Plugin-Dateien md5-identisch, Option mit acht Typen, Beispielseite 655
+    mit den Formularen 647–654, Plugin Check auf dem Server ohne Befund,
+    `<webroot>/.htaccess` nur mit dem Basic-Auth-Block (401 ohne, 200 mit
+    Zugangsdaten), Frontend lädt `floating-labels.css?ver=1.0.0.<Zeit>`.
+    Offen: Browser-Matrix (Nutzer), Sichtprüfung des Tabs im CF7-Editor und
+    der Felder Datum/Select (Nutzer); danach 5.6.
 
 ## 15. Offen
 
@@ -1846,3 +1858,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.27 | 30.10.2026 | Schritt 15 erledigt: Feldtypen `date` und `select` (7.8 mit Placeholder-Quelle aus dem Form-Tag statt Textvergleich, 7, 7.7, 8 Abschnitt „Field types“, 9 Beschriftungen und Hinweis, 9.3 achtes Formular „Date and select“); §13 Testformular H, Prüfzähler 128/63/39 |
 | 2.28 | 30.10.2026 | Schritt 16 erledigt: Tab „Floating labels“ im CF7-Editor (9.4 mit Abweichungen: `wp_verify_nonce()` statt `check_admin_referer()`, Werte aus `$data`, CSS über `wpcf7_admin_load`, Zähler über die aktuelle Form), Hauptdatei lädt `class-jgor-flcf7-form-panel.php`, Hinweistexte (9), `admin.css` (Panel-Zeilen, Spalten), readme (Features, Per form, Installation, FAQ); §13 `verify-form-panel.php` 28, `verify-admin.php` 65 |
 | 2.29 | 30.10.2026 | Schritt 17 lokal erledigt: Beispielseite neu (acht Formulare), Screenshot 7 und Script (3, 13), readme Screenshots, `.pot` 209, ZIP 18 Dateien 82 KB mit Plugin Check ohne Befund (13), lokale Option `types` um date/select ergänzt (14); offen Hostsharing und Browser-Matrix |
+| 2.30 | 30.10.2026 | Hostsharing nach den Schritten 14–17 mit `dateien` und `datenbank` nachgezogen und lesend geprüft (§14 Schritt 17): 18 Dateien md5-identisch, Option, Beispielseite 655, Plugin Check remote ohne Befund |
