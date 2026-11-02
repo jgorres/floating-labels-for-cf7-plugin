@@ -239,8 +239,8 @@ final class JGOR_FLCF7_Markup {
 	 * Determines the settings that apply to one rendering of a form.
 	 *
 	 * Layers, lowest first: the plugin settings; the additional settings of
-	 * the form (floating_labels, floating_labels_style, floating_labels_effect,
-	 * floating_labels_marker, floating_labels_types); the classes in the
+	 * the form (jgor_floating_labels, jgor_floating_labels_style, jgor_floating_labels_effect,
+	 * jgor_floating_labels_marker, jgor_floating_labels_types); the classes in the
 	 * html_class attribute of the shortcode or block (jgor-flcf7-off,
 	 * jgor-flcf7-on, jgor-flcf7-mode-*, jgor-flcf7-style-*, jgor-flcf7-effect-*,
 	 * jgor-flcf7-marker-on, jgor-flcf7-marker-off); the filter
@@ -337,12 +337,12 @@ final class JGOR_FLCF7_Markup {
 	/**
 	 * Applies the additional settings of the form (tab "Additional Settings").
 	 *
-	 * Lines: "floating_labels: off" (also false, no, 0), "floating_labels:
-	 * placeholder", "floating_labels: label" or "floating_labels: text" (only
+	 * Lines: "jgor_floating_labels: off" (also false, no, 0), "jgor_floating_labels:
+	 * placeholder", "jgor_floating_labels: label" or "jgor_floating_labels: text" (only
 	 * that mode),
-	 * "floating_labels_style: outlined|filled|minimal",
-	 * "floating_labels_effect: none|glow|pulse|sweep",
-	 * "floating_labels_marker: on|off" and "floating_labels_types: text email"
+	 * "jgor_floating_labels_style: outlined|filled|minimal",
+	 * "jgor_floating_labels_effect: none|glow|pulse|sweep",
+	 * "jgor_floating_labels_marker: on|off" and "jgor_floating_labels_types: text email"
 	 * (space or comma separated base types; an empty list switches every
 	 * type off). Unknown values are ignored.
 	 *
@@ -352,7 +352,7 @@ final class JGOR_FLCF7_Markup {
 	 * @return array<string, mixed>
 	 */
 	private function apply_additional_settings( WPCF7_ContactForm $form, array $current, array $known ): array {
-		$pref = $form->pref( 'floating_labels' );
+		$pref = $form->pref( JGOR_FLCF7_Settings::PREF_MODE );
 		if ( is_string( $pref ) ) {
 			switch ( strtolower( trim( $pref ) ) ) {
 				case 'off':
@@ -382,7 +382,7 @@ final class JGOR_FLCF7_Markup {
 			}
 		}
 
-		$pref = $form->pref( 'floating_labels_style' );
+		$pref = $form->pref( JGOR_FLCF7_Settings::PREF_STYLE );
 		if ( is_string( $pref ) ) {
 			$style = sanitize_key( $pref );
 			if ( in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ) {
@@ -390,7 +390,7 @@ final class JGOR_FLCF7_Markup {
 			}
 		}
 
-		$pref = $form->pref( 'floating_labels_effect' );
+		$pref = $form->pref( JGOR_FLCF7_Settings::PREF_EFFECT );
 		if ( is_string( $pref ) ) {
 			$effect = sanitize_key( $pref );
 			if ( in_array( $effect, JGOR_FLCF7_Settings::EFFECTS, true ) ) {
@@ -398,7 +398,7 @@ final class JGOR_FLCF7_Markup {
 			}
 		}
 
-		$pref = $form->pref( 'floating_labels_marker' );
+		$pref = $form->pref( JGOR_FLCF7_Settings::PREF_MARKER );
 		if ( is_string( $pref ) ) {
 			$marker = $this->to_bool( $pref );
 			if ( null !== $marker ) {
@@ -406,7 +406,7 @@ final class JGOR_FLCF7_Markup {
 			}
 		}
 
-		$pref = $form->pref( 'floating_labels_types' );
+		$pref = $form->pref( JGOR_FLCF7_Settings::PREF_TYPES );
 		if ( is_string( $pref ) ) {
 			$current['types'] = $this->parse_types( $pref, $known );
 		}
@@ -621,7 +621,7 @@ final class JGOR_FLCF7_Markup {
 	 *
 	 * Uses the form-tags of the template instead of guessing from attributes:
 	 * only tags whose base type is allowed for this rendering and that do not
-	 * carry the option "nofloat" qualify. A name used by two tags of
+	 * carry the option "jgor_nofloat" qualify. A name used by two tags of
 	 * different types is ambiguous and skipped. The id option (id:...) is
 	 * kept because Contact Form 7 prints every id option only once per
 	 * request: when the same form is rendered twice on a page, the second
@@ -646,7 +646,7 @@ final class JGOR_FLCF7_Markup {
 			$name     = (string) $tag->name;
 			$basetype = (string) $tag->basetype;
 
-			if ( '' === $name || $tag->has_option( 'nofloat' ) ) {
+			if ( '' === $name || $tag->has_option( JGOR_FLCF7_Settings::TAG_OPTION_NOFLOAT ) ) {
 				$ambiguous[ $name ] = true;
 				continue;
 			}

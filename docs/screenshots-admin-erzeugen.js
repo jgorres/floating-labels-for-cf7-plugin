@@ -51,7 +51,7 @@ const HEIGHT_EDITOR = 1400;
 const HEIGHT_FORM = 1000;
 const SHOT_FORM_TITLE = 'FL Shot Form - may be deleted';
 const PANEL_ID = 'jgor-flcf7-panel';
-const SETTINGS_PAGE = 'wpcf7-floating-labels';
+const SETTINGS_PAGE = 'jgor-flcf7';
 const BLOCK_NAME = 'contact-form-7/contact-form-selector';
 const HIDE_CSS = '#wp-admin-bar-query-monitor, #query-monitor-main { display: none !important; }';
 
@@ -137,7 +137,7 @@ if ( $jgor_posts ) {
 function prepareShotForm() {
 	const php = `
 $jgor_cf = WPCF7_ContactForm::get_template( array( 'title' => '${ SHOT_FORM_TITLE }', 'locale' => 'en_US' ) );
-$jgor_cf->set_properties( array( 'additional_settings' => "floating_labels_style: filled\\nfloating_labels_effect: glow\\nfloating_labels_types: text email textarea" ) );
+$jgor_cf->set_properties( array( 'additional_settings' => "jgor_floating_labels_style: filled\\njgor_floating_labels_effect: glow\\njgor_floating_labels_types: text email textarea" ) );
 $jgor_cf->save();
 echo wp_json_encode( array( 'id' => $jgor_cf->id() ) );`;
 	return JSON.parse( wp( [ 'eval', php ] ) );

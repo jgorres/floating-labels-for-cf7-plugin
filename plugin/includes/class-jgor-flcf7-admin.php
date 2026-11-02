@@ -37,7 +37,7 @@ final class JGOR_FLCF7_Admin {
 	/**
 	 * Slug of the settings page.
 	 */
-	public const PAGE_SLUG = 'wpcf7-floating-labels';
+	public const PAGE_SLUG = 'jgor-flcf7';
 
 	/**
 	 * Handle of the settings screen script (colour picker) and stylesheet.
@@ -259,7 +259,7 @@ final class JGOR_FLCF7_Admin {
 			. '<pre><code>' . esc_html( $this->example_additional_settings() ) . '</code></pre>'
 			. '<p><strong>' . esc_html__( 'Per placement', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html( $this->text_per_placement() ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_html_classes() ) . '</code></pre>'
-			. '<p><strong>' . esc_html__( 'Per field', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add the option nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ) . '</p>'
+			. '<p><strong>' . esc_html__( 'Per field', 'floating-labels-for-cf7' ) . '</strong><br>' . esc_html__( 'Add the option jgor_nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ) . '</p>'
 			. '<pre><code>' . esc_html( $this->example_nofloat() ) . '</code></pre>';
 	}
 
@@ -302,7 +302,7 @@ final class JGOR_FLCF7_Admin {
 	 * @return string Plain text.
 	 */
 	private function example_additional_settings(): string {
-		return "floating_labels: off\nfloating_labels: placeholder\nfloating_labels: label\nfloating_labels: text\nfloating_labels_style: filled\nfloating_labels_effect: glow\nfloating_labels_marker: on\nfloating_labels_types: text email textarea";
+		return "jgor_floating_labels: off\njgor_floating_labels: placeholder\njgor_floating_labels: label\njgor_floating_labels: text\njgor_floating_labels_style: filled\njgor_floating_labels_effect: glow\njgor_floating_labels_marker: on\njgor_floating_labels_types: text email textarea";
 	}
 
 	/**
@@ -316,12 +316,12 @@ final class JGOR_FLCF7_Admin {
 	}
 
 	/**
-	 * Example form-tag with the option nofloat (concept 7.5).
+	 * Example form-tag with the option jgor_nofloat (concept 7.5).
 	 *
 	 * @return string Plain text.
 	 */
 	private function example_nofloat(): string {
-		return '[text* your-name nofloat placeholder "Your name"]';
+		return '[text* your-name jgor_nofloat placeholder "Your name"]';
 	}
 
 	/**
@@ -557,7 +557,7 @@ final class JGOR_FLCF7_Admin {
 				$this->render_checkbox(
 					$key,
 					__( 'Use loose text in front of the field', 'floating-labels-for-cf7' ),
-					__( 'For templates without a label and without a placeholder, such as the default template of Contact Form 7 before version 5.4: the text right in front of the field, or the paragraph just before it, becomes the label text. A heuristic, off by default; check the result and add the option nofloat to fields that should keep their text.', 'floating-labels-for-cf7' )
+					__( 'For templates without a label and without a placeholder, such as the default template of Contact Form 7 before version 5.4: the text right in front of the field, or the paragraph just before it, becomes the label text. A heuristic, off by default; check the result and add the option jgor_nofloat to fields that should keep their text.', 'floating-labels-for-cf7' )
 				);
 				break;
 
@@ -893,7 +893,7 @@ final class JGOR_FLCF7_Admin {
 		<pre><code><?php echo esc_html( $this->example_html_classes() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'Per field', 'floating-labels-for-cf7' ); ?></strong><br>
-		<?php esc_html_e( 'Add the option nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ); ?></p>
+		<?php esc_html_e( 'Add the option jgor_nofloat to the form-tag, before any quoted value:', 'floating-labels-for-cf7' ); ?></p>
 		<pre><code><?php echo esc_html( $this->example_nofloat() ); ?></code></pre>
 
 		<p><strong><?php esc_html_e( 'For developers', 'floating-labels-for-cf7' ); ?></strong><br>

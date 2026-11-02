@@ -3,9 +3,9 @@
  * Module 7: the tab "Floating labels" in the Contact Form 7 form editor.
  *
  * A comfort front for the control per form (concept 7.5, layer 2): the tab
- * offers the choices that the additional settings floating_labels,
- * floating_labels_style, floating_labels_effect, floating_labels_marker and
- * floating_labels_types accept, and saves them as exactly those lines in the
+ * offers the choices that the additional settings jgor_floating_labels,
+ * jgor_floating_labels_style, jgor_floating_labels_effect, jgor_floating_labels_marker and
+ * jgor_floating_labels_types accept, and saves them as exactly those lines in the
  * additional settings of the form. Nothing else changes: module 2 keeps
  * reading the lines through pref(), lines written by hand stay visible and
  * editable in the tab "Additional Settings", and other lines (skip_mail,
@@ -64,31 +64,31 @@ final class JGOR_FLCF7_Form_Panel {
 	 * so the panel owns exactly the lines the renderer reads; an indented
 	 * or differently cased line is left alone.
 	 */
-	private const LINE_PATTERN = '/^floating_labels(?:_style|_effect|_marker|_types)?[\t ]*:/';
+	private const LINE_PATTERN = '/^' . JGOR_FLCF7_Settings::PREF_MODE . '(?:_style|_effect|_marker|_types)?[\t ]*:/';
 
 	/**
-	 * Values of the line "floating_labels" the panel offers (concept 7.5).
+	 * Values of the line "jgor_floating_labels" the panel offers (concept 7.5).
 	 *
 	 * @var string[]
 	 */
 	private const MODES = array( 'off', 'placeholder', 'label', 'text' );
 
 	/**
-	 * Spellings of "off" module 2 accepts for the line "floating_labels".
+	 * Spellings of "off" module 2 accepts for the line "jgor_floating_labels".
 	 *
 	 * @var string[]
 	 */
 	private const OFF_WORDS = array( 'off', 'false', 'no', '0' );
 
 	/**
-	 * Spellings of "on" module 2 accepts for the line "floating_labels_marker".
+	 * Spellings of "on" module 2 accepts for the line "jgor_floating_labels_marker".
 	 *
 	 * @var string[]
 	 */
 	private const ON_WORDS = array( 'on', 'true', 'yes', '1' );
 
 	/**
-	 * Values of the line "floating_labels_marker" the panel offers.
+	 * Values of the line "jgor_floating_labels_marker" the panel offers.
 	 *
 	 * @var string[]
 	 */
@@ -247,7 +247,7 @@ final class JGOR_FLCF7_Form_Panel {
 					</p>
 				<?php endforeach; ?>
 			</fieldset>
-			<p class="description"><?php esc_html_e( 'Without the limit, the field types ticked on the settings screen apply. The lines this tab writes: floating_labels, floating_labels_style, floating_labels_effect, floating_labels_marker, floating_labels_types.', 'floating-labels-for-cf7' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Without the limit, the field types ticked on the settings screen apply. The lines this tab writes: jgor_floating_labels, jgor_floating_labels_style, jgor_floating_labels_effect, jgor_floating_labels_marker, jgor_floating_labels_types.', 'floating-labels-for-cf7' ); ?></p>
 		</fieldset>
 		<?php
 	}
@@ -368,14 +368,14 @@ final class JGOR_FLCF7_Form_Panel {
 	 * @return array{mode: string, style: string, effect: string, marker: string, limit: bool, types: string[]}
 	 */
 	private function values_of( WPCF7_ContactForm $form ): array {
-		$mode = $this->pref( $form, 'floating_labels' );
+		$mode = $this->pref( $form, JGOR_FLCF7_Settings::PREF_MODE );
 		if ( in_array( $mode, self::OFF_WORDS, true ) ) {
 			$mode = 'off';
 		} elseif ( ! in_array( $mode, self::MODES, true ) ) {
 			$mode = '';
 		}
 
-		$marker = $this->pref( $form, 'floating_labels_marker' );
+		$marker = $this->pref( $form, JGOR_FLCF7_Settings::PREF_MARKER );
 		if ( in_array( $marker, self::ON_WORDS, true ) ) {
 			$marker = 'on';
 		} elseif ( in_array( $marker, self::OFF_WORDS, true ) ) {
@@ -384,10 +384,10 @@ final class JGOR_FLCF7_Form_Panel {
 			$marker = '';
 		}
 
-		$style  = $this->pref( $form, 'floating_labels_style' );
-		$effect = $this->pref( $form, 'floating_labels_effect' );
+		$style  = $this->pref( $form, JGOR_FLCF7_Settings::PREF_STYLE );
+		$effect = $this->pref( $form, JGOR_FLCF7_Settings::PREF_EFFECT );
 
-		$types_line = $form->pref( 'floating_labels_types' );
+		$types_line = $form->pref( JGOR_FLCF7_Settings::PREF_TYPES );
 		$limit      = is_string( $types_line );
 		$types      = $limit ? $this->parse_types( $types_line ) : $this->settings->get( 'types' );
 
@@ -418,7 +418,7 @@ final class JGOR_FLCF7_Form_Panel {
 	/**
 	 * Parses a types line (space or comma separated) into known base types.
 	 *
-	 * @param string $line Value of the line floating_labels_types.
+	 * @param string $line Value of the line jgor_floating_labels_types.
 	 * @return string[]
 	 */
 	private function parse_types( string $line ): array {
@@ -443,29 +443,29 @@ final class JGOR_FLCF7_Form_Panel {
 
 		$mode = $this->choice( $input, 'mode', self::MODES );
 		if ( '' !== $mode ) {
-			$lines[] = 'floating_labels: ' . $mode;
+			$lines[] = JGOR_FLCF7_Settings::PREF_MODE . ': ' . $mode;
 		}
 
 		$style = $this->choice( $input, 'style', JGOR_FLCF7_Settings::STYLES );
 		if ( '' !== $style ) {
-			$lines[] = 'floating_labels_style: ' . $style;
+			$lines[] = JGOR_FLCF7_Settings::PREF_STYLE . ': ' . $style;
 		}
 
 		$effect = $this->choice( $input, 'effect', JGOR_FLCF7_Settings::EFFECTS );
 		if ( '' !== $effect ) {
-			$lines[] = 'floating_labels_effect: ' . $effect;
+			$lines[] = JGOR_FLCF7_Settings::PREF_EFFECT . ': ' . $effect;
 		}
 
 		$marker = $this->choice( $input, 'marker', self::MARKERS );
 		if ( '' !== $marker ) {
-			$lines[] = 'floating_labels_marker: ' . $marker;
+			$lines[] = JGOR_FLCF7_Settings::PREF_MARKER . ': ' . $marker;
 		}
 
 		if ( ! empty( $input['limit'] ) ) {
 			$raw   = isset( $input['types'] ) && is_array( $input['types'] ) ? array_filter( $input['types'], 'is_string' ) : array();
 			$types = array_values( array_intersect( $this->settings->field_types(), array_map( 'sanitize_key', $raw ) ) );
 
-			$lines[] = rtrim( 'floating_labels_types: ' . implode( ' ', $types ) );
+			$lines[] = rtrim( JGOR_FLCF7_Settings::PREF_TYPES . ': ' . implode( ' ', $types ) );
 		}
 
 		return $lines;

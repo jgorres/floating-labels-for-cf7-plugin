@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-30T14:35:11+00:00\n"
+"POT-Creation-Date: 2026-11-02T18:31:17+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: floating-labels-for-cf7\n"
@@ -53,7 +53,7 @@ msgid "Plugin activation stopped"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:160
-#: includes/class-jgor-flcf7-form-panel.php:174
+#: includes/class-jgor-flcf7-form-panel.php:179
 msgid "Floating Labels"
 msgstr ""
 
@@ -120,7 +120,7 @@ msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:262
 #: includes/class-jgor-flcf7-admin.php:896
-msgid "Add the option nofloat to the form-tag, before any quoted value:"
+msgid "Add the option jgor_nofloat to the form-tag, before any quoted value:"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:272
@@ -168,7 +168,7 @@ msgid "Form template labels"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:392
-#: includes/class-jgor-flcf7-samples.php:522
+#: includes/class-jgor-flcf7-samples.php:541
 msgid "Placeholders"
 msgstr ""
 
@@ -177,7 +177,7 @@ msgid "Text before the field"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:395
-#: includes/class-jgor-flcf7-form-panel.php:235
+#: includes/class-jgor-flcf7-form-panel.php:240
 msgid "Field types"
 msgstr ""
 
@@ -192,14 +192,14 @@ msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:399
 #: includes/class-jgor-flcf7-admin.php:708
-#: includes/class-jgor-flcf7-form-panel.php:199
+#: includes/class-jgor-flcf7-form-panel.php:204
 #: assets/js/block-editor.js:215
 msgid "Variant"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:400
 #: includes/class-jgor-flcf7-admin.php:736
-#: includes/class-jgor-flcf7-form-panel.php:209
+#: includes/class-jgor-flcf7-form-panel.php:214
 #: assets/js/block-editor.js:225
 msgid "Focus effect"
 msgstr ""
@@ -319,7 +319,7 @@ msgid "Use loose text in front of the field"
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:560
-msgid "For templates without a label and without a placeholder, such as the default template of Contact Form 7 before version 5.4: the text right in front of the field, or the paragraph just before it, becomes the label text. A heuristic, off by default; check the result and add the option nofloat to fields that should keep their text."
+msgid "For templates without a label and without a placeholder, such as the default template of Contact Form 7 before version 5.4: the text right in front of the field, or the paragraph just before it, becomes the label text. A heuristic, off by default; check the result and add the option jgor_nofloat to fields that should keep their text."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:579
@@ -373,7 +373,7 @@ msgid "Untick every type to switch floating labels off without losing the other 
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:711
-#: includes/class-jgor-flcf7-form-panel.php:201
+#: includes/class-jgor-flcf7-form-panel.php:206
 #: assets/js/block-editor.js:218
 msgid "Outlined"
 msgstr ""
@@ -383,7 +383,7 @@ msgid "Border all round; the label floats onto the border line."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:715
-#: includes/class-jgor-flcf7-form-panel.php:202
+#: includes/class-jgor-flcf7-form-panel.php:207
 #: assets/js/block-editor.js:219
 msgid "Filled"
 msgstr ""
@@ -393,7 +393,7 @@ msgid "Tinted box with a bottom line; the label floats inside the box."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:719
-#: includes/class-jgor-flcf7-form-panel.php:203
+#: includes/class-jgor-flcf7-form-panel.php:208
 #: assets/js/block-editor.js:220
 msgid "Minimal"
 msgstr ""
@@ -403,7 +403,7 @@ msgid "No colours, borders or backgrounds; your theme styles the field, the labe
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:739
-#: includes/class-jgor-flcf7-form-panel.php:211
+#: includes/class-jgor-flcf7-form-panel.php:216
 #: assets/js/block-editor.js:228
 msgid "None"
 msgstr ""
@@ -413,7 +413,7 @@ msgid "The border changes colour only."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:743
-#: includes/class-jgor-flcf7-form-panel.php:212
+#: includes/class-jgor-flcf7-form-panel.php:217
 #: assets/js/block-editor.js:229
 msgid "Glow"
 msgstr ""
@@ -423,7 +423,7 @@ msgid "A soft glow around the focused field."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:747
-#: includes/class-jgor-flcf7-form-panel.php:213
+#: includes/class-jgor-flcf7-form-panel.php:218
 #: assets/js/block-editor.js:230
 msgid "Pulsing glow"
 msgstr ""
@@ -433,7 +433,7 @@ msgid "The glow swells and fades while the field has focus."
 msgstr ""
 
 #: includes/class-jgor-flcf7-admin.php:751
-#: includes/class-jgor-flcf7-form-panel.php:214
+#: includes/class-jgor-flcf7-form-panel.php:219
 #: assets/js/block-editor.js:231
 msgid "Running light"
 msgstr ""
@@ -587,62 +587,62 @@ msgid "Select"
 msgstr ""
 
 #. translators: %d: number of floating-label settings set for this form
-#: includes/class-jgor-flcf7-form-panel.php:148
+#: includes/class-jgor-flcf7-form-panel.php:153
 #, php-format
 msgid "Floating labels (%d)"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:149
-#: includes/class-jgor-flcf7-form-panel.php:170
-#: includes/class-jgor-flcf7-form-panel.php:188
+#: includes/class-jgor-flcf7-form-panel.php:154
+#: includes/class-jgor-flcf7-form-panel.php:175
+#: includes/class-jgor-flcf7-form-panel.php:193
 #: assets/js/block-editor.js:196
 #: assets/js/block-editor.js:912
 msgid "Floating labels"
 msgstr ""
 
 #. translators: %s: link "Floating Labels" to the settings screen
-#: includes/class-jgor-flcf7-form-panel.php:178
+#: includes/class-jgor-flcf7-form-panel.php:183
 #, php-format
 msgid "These choices apply to this form only and override the defaults of Contact > %s. They are saved as lines in the tab \"Additional Settings\", where you can edit them as well; a placement in the block editor overrides them in turn."
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:190
-#: includes/class-jgor-flcf7-form-panel.php:223
+#: includes/class-jgor-flcf7-form-panel.php:195
+#: includes/class-jgor-flcf7-form-panel.php:228
 #: assets/js/block-editor.js:200
 msgid "Off"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:191
+#: includes/class-jgor-flcf7-form-panel.php:196
 msgid "Placeholder only"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:192
+#: includes/class-jgor-flcf7-form-panel.php:197
 msgid "Label only"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:193
+#: includes/class-jgor-flcf7-form-panel.php:198
 #: assets/js/block-editor.js:210
 msgid "Text before the field only"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:220
+#: includes/class-jgor-flcf7-form-panel.php:225
 msgid "Marker for required fields"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:222
+#: includes/class-jgor-flcf7-form-panel.php:227
 #: assets/js/block-editor.js:199
 msgid "On"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:231
+#: includes/class-jgor-flcf7-form-panel.php:236
 msgid "Limit the field types for this form"
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:245
-msgid "Without the limit, the field types ticked on the settings screen apply. The lines this tab writes: floating_labels, floating_labels_style, floating_labels_effect, floating_labels_marker, floating_labels_types."
+#: includes/class-jgor-flcf7-form-panel.php:250
+msgid "Without the limit, the field types ticked on the settings screen apply. The lines this tab writes: jgor_floating_labels, jgor_floating_labels_style, jgor_floating_labels_effect, jgor_floating_labels_marker, jgor_floating_labels_types."
 msgstr ""
 
-#: includes/class-jgor-flcf7-form-panel.php:346
+#: includes/class-jgor-flcf7-form-panel.php:351
 msgid "Default (settings page)"
 msgstr ""
 
@@ -730,91 +730,91 @@ msgstr ""
 msgid "Not now"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:515
+#: includes/class-jgor-flcf7-samples.php:534
 msgid "Default template"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:516
+#: includes/class-jgor-flcf7-samples.php:535
 msgid "The form Contact Form 7 creates by default: the labels of the template become floating labels (label mode). Variant and focus effect follow the settings screen."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:523
+#: includes/class-jgor-flcf7-samples.php:542
 msgid "Fields with a placeholder option only: the placeholder becomes the floating label (placeholder mode)."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:529
+#: includes/class-jgor-flcf7-samples.php:548
 msgid "Old template: text before the field"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:530
-msgid "A form as Contact Form 7 created it before version 5.4, with loose text in front of the fields instead of labels or placeholders. The additional setting \"floating_labels: text\" switches text mode on for this form."
+#: includes/class-jgor-flcf7-samples.php:549
+msgid "A form as Contact Form 7 created it before version 5.4, with loose text in front of the fields instead of labels or placeholders. The additional setting \"jgor_floating_labels: text\" switches text mode on for this form."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:536
+#: includes/class-jgor-flcf7-samples.php:555
 msgid "Filled variant with glow"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:537
-msgid "The default template with \"floating_labels_style: filled\" and \"floating_labels_effect: glow\" in its additional settings."
+#: includes/class-jgor-flcf7-samples.php:556
+msgid "The default template with \"jgor_floating_labels_style: filled\" and \"jgor_floating_labels_effect: glow\" in its additional settings."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:543
+#: includes/class-jgor-flcf7-samples.php:562
 msgid "Minimal variant with running light"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:544
-msgid "The placeholder form with \"floating_labels_style: minimal\", \"floating_labels_effect: sweep\" and \"floating_labels_marker: off\": your theme styles the fields, a light runs around the focused field, and required fields get no asterisk."
+#: includes/class-jgor-flcf7-samples.php:563
+msgid "The placeholder form with \"jgor_floating_labels_style: minimal\", \"jgor_floating_labels_effect: sweep\" and \"jgor_floating_labels_marker: off\": your theme styles the fields, a light runs around the focused field, and required fields get no asterisk."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:550
+#: includes/class-jgor-flcf7-samples.php:569
 msgid "Mixed form with pulsing glow"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:551
-msgid "A linked label, a field with the option nofloat, inline markup inside a label, telephone and number fields, a select without label (left as it is), and checkboxes and a file upload that keep their original markup; \"floating_labels_effect: pulse\" in the additional settings."
+#: includes/class-jgor-flcf7-samples.php:570
+msgid "A linked label, a field with the option jgor_nofloat, inline markup inside a label, telephone and number fields, a select without label (left as it is), and checkboxes and a file upload that keep their original markup; \"jgor_floating_labels_effect: pulse\" in the additional settings."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:557
+#: includes/class-jgor-flcf7-samples.php:576
 msgid "Date and select fields"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:558
+#: includes/class-jgor-flcf7-samples.php:577
 msgid "A date field, whose label stays floated because browsers show a format mask in the empty field; a select with a blank option (\"include_blank\"), whose label rests in the field until a choice is made; a required select whose first option serves as its label (\"first_as_label\"); and a select without a blank option, which always holds a value, so its label stays floated."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:564
+#: includes/class-jgor-flcf7-samples.php:583
 msgid "Switched off"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:565
-msgid "The placeholder form with \"floating_labels: off\": rendered exactly as Contact Form 7 renders it."
+#: includes/class-jgor-flcf7-samples.php:584
+msgid "The placeholder form with \"jgor_floating_labels: off\": rendered exactly as Contact Form 7 renders it."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:578
+#: includes/class-jgor-flcf7-samples.php:597
 msgid "This page was created by Floating Labels for CF7 to show its options. It is private. You can remove it together with the forms \"FL Test ... - may be deleted\" at any time under Contact > Floating Labels."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:591
+#: includes/class-jgor-flcf7-samples.php:610
 msgid "Template of this form, as Contact Form 7 created it before version 5.4:"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:593
+#: includes/class-jgor-flcf7-samples.php:612
 msgid "The same field as Contact Form 7 writes it today (label mode):"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:601
+#: includes/class-jgor-flcf7-samples.php:620
 msgid "Per placement: block settings"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:602
+#: includes/class-jgor-flcf7-samples.php:621
 msgid "The default form once more, with the panel \"Floating labels\" of the block set to Filled and Glow and with a border colour and font size from the design panels. Both are stored with this block only; select it to see the panels in the sidebar."
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:605
+#: includes/class-jgor-flcf7-samples.php:624
 msgid "Per placement: shortcode attributes"
 msgstr ""
 
-#: includes/class-jgor-flcf7-samples.php:606
+#: includes/class-jgor-flcf7-samples.php:625
 msgid "The same form in a Shortcode block, with the attributes html_class and jgor_flcf7_design written by hand."
 msgstr ""
 

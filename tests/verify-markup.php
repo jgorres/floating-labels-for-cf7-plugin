@@ -13,7 +13,7 @@
  * (set FLCF7_KEEP=1 in the environment to keep them for a look).
  *
  * Besides the rebuild itself the script covers the control layers of the
- * concept (section 7.5): additional settings per form (floating_labels_*),
+ * concept (section 7.5): additional settings per form (jgor_floating_labels_*),
  * html_class classes per placement (block field "Class" or shortcode
  * attribute) and the filters jgor_flcf7_form_settings, jgor_flcf7_enabled
  * and jgor_flcf7_label_text.
@@ -202,7 +202,7 @@ jgor_flcf7_labels_match( $jgor_flcf7_a );
 jgor_flcf7_check( 'A: submit untouched', str_contains( $jgor_flcf7_a, '<input class="wpcf7-form-control wpcf7-submit has-spinner" type="submit" value="Submit">' ) );
 jgor_flcf7_check( 'A: submit wrapped with the default error text', (bool) preg_match( '#<span class="jgor-flcf7-submit"><input class="wpcf7-form-control wpcf7-submit has-spinner" type="submit" value="Submit"><span class="jgor-flcf7-submit-error" aria-hidden="true">Please check the highlighted fields</span></span>#', $jgor_flcf7_a ) );
 jgor_flcf7_check( 'A: aria attributes kept', str_contains( $jgor_flcf7_a, 'aria-required="true" aria-invalid="false"' ) );
-jgor_flcf7_check( 'A with floating_labels: placeholder -> untouched (no placeholders)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_a, true, 'floating_labels: placeholder' ), 'jgor-flcf7' ) );
+jgor_flcf7_check( 'A with jgor_floating_labels: placeholder -> untouched (no placeholders)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_a, true, 'jgor_floating_labels: placeholder' ), 'jgor-flcf7' ) );
 jgor_flcf7_check( 'A with filter jgor_flcf7_enabled=false -> untouched', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_a, false ), 'jgor-flcf7' ) );
 
 // (b) Placeholder template.
@@ -211,14 +211,14 @@ jgor_flcf7_check( 'B: 3 floating labels from placeholders', 3 === preg_match_all
 jgor_flcf7_check( 'B: texts', str_contains( $jgor_flcf7_b, '>Your name</label>' ) && str_contains( $jgor_flcf7_b, '>Your email</label>' ) && str_contains( $jgor_flcf7_b, '>Your message</label>' ) );
 jgor_flcf7_check( 'B: no original placeholder text left', ! str_contains( $jgor_flcf7_b, 'placeholder="Your' ) );
 jgor_flcf7_labels_match( $jgor_flcf7_b );
-jgor_flcf7_check( 'B with floating_labels: label -> untouched (no labels)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels: label' ), 'jgor-flcf7' ) );
+jgor_flcf7_check( 'B with jgor_floating_labels: label -> untouched (no labels)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels: label' ), 'jgor-flcf7' ) );
 
 // (c) Mixed.
 $jgor_flcf7_c  = jgor_flcf7_render( $jgor_flcf7_id_c );
 $jgor_flcf7_c0 = jgor_flcf7_render( $jgor_flcf7_id_c, false );
 jgor_flcf7_check( 'C: linked label moved into wrap with for=fl-subject', (bool) preg_match( '#<input[^>]*id="fl-subject"[^>]*placeholder=" "[^>]*><label for="fl-subject" class="jgor-flcf7-label">Subject</label></span>#', $jgor_flcf7_c ) );
 jgor_flcf7_check( 'C: <br> after moved label removed, paragraph kept', (bool) preg_match( '#<p>\s*<span class="wpcf7-form-control-wrap jgor-flcf7-wrap[^"]*" data-name="your-subject">#', $jgor_flcf7_c ) );
-jgor_flcf7_check( 'C: nofloat field untouched', str_contains( $jgor_flcf7_c, 'placeholder="Nickname"' ) && ! preg_match( '#data-name="your-nick"><input[^>]*jgor-flcf7#', $jgor_flcf7_c ) );
+jgor_flcf7_check( 'C: jgor_nofloat field untouched', str_contains( $jgor_flcf7_c, 'placeholder="Nickname"' ) && ! preg_match( '#data-name="your-nick"><input[^>]*jgor-flcf7#', $jgor_flcf7_c ) );
 jgor_flcf7_check( 'C: enclosing label with <strong> -> text "Your website"', str_contains( $jgor_flcf7_c, '>Your website</label>' ) );
 jgor_flcf7_check( 'C: tel and number via placeholder', str_contains( $jgor_flcf7_c, '>Phone</label>' ) && str_contains( $jgor_flcf7_c, '>Age</label>' ) );
 foreach ( array( 'your-choice', 'your-cb', 'your-file' ) as $jgor_flcf7_name ) {
@@ -235,7 +235,7 @@ jgor_flcf7_labels_match( $jgor_flcf7_c );
 // (d) Off via additional settings: byte-identical to the disabled output.
 $jgor_flcf7_d  = jgor_flcf7_render( $jgor_flcf7_id_d );
 $jgor_flcf7_d0 = jgor_flcf7_render( $jgor_flcf7_id_d, false );
-jgor_flcf7_check( 'D: floating_labels: off -> byte-identical to original (unit tag normalised)', jgor_flcf7_norm_unit( $jgor_flcf7_d ) === jgor_flcf7_norm_unit( $jgor_flcf7_d0 ) && ! str_contains( $jgor_flcf7_d, 'jgor-flcf7' ) );
+jgor_flcf7_check( 'D: jgor_floating_labels: off -> byte-identical to original (unit tag normalised)', jgor_flcf7_norm_unit( $jgor_flcf7_d ) === jgor_flcf7_norm_unit( $jgor_flcf7_d0 ) && ! str_contains( $jgor_flcf7_d, 'jgor-flcf7' ) );
 
 // (e) Same form twice: distinct ids.
 preg_match_all( '#id="(wpcf7-f' . $jgor_flcf7_id_b . '-o\d+-fl-your-name)"#', jgor_flcf7_render( $jgor_flcf7_id_b ) . jgor_flcf7_render( $jgor_flcf7_id_b ), $jgor_flcf7_m );
@@ -254,8 +254,8 @@ jgor_flcf7_labels_match( $jgor_flcf7_c2 );
 $jgor_flcf7_f  = jgor_flcf7_render( $jgor_flcf7_id_f );
 $jgor_flcf7_f0 = jgor_flcf7_render( $jgor_flcf7_id_f, false );
 jgor_flcf7_check( 'F: mode_text off by default -> byte-identical to original (unit tag normalised)', jgor_flcf7_norm_unit( $jgor_flcf7_f ) === jgor_flcf7_norm_unit( $jgor_flcf7_f0 ) && ! str_contains( $jgor_flcf7_f, 'jgor-flcf7' ) );
-$jgor_flcf7_f = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'floating_labels: text' );
-jgor_flcf7_check( 'F: floating_labels: text -> 7 floating labels', 7 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_f ) );
+$jgor_flcf7_f = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'jgor_floating_labels: text' );
+jgor_flcf7_check( 'F: jgor_floating_labels: text -> 7 floating labels', 7 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_f ) );
 jgor_flcf7_check( 'F: label texts from the loose text in front of the fields', str_contains( $jgor_flcf7_f, '>Your Name (required)</label>' ) && str_contains( $jgor_flcf7_f, '>Your Email (required)</label>' ) && str_contains( $jgor_flcf7_f, '>Phone</label>' ) && str_contains( $jgor_flcf7_f, '>Company</label>' ) && str_contains( $jgor_flcf7_f, '>Your Message</label>' ) && str_contains( $jgor_flcf7_f, '>Website</label>' ) && str_contains( $jgor_flcf7_f, '>Nickname</label>' ) );
 jgor_flcf7_check( 'F: text paragraphs from the old template removed (Contact Form 7 renders Text<br />[tag] as two paragraphs), wrap paragraphs kept', ! preg_match( '#<p>\s*(?:Your Name \(required\)|Your Email \(required\)|Phone|Company|Your Message)\s*</p>#', $jgor_flcf7_f ) && (bool) preg_match( '#<p>\s*<span class="wpcf7-form-control-wrap jgor-flcf7-wrap[^"]*" data-name="your-name">#', $jgor_flcf7_f ) && (bool) preg_match( '#<p>\s*<span class="wpcf7-form-control-wrap jgor-flcf7-wrap[^"]*" data-name="your-company">#', $jgor_flcf7_f ) );
 jgor_flcf7_check( 'F: 9 paragraphs left of 14', 9 === preg_match_all( '#<p>#', $jgor_flcf7_f ) );
@@ -265,10 +265,10 @@ jgor_flcf7_check( 'F: text without <br> ("Website") removed from the paragraph',
 jgor_flcf7_labels_match( $jgor_flcf7_f );
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_f, true, null, array( 'html_class' => 'jgor-flcf7-mode-text' ) );
 jgor_flcf7_check( 'F: placement jgor-flcf7-mode-text -> rebuilt', 7 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'floating_labels: text', array( 'html_class' => 'jgor-flcf7-mode-label' ) );
-jgor_flcf7_check( 'F: placement jgor-flcf7-mode-label overrides floating_labels: text -> untouched', ! preg_match( '#jgor-flcf7-(wrap|control|label)#', $jgor_flcf7_p ) );
-jgor_flcf7_check( 'A with floating_labels: text -> untouched (enclosing labels are not loose text)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_a, true, 'floating_labels: text' ), 'jgor-flcf7' ) );
-jgor_flcf7_check( 'B with floating_labels: text -> untouched (no text in front of the fields)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels: text' ), 'jgor-flcf7' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'jgor_floating_labels: text', array( 'html_class' => 'jgor-flcf7-mode-label' ) );
+jgor_flcf7_check( 'F: placement jgor-flcf7-mode-label overrides jgor_floating_labels: text -> untouched', ! preg_match( '#jgor-flcf7-(wrap|control|label)#', $jgor_flcf7_p ) );
+jgor_flcf7_check( 'A with jgor_floating_labels: text -> untouched (enclosing labels are not loose text)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_a, true, 'jgor_floating_labels: text' ), 'jgor-flcf7' ) );
+jgor_flcf7_check( 'B with jgor_floating_labels: text -> untouched (no text in front of the fields)', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels: text' ), 'jgor-flcf7' ) );
 $jgor_flcf7_option              = get_option( 'jgor_flcf7_settings' );
 $jgor_flcf7_option['mode_text'] = true;
 update_option( 'jgor_flcf7_settings', $jgor_flcf7_option );
@@ -288,7 +288,7 @@ $jgor_flcf7_f10 = function ( $text ) {
 	return str_replace( ' (required)', '', $text );
 };
 add_filter( 'jgor_flcf7_label_text', $jgor_flcf7_f10 );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'floating_labels: text' );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_f, true, 'jgor_floating_labels: text' );
 jgor_flcf7_check( 'F: filter jgor_flcf7_label_text strips "(required)"', str_contains( $jgor_flcf7_p, '>Your Name</label>' ) && ! str_contains( $jgor_flcf7_p, '(required)' ) );
 remove_filter( 'jgor_flcf7_label_text', $jgor_flcf7_f10 );
 
@@ -302,19 +302,19 @@ jgor_flcf7_check( 'H: select without blank option: first option kept, label "Cou
 jgor_flcf7_check( 'H: multiple select untouched, enclosing label kept', (bool) preg_match( '#<label>\s*Languages\s*(?:<br\s*/?>)?\s*<span class="wpcf7-form-control-wrap" data-name="your-langs"><select[^>]*multiple#', $jgor_flcf7_h ) && ! preg_match( '#data-name="your-langs"><select[^>]*jgor-flcf7#', $jgor_flcf7_h ), jgor_flcf7_wrap( $jgor_flcf7_h, 'your-langs' ) );
 jgor_flcf7_check( 'H: include_blank select without a label untouched, generic option text kept', (bool) preg_match( '#data-name="your-plain"><select(?![^>]*jgor-flcf7)[^>]*>\s*<option value="">(?:&\#8212;|—)Please choose an option(?:&\#8212;|—)</option>#u', $jgor_flcf7_h ), jgor_flcf7_wrap( $jgor_flcf7_h, 'your-plain' ) );
 jgor_flcf7_labels_match( $jgor_flcf7_h );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_h, true, 'floating_labels_types: text' );
-jgor_flcf7_check( 'H: floating_labels_types: text -> date and selects untouched', 1 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-select' ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-date' ) && str_contains( $jgor_flcf7_p, 'placeholder="Preferred date"' ) );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_h, true, 'floating_labels: label' );
-jgor_flcf7_check( 'H: floating_labels: label -> only the two selects with a label rebuilt, first_as_label text kept elsewhere', 2 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && str_contains( $jgor_flcf7_p, '<option value="">Reason for contact</option>' ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-date' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_h, true, 'jgor_floating_labels_types: text' );
+jgor_flcf7_check( 'H: jgor_floating_labels_types: text -> date and selects untouched', 1 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-select' ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-date' ) && str_contains( $jgor_flcf7_p, 'placeholder="Preferred date"' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_h, true, 'jgor_floating_labels: label' );
+jgor_flcf7_check( 'H: jgor_floating_labels: label -> only the two selects with a label rebuilt, first_as_label text kept elsewhere', 2 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && str_contains( $jgor_flcf7_p, '<option value="">Reason for contact</option>' ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-date' ) );
 
 // Per form: additional settings (concept 7.5).
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, "floating_labels_style: filled\nfloating_labels_marker: on" );
-jgor_flcf7_check( 'form: floating_labels_style: filled -> filled wraps, no outlined', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-filled#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-outlined' ) );
-jgor_flcf7_check( 'form: floating_labels_marker: on -> marker class on every wrap', 3 === preg_match_all( '#jgor-flcf7-marker"#', $jgor_flcf7_p ) );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_types: text' );
-jgor_flcf7_check( 'form: floating_labels_types: text -> only the text field rebuilt', 1 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && str_contains( $jgor_flcf7_p, 'placeholder="Your email"' ) && str_contains( $jgor_flcf7_p, 'placeholder="Your message"' ) );
-jgor_flcf7_check( 'form: empty floating_labels_types -> untouched', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_types:' ), 'jgor-flcf7' ) );
-jgor_flcf7_check( 'form: unknown floating_labels_style ignored -> outlined', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-outlined#', jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_style: fancy' ) ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, "jgor_floating_labels_style: filled\njgor_floating_labels_marker: on" );
+jgor_flcf7_check( 'form: jgor_floating_labels_style: filled -> filled wraps, no outlined', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-filled#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-outlined' ) );
+jgor_flcf7_check( 'form: jgor_floating_labels_marker: on -> marker class on every wrap', 3 === preg_match_all( '#jgor-flcf7-marker"#', $jgor_flcf7_p ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels_types: text' );
+jgor_flcf7_check( 'form: jgor_floating_labels_types: text -> only the text field rebuilt', 1 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && str_contains( $jgor_flcf7_p, 'placeholder="Your email"' ) && str_contains( $jgor_flcf7_p, 'placeholder="Your message"' ) );
+jgor_flcf7_check( 'form: empty jgor_floating_labels_types -> untouched', ! str_contains( jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels_types:' ), 'jgor-flcf7' ) );
+jgor_flcf7_check( 'form: unknown jgor_floating_labels_style ignored -> outlined', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-outlined#', jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels_style: fancy' ) ) );
 
 // Per placement: html_class (block field "Class", shortcode attribute html_class).
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, null, array( 'html_class' => 'jgor-flcf7-style-minimal jgor-flcf7-marker-on' ) );
@@ -323,24 +323,24 @@ jgor_flcf7_check( 'placement: html_class stays on the form only (one occurrence)
 jgor_flcf7_check( 'placement: jgor-flcf7-marker-on -> marker class', 3 === preg_match_all( '#jgor-flcf7-marker"#', $jgor_flcf7_p ) );
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, null, array( 'html_class' => 'jgor-flcf7-off' ) );
 jgor_flcf7_check( 'placement: jgor-flcf7-off -> no rebuild', ! preg_match( '#jgor-flcf7-(wrap|control|label)#', $jgor_flcf7_p ) );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_style: filled', array( 'html_class' => 'jgor-flcf7-style-outlined' ) );
-jgor_flcf7_check( 'placement wins over form: outlined despite floating_labels_style: filled', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-outlined#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-filled' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels_style: filled', array( 'html_class' => 'jgor-flcf7-style-outlined' ) );
+jgor_flcf7_check( 'placement wins over form: outlined despite jgor_floating_labels_style: filled', 3 === preg_match_all( '#jgor-flcf7-wrap jgor-flcf7-outlined#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-filled' ) );
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_d, true, null, array( 'html_class' => 'jgor-flcf7-on' ) );
-jgor_flcf7_check( 'placement: jgor-flcf7-on overrides floating_labels: off of the form', 3 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) );
+jgor_flcf7_check( 'placement: jgor-flcf7-on overrides jgor_floating_labels: off of the form', 3 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) );
 $jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, null, array( 'html_class' => 'jgor-flcf7-mode-label' ) );
 jgor_flcf7_check( 'placement: jgor-flcf7-mode-label on a placeholder form -> no rebuild', ! preg_match( '#jgor-flcf7-(wrap|control|label)#', $jgor_flcf7_p ) );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_marker: on', array( 'html_class' => 'jgor-flcf7-marker-off' ) );
-jgor_flcf7_check( 'placement: jgor-flcf7-marker-off overrides floating_labels_marker: on', 3 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-marker"' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels_marker: on', array( 'html_class' => 'jgor-flcf7-marker-off' ) );
+jgor_flcf7_check( 'placement: jgor-flcf7-marker-off overrides jgor_floating_labels_marker: on', 3 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-marker"' ) );
 
 // Focus effect: none by default, per form, per placement, through the filter; unknown values ignored.
 jgor_flcf7_check( 'effect: no effect class by default', ! preg_match( '#jgor-flcf7-(?:glow|pulse|sweep)#', $jgor_flcf7_a ) );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_effect: glow' );
-jgor_flcf7_check( 'form: floating_labels_effect: glow -> class jgor-flcf7-glow behind the marker on every wrap', 3 === preg_match_all( '#jgor-flcf7-marker jgor-flcf7-glow"#', $jgor_flcf7_p ) );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_effect: glow', array( 'html_class' => 'jgor-flcf7-effect-sweep' ) );
-jgor_flcf7_check( 'placement: jgor-flcf7-effect-sweep overrides floating_labels_effect: glow', 3 === preg_match_all( '#jgor-flcf7-sweep"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-glow' ) );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_effect: pulse', array( 'html_class' => 'jgor-flcf7-effect-none' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels_effect: glow' );
+jgor_flcf7_check( 'form: jgor_floating_labels_effect: glow -> class jgor-flcf7-glow behind the marker on every wrap', 3 === preg_match_all( '#jgor-flcf7-marker jgor-flcf7-glow"#', $jgor_flcf7_p ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels_effect: glow', array( 'html_class' => 'jgor-flcf7-effect-sweep' ) );
+jgor_flcf7_check( 'placement: jgor-flcf7-effect-sweep overrides jgor_floating_labels_effect: glow', 3 === preg_match_all( '#jgor-flcf7-sweep"#', $jgor_flcf7_p ) && ! str_contains( $jgor_flcf7_p, 'jgor-flcf7-glow' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels_effect: pulse', array( 'html_class' => 'jgor-flcf7-effect-none' ) );
 jgor_flcf7_check( 'placement: jgor-flcf7-effect-none -> no effect class', ! preg_match( '#jgor-flcf7-(?:glow|pulse|sweep)#', $jgor_flcf7_p ) && 3 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_p ) );
-$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'floating_labels_effect: spin', array( 'html_class' => 'jgor-flcf7-effect-blink' ) );
+$jgor_flcf7_p = jgor_flcf7_render( $jgor_flcf7_id_b, true, 'jgor_floating_labels_effect: spin', array( 'html_class' => 'jgor-flcf7-effect-blink' ) );
 jgor_flcf7_check( 'effect: unknown values in form and placement ignored', ! preg_match( '#jgor-flcf7-(?:glow|pulse|sweep|spin|blink)#', $jgor_flcf7_p ) );
 $jgor_flcf7_fe = function ( $settings ) {
 	$settings['effect'] = 'pulse';
@@ -497,7 +497,7 @@ JGOR_FLCF7_Settings::instance()->reset_cache();
 wp_dequeue_style( JGOR_FLCF7_Assets::HANDLE );
 wp_deregister_style( JGOR_FLCF7_Assets::HANDLE );
 jgor_flcf7_render( $jgor_flcf7_id_d );
-jgor_flcf7_check( 'safety net: nothing for a form that is not rebuilt (floating_labels: off)', ! wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
+jgor_flcf7_check( 'safety net: nothing for a form that is not rebuilt (jgor_floating_labels: off)', ! wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
 jgor_flcf7_render( $jgor_flcf7_id_b );
 jgor_flcf7_check( 'safety net: stylesheet enqueued after a rebuild with load_css_forms_only on', wp_style_is( JGOR_FLCF7_Assets::HANDLE, 'enqueued' ) );
 wp_dequeue_style( JGOR_FLCF7_Assets::HANDLE );

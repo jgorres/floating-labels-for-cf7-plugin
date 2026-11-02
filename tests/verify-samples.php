@@ -225,19 +225,19 @@ foreach ( $jgor_flcf7_stored['forms'] as $jgor_flcf7_id ) {
 jgor_flcf7_check( 'forms: every form has skip_mail: on', $jgor_flcf7_skip );
 jgor_flcf7_check(
 	'forms: additional settings per form',
-	'text' === jgor_flcf7_cf( $jgor_flcf7_f_old )->pref( 'floating_labels' )
-	&& 'filled' === jgor_flcf7_cf( $jgor_flcf7_f_filled )->pref( 'floating_labels_style' ) && 'glow' === jgor_flcf7_cf( $jgor_flcf7_f_filled )->pref( 'floating_labels_effect' )
-	&& 'minimal' === jgor_flcf7_cf( $jgor_flcf7_f_minimal )->pref( 'floating_labels_style' ) && 'sweep' === jgor_flcf7_cf( $jgor_flcf7_f_minimal )->pref( 'floating_labels_effect' ) && 'off' === jgor_flcf7_cf( $jgor_flcf7_f_minimal )->pref( 'floating_labels_marker' )
-	&& 'pulse' === jgor_flcf7_cf( $jgor_flcf7_f_mixed )->pref( 'floating_labels_effect' )
-	&& 'off' === jgor_flcf7_cf( $jgor_flcf7_f_off )->pref( 'floating_labels' )
-	&& null === jgor_flcf7_cf( $jgor_flcf7_f_default )->pref( 'floating_labels' )
+	'text' === jgor_flcf7_cf( $jgor_flcf7_f_old )->pref( 'jgor_floating_labels' )
+	&& 'filled' === jgor_flcf7_cf( $jgor_flcf7_f_filled )->pref( 'jgor_floating_labels_style' ) && 'glow' === jgor_flcf7_cf( $jgor_flcf7_f_filled )->pref( 'jgor_floating_labels_effect' )
+	&& 'minimal' === jgor_flcf7_cf( $jgor_flcf7_f_minimal )->pref( 'jgor_floating_labels_style' ) && 'sweep' === jgor_flcf7_cf( $jgor_flcf7_f_minimal )->pref( 'jgor_floating_labels_effect' ) && 'off' === jgor_flcf7_cf( $jgor_flcf7_f_minimal )->pref( 'jgor_floating_labels_marker' )
+	&& 'pulse' === jgor_flcf7_cf( $jgor_flcf7_f_mixed )->pref( 'jgor_floating_labels_effect' )
+	&& 'off' === jgor_flcf7_cf( $jgor_flcf7_f_off )->pref( 'jgor_floating_labels' )
+	&& null === jgor_flcf7_cf( $jgor_flcf7_f_default )->pref( 'jgor_floating_labels' )
 );
 jgor_flcf7_check(
 	'forms: Contact Form 7 template kept for "Default template" and "Filled and glow", own templates for the others',
 	str_contains( (string) jgor_flcf7_cf( $jgor_flcf7_f_default )->prop( 'form' ), '[text* your-name autocomplete:name]' )
 	&& str_contains( (string) jgor_flcf7_cf( $jgor_flcf7_f_filled )->prop( 'form' ), '[text* your-name autocomplete:name]' )
 	&& str_contains( (string) jgor_flcf7_cf( $jgor_flcf7_f_old )->prop( 'form' ), 'Your Name (required)<br />' )
-	&& str_contains( (string) jgor_flcf7_cf( $jgor_flcf7_f_mixed )->prop( 'form' ), 'nofloat' )
+	&& str_contains( (string) jgor_flcf7_cf( $jgor_flcf7_f_mixed )->prop( 'form' ), 'jgor_nofloat' )
 	&& str_contains( (string) jgor_flcf7_cf( $jgor_flcf7_f_placeholders )->prop( 'form' ), 'placeholder "Your name"' )
 );
 
@@ -291,11 +291,11 @@ $jgor_flcf7_mixed      = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_mi
 $jgor_flcf7_default    = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_default );
 $jgor_flcf7_dateselect = jgor_flcf7_forms_of( $jgor_flcf7_html, $jgor_flcf7_f_dateselect );
 jgor_flcf7_check( 'rendered: date and select form: five labels, date and select wraps, two blank options emptied, first option without blank kept, label from first_as_label', 1 === count( $jgor_flcf7_dateselect ) && 5 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_dateselect[0] ) && 1 === preg_match_all( '#jgor-flcf7-date#', $jgor_flcf7_dateselect[0] ) && 3 === preg_match_all( '#jgor-flcf7-select#', $jgor_flcf7_dateselect[0] ) && 2 === preg_match_all( '#<option value="">\s*</option>#', $jgor_flcf7_dateselect[0] ) && str_contains( $jgor_flcf7_dateselect[0], '<option value="Germany">Germany</option>' ) && str_contains( $jgor_flcf7_dateselect[0], '>Reason for contact</label>' ) );
-jgor_flcf7_check( 'rendered: old template gets four floating labels through floating_labels: text', 1 === count( $jgor_flcf7_old ) && 4 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_old[0] ) );
+jgor_flcf7_check( 'rendered: old template gets four floating labels through jgor_floating_labels: text', 1 === count( $jgor_flcf7_old ) && 4 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_old[0] ) );
 jgor_flcf7_check( 'rendered: switched-off form untouched', 1 === count( $jgor_flcf7_off ) && ! str_contains( $jgor_flcf7_off[0], 'jgor-flcf7' ) );
 jgor_flcf7_check( 'rendered: filled variant with glow', 1 === count( $jgor_flcf7_filled ) && str_contains( $jgor_flcf7_filled[0], 'jgor-flcf7-filled' ) && str_contains( $jgor_flcf7_filled[0], 'jgor-flcf7-glow' ) );
 jgor_flcf7_check( 'rendered: minimal variant with running light and without marker', 1 === count( $jgor_flcf7_minimal ) && str_contains( $jgor_flcf7_minimal[0], 'jgor-flcf7-minimal' ) && str_contains( $jgor_flcf7_minimal[0], 'jgor-flcf7-sweep' ) && ! str_contains( $jgor_flcf7_minimal[0], 'jgor-flcf7-marker"' ) );
-jgor_flcf7_check( 'rendered: mixed form with pulse, nofloat field and inline label', 1 === count( $jgor_flcf7_mixed ) && str_contains( $jgor_flcf7_mixed[0], 'jgor-flcf7-pulse' ) && str_contains( $jgor_flcf7_mixed[0], 'placeholder="Nickname (nofloat)"' ) && str_contains( $jgor_flcf7_mixed[0], '>Your website</label>' ) );
+jgor_flcf7_check( 'rendered: mixed form with pulse, jgor_nofloat field and inline label', 1 === count( $jgor_flcf7_mixed ) && str_contains( $jgor_flcf7_mixed[0], 'jgor-flcf7-pulse' ) && str_contains( $jgor_flcf7_mixed[0], 'placeholder="Nickname (jgor_nofloat)"' ) && str_contains( $jgor_flcf7_mixed[0], '>Your website</label>' ) );
 jgor_flcf7_check( 'rendered: default form three times: plain, block placement (filled, glow), shortcode placement (minimal)', 3 === count( $jgor_flcf7_default ) && str_contains( $jgor_flcf7_default[0], 'jgor-flcf7-outlined' ) && ! str_contains( $jgor_flcf7_default[0], 'jgor-flcf7-glow' ) && str_contains( $jgor_flcf7_default[1], 'jgor-flcf7-filled' ) && str_contains( $jgor_flcf7_default[1], 'jgor-flcf7-glow' ) && str_contains( $jgor_flcf7_default[2], 'jgor-flcf7-minimal' ) );
 jgor_flcf7_check( 'rendered: design values of both placements as a style on their wrappers', 2 === substr_count( $jgor_flcf7_html, 'style="--jgor-flcf7-font-size: 1.1em; --jgor-flcf7-border-color: #0a7d3e;"' ) );
 

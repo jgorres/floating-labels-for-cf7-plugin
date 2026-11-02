@@ -17,10 +17,10 @@
  * Forms:
  *   A  Contact Form 7 default template      enclosing labels (label mode)
  *   B  FL Test B Placeholder                placeholder options only
- *   C  FL Test C Mixed                      linked label, nofloat, enclosing
+ *   C  FL Test C Mixed                      linked label, jgor_nofloat, enclosing
  *                                           label with <strong>, tel, number,
  *                                           select, checkbox, file
- *   D  FL Test D Off                        B with "floating_labels: off"
+ *   D  FL Test D Off                        B with "jgor_floating_labels: off"
  *   E  B once more                          same form twice on one page
  *   F  FL Test F Old template               no labels, no placeholders: the
  *                                           template of Contact Form 7 before
@@ -36,7 +36,7 @@
  *                                           multiple select, select with
  *                                           include_blank and no label
  *
- * Contact Form 7 syntax: options without quotes (nofloat, id:, min:) must
+ * Contact Form 7 syntax: options without quotes (jgor_nofloat, id:, min:) must
  * precede the quoted values, otherwise the tag is printed as plain text.
  *
  * @package Floating_Labels_For_CF7
@@ -107,7 +107,7 @@ function jgor_flcf7_create_test_forms(): array {
 		. '[submit "Send"]';
 
 	$jgor_flcf7_form_c = "<label for=\"fl-subject\">Subject</label>\n[text* your-subject id:fl-subject]\n\n"
-		. "[text your-nick nofloat placeholder \"Nickname\"]\n\n"
+		. "[text your-nick jgor_nofloat placeholder \"Nickname\"]\n\n"
 		. "<label> Your <strong>website</strong>\n    [url your-site] </label>\n\n"
 		. "[tel your-phone placeholder \"Phone\"]\n\n"
 		. "[number your-age min:0 max:120 placeholder \"Age\"]\n\n"
@@ -158,14 +158,14 @@ function jgor_flcf7_create_test_forms(): array {
 
 	$jgor_flcf7_b = jgor_flcf7_test_form( 'FL Test B Placeholder', $jgor_flcf7_form_b );
 	$jgor_flcf7_c = jgor_flcf7_test_form( 'FL Test C Mixed', $jgor_flcf7_form_c );
-	$jgor_flcf7_d = jgor_flcf7_test_form( 'FL Test D Off', $jgor_flcf7_form_b, 'floating_labels: off' );
+	$jgor_flcf7_d = jgor_flcf7_test_form( 'FL Test D Off', $jgor_flcf7_form_b, 'jgor_floating_labels: off' );
 	$jgor_flcf7_f = jgor_flcf7_test_form( 'FL Test F Old template', $jgor_flcf7_form_f );
 	$jgor_flcf7_h = jgor_flcf7_test_form( 'FL Test H Date and select', $jgor_flcf7_form_h );
 
 	$jgor_flcf7_content = jgor_flcf7_test_block( 'A: Standard template (label mode)', $jgor_flcf7_a )
 		. jgor_flcf7_test_block( 'B: Placeholder template', $jgor_flcf7_b )
-		. jgor_flcf7_test_block( 'C: Mixed (linked label, nofloat, enclosing label, select, checkbox, file)', $jgor_flcf7_c )
-		. jgor_flcf7_test_block( 'D: floating_labels: off', $jgor_flcf7_d )
+		. jgor_flcf7_test_block( 'C: Mixed (linked label, jgor_nofloat, enclosing label, select, checkbox, file)', $jgor_flcf7_c )
+		. jgor_flcf7_test_block( 'D: jgor_floating_labels: off', $jgor_flcf7_d )
 		. jgor_flcf7_test_block( 'E: B again (same form twice)', $jgor_flcf7_b )
 		. jgor_flcf7_test_block( 'F: Old template (text in front of the fields, text mode)', $jgor_flcf7_f )
 		. jgor_flcf7_test_block( 'H: Date and select fields', $jgor_flcf7_h );

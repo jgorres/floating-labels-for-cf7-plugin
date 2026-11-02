@@ -510,7 +510,7 @@ final class JGOR_FLCF7_Samples {
 			. '<p>[submit "Send"]</p>';
 
 		$mixed = "<label for=\"fl-sample-subject\">Subject</label>\n[text* your-subject id:fl-sample-subject]\n\n"
-			. "[text your-nick nofloat placeholder \"Nickname (nofloat)\"]\n\n"
+			. "[text your-nick jgor_nofloat placeholder \"Nickname (jgor_nofloat)\"]\n\n"
 			. "<label> Your <strong>website</strong>\n    [url your-site] </label>\n\n"
 			. "[tel your-phone placeholder \"Phone\"]\n\n"
 			. "[number your-age min:0 max:120 placeholder \"Age\"]\n\n"
@@ -544,30 +544,30 @@ final class JGOR_FLCF7_Samples {
 			'old-template' => array(
 				'name'     => 'Old template',
 				'template' => $old_template,
-				'settings' => "skip_mail: on\nfloating_labels: text",
+				'settings' => "skip_mail: on\njgor_floating_labels: text",
 				'heading'  => __( 'Old template: text before the field', 'floating-labels-for-cf7' ),
-				'text'     => __( 'A form as Contact Form 7 created it before version 5.4, with loose text in front of the fields instead of labels or placeholders. The additional setting "floating_labels: text" switches text mode on for this form.', 'floating-labels-for-cf7' ),
+				'text'     => __( 'A form as Contact Form 7 created it before version 5.4, with loose text in front of the fields instead of labels or placeholders. The additional setting "jgor_floating_labels: text" switches text mode on for this form.', 'floating-labels-for-cf7' ),
 			),
 			'filled'       => array(
 				'name'     => 'Filled and glow',
 				'template' => null,
-				'settings' => "skip_mail: on\nfloating_labels_style: filled\nfloating_labels_effect: glow",
+				'settings' => "skip_mail: on\njgor_floating_labels_style: filled\njgor_floating_labels_effect: glow",
 				'heading'  => __( 'Filled variant with glow', 'floating-labels-for-cf7' ),
-				'text'     => __( 'The default template with "floating_labels_style: filled" and "floating_labels_effect: glow" in its additional settings.', 'floating-labels-for-cf7' ),
+				'text'     => __( 'The default template with "jgor_floating_labels_style: filled" and "jgor_floating_labels_effect: glow" in its additional settings.', 'floating-labels-for-cf7' ),
 			),
 			'minimal'      => array(
 				'name'     => 'Minimal and running light',
 				'template' => $placeholders,
-				'settings' => "skip_mail: on\nfloating_labels_style: minimal\nfloating_labels_effect: sweep\nfloating_labels_marker: off",
+				'settings' => "skip_mail: on\njgor_floating_labels_style: minimal\njgor_floating_labels_effect: sweep\njgor_floating_labels_marker: off",
 				'heading'  => __( 'Minimal variant with running light', 'floating-labels-for-cf7' ),
-				'text'     => __( 'The placeholder form with "floating_labels_style: minimal", "floating_labels_effect: sweep" and "floating_labels_marker: off": your theme styles the fields, a light runs around the focused field, and required fields get no asterisk.', 'floating-labels-for-cf7' ),
+				'text'     => __( 'The placeholder form with "jgor_floating_labels_style: minimal", "jgor_floating_labels_effect: sweep" and "jgor_floating_labels_marker: off": your theme styles the fields, a light runs around the focused field, and required fields get no asterisk.', 'floating-labels-for-cf7' ),
 			),
 			'mixed'        => array(
 				'name'     => 'Mixed',
 				'template' => $mixed,
-				'settings' => "skip_mail: on\nfloating_labels_effect: pulse",
+				'settings' => "skip_mail: on\njgor_floating_labels_effect: pulse",
 				'heading'  => __( 'Mixed form with pulsing glow', 'floating-labels-for-cf7' ),
-				'text'     => __( 'A linked label, a field with the option nofloat, inline markup inside a label, telephone and number fields, a select without label (left as it is), and checkboxes and a file upload that keep their original markup; "floating_labels_effect: pulse" in the additional settings.', 'floating-labels-for-cf7' ),
+				'text'     => __( 'A linked label, a field with the option jgor_nofloat, inline markup inside a label, telephone and number fields, a select without label (left as it is), and checkboxes and a file upload that keep their original markup; "jgor_floating_labels_effect: pulse" in the additional settings.', 'floating-labels-for-cf7' ),
 			),
 			'date-select'  => array(
 				'name'     => 'Date and select',
@@ -579,9 +579,9 @@ final class JGOR_FLCF7_Samples {
 			'off'          => array(
 				'name'     => 'Off',
 				'template' => $placeholders,
-				'settings' => "skip_mail: on\nfloating_labels: off",
+				'settings' => "skip_mail: on\njgor_floating_labels: off",
 				'heading'  => __( 'Switched off', 'floating-labels-for-cf7' ),
-				'text'     => __( 'The placeholder form with "floating_labels: off": rendered exactly as Contact Form 7 renders it.', 'floating-labels-for-cf7' ),
+				'text'     => __( 'The placeholder form with "jgor_floating_labels: off": rendered exactly as Contact Form 7 renders it.', 'floating-labels-for-cf7' ),
 			),
 		);
 	}

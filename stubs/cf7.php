@@ -189,7 +189,7 @@ class WPCF7_FormTag implements ArrayAccess {
 	public $name = '';
 
 	/**
-	 * Options as written, e.g. "id:your-id", "placeholder", "nofloat".
+	 * Options as written, e.g. "id:your-id", "placeholder", "jgor_nofloat".
 	 *
 	 * @var string[]
 	 */

@@ -40,14 +40,14 @@ Text, email, URL, telephone, number, date, textarea and select fields get floati
 Open the tab "Floating labels" in the editor of a form and pick the values: on or off, the label source, the variant, the focus effect, the required marker and, optionally, a limit on the field types. They are saved as these lines in the form's "Additional Settings" tab, which you can also write by hand:
 
 `
-floating_labels: off
-floating_labels: placeholder
-floating_labels: label
-floating_labels: text
-floating_labels_style: filled
-floating_labels_effect: glow
-floating_labels_marker: on
-floating_labels_types: text email textarea
+jgor_floating_labels: off
+jgor_floating_labels: placeholder
+jgor_floating_labels: label
+jgor_floating_labels: text
+jgor_floating_labels_style: filled
+jgor_floating_labels_effect: glow
+jgor_floating_labels_marker: on
+jgor_floating_labels_types: text email textarea
 `
 
 = Per placement =
@@ -70,9 +70,9 @@ The panels "Floating labels: colours", "Floating labels: sizes", "Floating label
 
 = Per field =
 
-Add the option `nofloat` to a form-tag, before any quoted value:
+Add the option `jgor_nofloat` to a form-tag, before any quoted value:
 
-`[text* your-name nofloat placeholder "Your name"]`
+`[text* your-name jgor_nofloat placeholder "Your name"]`
 
 = Colours and sizes =
 
@@ -119,15 +119,15 @@ Yes. After the activation a notice offers to create it; later, open Contact > Fl
 
 = A field does not get a floating label. Why? =
 
-Check these points in order: the field type is one of text, email, URL, telephone, number, date, textarea or select (without `multiple`) and ticked in the settings; the form-tag has no `nofloat` option; the form has no `floating_labels: off` line in its Additional Settings; the field has a label text, either a `<label>` that encloses the field or points at its `id`, or a `placeholder` option, or, with the option "Text before the field" switched on, loose text right in front of the field or in the paragraph just before it. Labels that contain more than one field or block-level HTML are left alone on purpose.
+Check these points in order: the field type is one of text, email, URL, telephone, number, date, textarea or select (without `multiple`) and ticked in the settings; the form-tag has no `jgor_nofloat` option; the form has no `jgor_floating_labels: off` line in its Additional Settings; the field has a label text, either a `<label>` that encloses the field or points at its `id`, or a `placeholder` option, or, with the option "Text before the field" switched on, loose text right in front of the field or in the paragraph just before it. Labels that contain more than one field or block-level HTML are left alone on purpose.
 
 = My forms come from an older Contact Form 7 and have neither labels nor placeholders. =
 
-The default template of Contact Form 7 before version 5.4 put the field name as loose text in front of the field: `<p>Your Name (required)<br />[text* your-name]</p>`. Switch on "Text before the field" under Contact > Floating Labels, section "Label sources", or add `floating_labels: text` to the Additional Settings of that form, or choose "Text before the field only" in the block sidebar for one placement. The text right in front of the field, or the paragraph just before it, becomes the floating label; the stored form is not changed. It is a heuristic, which is why it is off by default: check the result, add `nofloat` to fields that should keep their text, and use the filter `jgor_flcf7_label_text` to strip additions such as "(required)" from the label.
+The default template of Contact Form 7 before version 5.4 put the field name as loose text in front of the field: `<p>Your Name (required)<br />[text* your-name]</p>`. Switch on "Text before the field" under Contact > Floating Labels, section "Label sources", or add `jgor_floating_labels: text` to the Additional Settings of that form, or choose "Text before the field only" in the block sidebar for one placement. The text right in front of the field, or the paragraph just before it, becomes the floating label; the stored form is not changed. It is a heuristic, which is why it is off by default: check the result, add `jgor_nofloat` to fields that should keep their text, and use the filter `jgor_flcf7_label_text` to strip additions such as "(required)" from the label.
 
 = How do I switch floating labels off for one form? =
 
-Open the tab "Floating labels" in the editor of that form and choose "Off", or add `floating_labels: off` to its "Additional Settings" tab. To switch them off for one page only, add the class `jgor-flcf7-off` to the "Class" field of the Contact Form 7 block or to the `html_class` attribute of the shortcode.
+Open the tab "Floating labels" in the editor of that form and choose "Off", or add `jgor_floating_labels: off` to its "Additional Settings" tab. To switch them off for one page only, add the class `jgor-flcf7-off` to the "Class" field of the Contact Form 7 block or to the `html_class` attribute of the shortcode.
 
 = Can one form use a different variant on one page? =
 
@@ -135,7 +135,7 @@ Yes. Add `jgor-flcf7-style-filled`, `jgor-flcf7-style-outlined` or `jgor-flcf7-s
 
 = Can the focused field glow? =
 
-Yes. Under Contact > Floating Labels, section Appearance, choose the focus effect: a glow, a pulsing glow or a light running around the border. Colour, size, width and duration are set under Design ("Glow and running light"). Per form, add `floating_labels_effect: glow` (or `pulse`, `sweep`, `none`) to the Additional Settings; per placement, use the panel in the block sidebar or the class `jgor-flcf7-effect-glow`. The effects are pure CSS and respect `prefers-reduced-motion`: the pulse becomes a steady glow, the running light a steady ring.
+Yes. Under Contact > Floating Labels, section Appearance, choose the focus effect: a glow, a pulsing glow or a light running around the border. Colour, size, width and duration are set under Design ("Glow and running light"). Per form, add `jgor_floating_labels_effect: glow` (or `pulse`, `sweep`, `none`) to the Additional Settings; per placement, use the panel in the block sidebar or the class `jgor-flcf7-effect-glow`. The effects are pure CSS and respect `prefers-reduced-motion`: the pulse becomes a steady glow, the running light a steady ring.
 
 = How do I change the colours? =
 

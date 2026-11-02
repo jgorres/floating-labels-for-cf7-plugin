@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.36 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Code-Review und wp-reviewer durch, Befunde behoben; offen Entscheidungen aus §15, Hostsharing `dateien`, dann 5.6 Veröffentlichung)
+Version: 2.37 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Code-Review und wp-reviewer durch, Befunde behoben; offen Entscheidungen aus §15, Hostsharing `dateien`, dann 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -142,10 +142,10 @@ WordPress (Abschnitt 13).
   Screenreader nicht zwei Namen vorlesen. CF7-Attribute (`aria-required`,
   `aria-invalid`, `aria-describedby`) bleiben erhalten.
 - **CF7-Konventionen:** Die Steuerung je Formular läuft über die Additional
-  Settings (`floating_labels: off`, `floating_labels_style: filled`, …), je
+  Settings (`jgor_floating_labels: off`, `jgor_floating_labels_style: filled`, …), je
   Platzierung über das Shortcode-/Block-Attribut `html_class` (im
   Block-Editor per Panel „Floating labels“, Modul 5), je Feld über
-  eine Form-Tag-Option (`nofloat`); Rangfolge in 7.5. Das CSS folgt der
+  eine Form-Tag-Option (`jgor_nofloat`); Rangfolge in 7.5. Das CSS folgt der
   Ladepolitik von CF7 über die Action `wpcf7_enqueue_styles`.
 - **Theme-freundlich:** Farben, Maße, Dauer und die Werte des
   Fokus-Effekts als Custom Properties
@@ -175,13 +175,13 @@ Aus der CF7-Doku und dem Quelltext 6.2.3:
   einmal aus (statische Liste; Werte mit Präfix `wpcf7` nie): steht
   dasselbe Formular zweimal auf einer Seite, hat das Feld beim zweiten
   Rendering keine `id`, und das `<label for>` der Vorlage zeigt ins Leere
-  (7.2). Unbekannte Optionen wie `nofloat` nimmt der Parser an und
+  (7.2). Unbekannte Optionen wie `jgor_nofloat` nimmt der Parser an und
   ignoriert sie;
   `WPCF7_FormTag::has_option()` liest sie.
-- **Form-Tag-Syntax:** Optionen ohne Anführungszeichen (`nofloat`, `id:x`,
+- **Form-Tag-Syntax:** Optionen ohne Anführungszeichen (`jgor_nofloat`, `id:x`,
   `min:0`) müssen vor den Werten in Anführungszeichen stehen
   (`WPCF7_FormTagsManager::parse_atts()`). Richtig: `[text* your-name
-  nofloat placeholder "Your name"]`. Steht eine Option hinter einem
+  jgor_nofloat placeholder "Your name"]`. Steht eine Option hinter einem
   `"…"`-Wert, scheitert das Attribut-Pattern und CF7 gibt den Tag als
   Klartext aus, ohne Fehler und ohne Feld.
 - **Markup je Feld:**
@@ -316,7 +316,7 @@ das Frontend begrenzt. Ablauf je Formular:
    Modus aktiv oder kein Feldtyp erlaubt → unverändert.
 3. Felder sammeln: `scan_form_tags()` → Name → Basistyp und `id:`-Option
    (für 7.2), nur die wirksamen Feldtypen. Ausgeschlossen: Tags mit
-   `has_option( 'nofloat' )`, Tags ohne Namen, Namen mit zwei verschiedenen
+   `has_option( 'jgor_nofloat' )`, Tags ohne Namen, Namen mit zwei verschiedenen
    Basistypen (mehrdeutig). Leere Liste → unverändert.
 4. HTML in DOMDocument laden (7.6), alle `span.wpcf7-form-control-wrap`
    (XPath) durchgehen. Je Wrap: `data-name` in der Feldliste, Klasse
@@ -391,7 +391,7 @@ Für bestehende Formulare ohne `<label>` und ohne Placeholder: Die
 CF7-Standardvorlage vor Version 5.4 lautete `<p>Your Name (required)<br />
 [text* your-name]</p>`, und so stehen Formulare auf vielen älteren Sites
 noch. Option `mode_text` (6), Default aus, weil die Quelle eine Heuristik
-ist; wer sie einschaltet (global oder je Formular mit `floating_labels:
+ist; wer sie einschaltet (global oder je Formular mit `jgor_floating_labels:
 text`, 7.5), prüft das Ergebnis. Greift als letzte Stufe, wenn 7.2 und 7.1
 nichts liefern. Die gespeicherte Vorlage bleibt unverändert, der Umbau
 passiert wie bei den anderen Modi nur beim Rendern.
@@ -421,7 +421,7 @@ Wurzelknoten des Fragments ist ein `div`; in einem `<label>` gilt 7.2):
    Label-Text, der ganze Absatz entfällt. Deckt die alte Vorlage ab. Ein
    Erklärabsatz direkt vor einem Feld ohne eigene Beschriftung wird dabei
    ebenfalls genommen – Teil der Heuristik, deshalb Default aus; Abhilfe
-   `nofloat` am Feld oder `floating_labels: off` am Formular.
+   `jgor_nofloat` am Feld oder `jgor_floating_labels: off` am Formular.
 
 Textquellen-Elemente (`is_text_source()`): die Inline-Elemente aus 7.2 und
 ein `<label>` ohne `for`-Attribut (weder umschließend noch verknüpft),
@@ -464,21 +464,21 @@ Schicht übersteuert die frühere, ungültige Werte werden ignoriert:
    der Tab „Floating labels“ im CF7-Editor, 9.4):
 
    ```
-   floating_labels: off
-   floating_labels: placeholder
-   floating_labels: text
-   floating_labels_style: filled
-   floating_labels_effect: glow
-   floating_labels_marker: on
-   floating_labels_types: text email textarea
+   jgor_floating_labels: off
+   jgor_floating_labels: placeholder
+   jgor_floating_labels: text
+   jgor_floating_labels_style: filled
+   jgor_floating_labels_effect: glow
+   jgor_floating_labels_marker: on
+   jgor_floating_labels_types: text email textarea
    ```
 
-   `floating_labels: off` (auch `false`, `no`, `0`) schaltet das Formular
+   `jgor_floating_labels: off` (auch `false`, `no`, `0`) schaltet das Formular
    ab, `placeholder`, `label` oder `text` lässt nur den genannten Modus
-   zu, auch wenn die Option ihn abgeschaltet hat. `floating_labels_style`
-   nimmt `outlined`, `filled`, `minimal`; `floating_labels_effect` nimmt `none`,
-   `glow`, `pulse`, `sweep`; `floating_labels_marker` nimmt `on`/`off`
-   (auch `true`/`false`, `yes`/`no`, `1`/`0`); `floating_labels_types` ist
+   zu, auch wenn die Option ihn abgeschaltet hat. `jgor_floating_labels_style`
+   nimmt `outlined`, `filled`, `minimal`; `jgor_floating_labels_effect` nimmt `none`,
+   `glow`, `pulse`, `sweep`; `jgor_floating_labels_marker` nimmt `on`/`off`
+   (auch `true`/`false`, `yes`/`no`, `1`/`0`); `jgor_floating_labels_types` ist
    eine Liste von Basistypen, durch Leerzeichen oder Kommas getrennt, nur
    Typen aus `field_types()` zählen, eine leere Liste schaltet alle Typen
    ab. Groß-/Kleinschreibung ist egal.
@@ -508,8 +508,8 @@ Schicht übersteuert die frühere, ungültige Werte werden ignoriert:
    danach, schaltet in beide Richtungen. **Filter
    `jgor_flcf7_submit_error_text`** (`$text`, `$contact_form`): zuletzt,
    für den Text des Senden-Buttons; leer = nur Farbwechsel.
-6. **Je Feld:** Form-Tag-Option `nofloat`, vor den Werten in
-   Anführungszeichen (5): `[text* your-name nofloat placeholder "Your
+6. **Je Feld:** Form-Tag-Option `jgor_nofloat`, vor den Werten in
+   Anführungszeichen (5): `[text* your-name jgor_nofloat placeholder "Your
    name"]`. Außerdem fallen heraus: Feldtypen außerhalb der wirksamen
    `types`, Tags ohne Namen, mehrdeutige Namen (7, Schritt 3), Wraps mit
    unbekanntem Inhalt (7, Schritt 4).
@@ -614,7 +614,7 @@ Release.
   einer Neuinstallation an; gespeicherte `types` bleiben unverändert, eine
   ältere Installation hakt sie auf der Einstellungsseite an. Der Hinweis
   der Sektion „Field types“ nennt Selects nicht mehr als Ausnahme,
-  `multiple` bleibt eine. `floating_labels_types` (7.5) nimmt beide Typen
+  `multiple` bleibt eine. `jgor_floating_labels_types` (7.5) nimmt beide Typen
   an.
 
 ## 8. Modul 3: CSS (`class-jgor-flcf7-assets.php`, `assets/css/floating-labels.css`)
@@ -812,7 +812,7 @@ Release.
   `$admin_page_hooks` ermittelt, `wpcf7-dashboard` (CF7 6.2.3), sonst `wpcf7`
   (ältere CF7-Versionen), sonst `options-general.php`. Registrierung auf
   `admin_menu` mit Priorität 20 (CF7 registriert mit 9), Slug
-  `wpcf7-floating-labels`, Capability `manage_options`. Formular an
+  `jgor-flcf7`, Capability `manage_options`. Formular an
   `options.php` mit `settings_fields( 'jgor_flcf7' )`,
   `do_settings_sections()`, `submit_button()`; `register_setting()` und
   `sanitize()` kommen aus Modul 1.
@@ -836,7 +836,7 @@ Release.
   Pflichtstern, Textfeld „Submit button on errors“ für
   `submit_error_text`), „Design“ (9.2) und „Per form, per placement, per
   field“ (Hinweistext zu den Steuerwegen aus 7.5 mit Codebeispielen für
-  Additional Settings, `html_class`-Klassen und `nofloat` vor den Werten in
+  Additional Settings, `html_class`-Klassen und `jgor_nofloat` vor den Werten in
   Anführungszeichen, dazu die Filter).
 - Aus Code gesperrte Werte (`is_locked()` / `locked_keys()` der
   Settings-Klasse) erscheinen `disabled` ohne `name`-Attribut, mit Hinweis
@@ -965,11 +965,11 @@ Ausprobieren nach der Installation, jederzeit wieder entfernbar.
 | --- | --- | --- | --- |
 | Default template | CF7-Standardvorlage (`WPCF7_ContactForm::get_template()`) | – | Label-Modus, Variante und Effekt der Einstellungsseite |
 | Placeholders | Felder mit `placeholder`-Option | – | Placeholder-Modus |
-| Old template | `<p>Text<br />[tag]</p>` wie vor CF7 5.4 | `floating_labels: text` | Text-Modus (7.3) unabhängig von der Option |
-| Filled and glow | wie Default | `floating_labels_style: filled`, `floating_labels_effect: glow` | Variante Filled, Effekt Glow |
-| Minimal and running light | wie Placeholders | `floating_labels_style: minimal`, `floating_labels_effect: sweep`, `floating_labels_marker: off` | Variante Minimal, Effekt Sweep, ohne Pflichtstern |
-| Mixed | verknüpftes `<label for>`, `nofloat`, `<strong>` im Label, `tel`, `number`, Select, Checkbox, Datei | `floating_labels_effect: pulse` | Grenzen des Umbaus, Effekt Puls |
-| Off | wie Placeholders | `floating_labels: off` | Formular ohne Floating Labels |
+| Old template | `<p>Text<br />[tag]</p>` wie vor CF7 5.4 | `jgor_floating_labels: text` | Text-Modus (7.3) unabhängig von der Option |
+| Filled and glow | wie Default | `jgor_floating_labels_style: filled`, `jgor_floating_labels_effect: glow` | Variante Filled, Effekt Glow |
+| Minimal and running light | wie Placeholders | `jgor_floating_labels_style: minimal`, `jgor_floating_labels_effect: sweep`, `jgor_floating_labels_marker: off` | Variante Minimal, Effekt Sweep, ohne Pflichtstern |
+| Mixed | verknüpftes `<label for>`, `jgor_nofloat`, `<strong>` im Label, `tel`, `number`, Select, Checkbox, Datei | `jgor_floating_labels_effect: pulse` | Grenzen des Umbaus, Effekt Puls |
+| Off | wie Placeholders | `jgor_floating_labels: off` | Formular ohne Floating Labels |
 | Date and select (Schritt 15) | `date` mit `placeholder`, `select` mit `include_blank`, `select*` mit `first_as_label`, `select` ohne Leeroption, dazu ein Textfeld | – | Feldtypen `date` und `select` (7.8): Label dauerhaft oben, beim Select ruhend, solange die Leeroption gewählt ist |
 
   Die Seite: je Formular eine Überschrift (H2), ein Absatz mit einem Satz
@@ -1061,13 +1061,13 @@ die der Nutzer auch von Hand schreiben kann; Modul 2 liest weiter nur
   `wpcf7_edit_contact_form` schützt.
 - Felder (Name `jgor_flcf7_form[<key>]`), jeweils mit „Default (settings
   page)“ als erstem Eintrag: Select „Floating labels“ (Off, Placeholder
-  only, Label only, Text before the field only → `floating_labels`), „Style“
-  (Outlined, Filled, Minimal → `floating_labels_style`), „Focus effect“
-  (None, Glow, Pulse, Running light → `floating_labels_effect`), „Marker
+  only, Label only, Text before the field only → `jgor_floating_labels`), „Style“
+  (Outlined, Filled, Minimal → `jgor_floating_labels_style`), „Focus effect“
+  (None, Glow, Pulse, Running light → `jgor_floating_labels_effect`), „Marker
   for required fields“ (seit 2.31, vorher „Required marker“; On, Off →
-  `floating_labels_marker`); dazu die Checkbox „Limit the
+  `jgor_floating_labels_marker`); dazu die Checkbox „Limit the
   field types for this form“ mit den Typ-Checkboxen aus `field_types()`
-  (Grid `jgor-flcf7-columns`) → `floating_labels_types`, ohne Limit keine
+  (Grid `jgor-flcf7-columns`) → `jgor_floating_labels_types`, ohne Limit keine
   Zeile. Ein Absatz erklärt: Werte gelten nur für dieses Formular,
   übersteuern die Einstellungsseite (seit 2.31 ist „Floating Labels“ darin
   ein Link auf die Einstellungsseite über das statische
@@ -1075,10 +1075,10 @@ die der Nutzer auch von Hand schreiben kann; Modul 2 liest weiter nur
   `>` wird dabei zu `&gt;`), werden als Zeilen in den Additional
   Settings gespeichert (dort sichtbar und editierbar) und werden ihrerseits
   von der Platzierung übersteuert (10). Ein unbekannter Wert in einer Zeile
-  (etwa `floating_labels: maybe`) zeigt „Default“ und wird beim Speichern
+  (etwa `jgor_floating_labels: maybe`) zeigt „Default“ und wird beim Speichern
   ersetzt.
 - Aktueller Zustand aus `$post->pref( … )` (erste Zeile je Schlüssel, wie
-  Modul 2), Typen aus `floating_labels_types` per Leerzeichen oder Kommas.
+  Modul 2), Typen aus `jgor_floating_labels_types` per Leerzeichen oder Kommas.
 - Speichern auf `add_action( 'wpcf7_save_contact_form', …, 10, 3 )`, das
   CF7 vor `$contact_form->save()` auslöst: nur bei Kontext `save`, nur wenn
   `$_POST['jgor_flcf7_form']` vorhanden ist (Panel war gerendert); als
@@ -1088,7 +1088,7 @@ die der Nutzer auch von Hand schreiben kann; Modul 2 liest weiter nur
   (`sanitize_key()`, nur bekannte Werte, Typen nur aus `field_types()`).
   Aus `$contact_form->prop( 'additional_settings' )` (von CF7 schon aus
   demselben POST gesetzt) werden alle Zeilen entfernt, die mit
-  `floating_labels` oder `floating_labels_<style|effect|marker|types>` plus
+  `jgor_floating_labels` oder `jgor_floating_labels_<style|effect|marker|types>` plus
   Doppelpunkt beginnen (wie der Parser von CF7 `additional_setting()`: am
   Zeilenanfang ohne Einrückung, exakte Schreibweise; eine eingerückte oder
   anders geschriebene Zeile liest CF7 nicht, das Panel zählt sie nicht und
@@ -1115,7 +1115,7 @@ die der Nutzer auch von Hand schreiben kann; Modul 2 liest weiter nur
   `wpcf7_get_current_contact_form()`; `JGOR_FLCF7_Admin::type_label()`
   ist `public static`, `STYLE_PATH` public; ohne Typen-Zeile zeigen die
   Typ-Checkboxen die Typen der Einstellungsseite als Ausgangspunkt (Limit
-  aus), ein Limit ohne Haken schreibt `floating_labels_types:` (alle Typen
+  aus), ein Limit ohne Haken schreibt `jgor_floating_labels_types:` (alle Typen
   aus, 7.5); die Schreibweisen `no`/`false`/`0` und `yes`/`true`/`1`
   erscheinen als Off/On; Panel-Markup `h2` + `fieldset.jgor-flcf7-form-panel`
   mit `legend`, Zeilen `p.jgor-flcf7-form-panel__row`, Typen im Grid
@@ -1317,9 +1317,9 @@ Dateien.
   `https://floating-labels-for-cf7.gorres.local/index.php/contact/`):
   (a) „Contact form 1“, die CF7-Standardvorlage (Label-Modus), (b) „FL Test
   B Placeholder“ (nur Placeholder), (c) „FL Test C Mixed“ (verknüpftes
-  `<label for>` mit `id:`, `nofloat`, umschließendes Label mit `<strong>`,
+  `<label for>` mit `id:`, `jgor_nofloat`, umschließendes Label mit `<strong>`,
   `tel`, `number` mit `min:`/`max:`, Select, Checkbox, Datei), (d) „FL Test D
-  Off“ (b mit `floating_labels: off`), (e) Formular (b) ein zweites Mal auf
+  Off“ (b mit `jgor_floating_labels: off`), (e) Formular (b) ein zweites Mal auf
   derselben Seite, (f) „FL Test F Old template“ (alte CF7-Vorlage mit
   „(required)“, zwei Felder ohne `<p>`, `Website [url]` in einer Zeile,
   Erklärabsatz, `<label>Nickname</label>` ohne `for`; Text-Modus 7.3).
@@ -1351,26 +1351,26 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   abgeschaltetem Formular, nicht ohne die Option), Label- und
   Placeholder-Modus, Ersatz des umschließenden Labels, Label-Text aus der
   Vorlage, Varianten- und Textarea-Klasse, IDs aus dem Unit-Tag, `for` =
-  `id`, `placeholder=" "`, unberührte Felder (Submit, `nofloat`, Select,
-  Checkbox, Datei), erhaltene ARIA-Attribute, `floating_labels:
+  `id`, `placeholder=" "`, unberührte Felder (Submit, `jgor_nofloat`, Select,
+  Checkbox, Datei), erhaltene ARIA-Attribute, `jgor_floating_labels:
   off|placeholder|label`, Filter `jgor_flcf7_enabled` und
   `jgor_flcf7_label_text` (auch Rückgabe leer), Typen-Einstellung ohne
   `textarea`, Formular (d) byteidentisch zum Original (Unit-Tag
   normalisiert), zwei Instanzen mit verschiedenen IDs, zweites Rendering
   von (c) ohne CF7-`id` (Label über die `id:`-Option gefunden, ID aus dem
   Unit-Tag, `<br>` entfernt, vier Labels), UTF-8 und Entities,
-  Text-Modus an (f) (Default aus → byteidentisch, `floating_labels: text`
+  Text-Modus an (f) (Default aus → byteidentisch, `jgor_floating_labels: text`
   mit sieben Labels, fünf entfernte Textabsätze von 14, Erklärabsatz
   unberührt, Label ohne `for` ersetzt, `jgor-flcf7-mode-text`, `mode-label`
   übersteuert, (a) und (b) unberührt, Option an mit Vorrang des
   Label-Modus, Filter `jgor_flcf7_form_settings` und
   `jgor_flcf7_label_text`),
-  Steuerung je Formular (`floating_labels_style`, `_marker`, `_types`, leere
+  Steuerung je Formular (`jgor_floating_labels_style`, `_marker`, `_types`, leere
   Liste, ungültiger Wert), je Platzierung (`html_class`-Klassen samt
-  Rangfolge über das Formular und `jgor-flcf7-on` gegen `floating_labels:
+  Rangfolge über das Formular und `jgor-flcf7-on` gegen `jgor_floating_labels:
   off`), Filter `jgor_flcf7_form_settings` (Vorrang vor `html_class`,
   `enabled` false, ungültige Werte), Fokus-Effekt (ohne Klasse per
-  Default, `floating_labels_effect`, `jgor-flcf7-effect-*` mit Rangfolge
+  Default, `jgor_floating_labels_effect`, `jgor-flcf7-effect-*` mit Rangfolge
   über das Formular, `effect-none`, Filter, unbekannte Werte), Senden-Button (Hülle mit Fehlertext,
   Filter `jgor_flcf7_submit_error_text`, leerer Text ohne Fehler-Span,
   Option wird bereinigt), Design je Platzierung (10.1: `parse()`,
@@ -1527,7 +1527,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
-  `wp-admin/admin.php?page=wpcf7-floating-labels`). Browser-Matrix seit
+  `wp-admin/admin.php?page=jgor-flcf7`). Browser-Matrix seit
   Schritt 19 automatisiert (`tests/verify-browser.js`, oben); von Hand
   bleiben Autofill, geöffnete native Popups (Select-Liste, Datumswähler)
   und der Sichteindruck anhand der Galerie. Umfang der Matrix:
@@ -1689,7 +1689,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 10. Text-Modus (7.3) für bestehende Formulare mit der alten CF7-Vorlage,
     Konzept 2.8 vom 29.10.2026, vor der Veröffentlichung (5.6). Erledigt am
     29.10.2026 in vier Teilen: Modul 2 mit zwei Suchstufen, Option
-    `mode_text` (6), `floating_labels: text` und `jgor-flcf7-mode-text`
+    `mode_text` (6), `jgor_floating_labels: text` und `jgor-flcf7-mode-text`
     (7.5), Testformular (f) „FL Test F Old template“ (Commit 7e4568f,
     Konzept 2.9; Befund dabei: der CF7-Formatter trennt `Text<br />[tag]`
     in zwei Absätze, 5); Checkbox „Text before the field“ in „Label
@@ -1903,6 +1903,22 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     Refactor-Vorschläge der Reviews stehen in §15. Hostsharing `dateien`
     nach diesem Schritt offen.
 
+21. Präfixe (Entscheidung des Nutzers am 02.11.2026 nach den Reviews):
+    die Additional-Settings-Zeilen heißen `jgor_floating_labels`,
+    `jgor_floating_labels_style`, `_effect`, `_marker`, `_types`, die
+    Form-Tag-Option `jgor_nofloat`, der Menü-Slug `jgor-flcf7`. Die Namen
+    stehen als Konstanten `JGOR_FLCF7_Settings::PREF_*` und
+    `TAG_OPTION_NOFLOAT` an einer Stelle; Modul 2, Modul 7 (auch das
+    Zeilenmuster) und die Hilfetexte greifen darauf zu. Umbenannt in Code,
+    Prüfscripten, `create-test-forms.php`, readme, `.pot` (211 Texte),
+    Screenshot-Script und Konzept (Abschnitte, nicht die Änderungstabelle);
+    keine Rückwärtskompatibilität, das Plugin ist unveröffentlicht.
+    `composer check` und alle Prüfscripte (128/65/40/28/41/30, Editor-JS)
+    ohne Befund; Screenshots 5 und 7 neu (der Tab nennt die Zeilen in
+    seinem Hilfetext, 6 unverändert); lokale Beispielseite durch
+    `verify-samples.php` neu angelegt, Formulare tragen die neuen Zeilen.
+    Hostsharing (`dateien` und `datenbank`) nach dem Refactoring-Zug.
+
 ## 15. Offen
 
 - Die Erweiterungen aus §15 bis 2.24 (Feldtypen `date`/`select`, Tab im
@@ -1912,12 +1928,8 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Changelog-Eintrag 1.1.0 entfällt.
 - `range`, `file`, `checkbox`, `radio`, `acceptance`, `quiz`, `captchar` und
   `select` mit `multiple`: bewusst nie.
-- Aus den Reviews vom 02.11.2026, Entscheidung des Nutzers vor 1.0.0:
-  Menü-Slug `wpcf7-floating-labels`, die Additional-Settings-Schlüssel
-  `floating_labels*` und die Form-Tag-Option `nofloat` tragen kein
-  `jgor`-Präfix (Kollisionsrisiko mit anderen CF7-Erweiterungen; nach dem
-  Release nicht mehr änderbar, weil gespeicherte Formulare die Schlüssel
-  tragen). `exit` nach `wp_safe_redirect()` bleibt (Core-üblich).
+- `exit` nach `wp_safe_redirect()` bleibt (Core-üblich; `wp_die()` würde
+  die Weiterleitung mit eigenen Kopfzeilen und Status 500 überschreiben).
 - Aus den Reviews, Refactorings ohne Verhaltensänderung, vor oder nach
   1.0.0: `Settings::sanitize_choice()` öffentlich statt vier Kopien der
   Wahlprüfung (Markup, Form_Panel); `parse_types()` und die on/off-Wortlisten
@@ -2005,3 +2017,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.34 | 02.11.2026 | Variante lokal zurück auf Outlined und Datenbank nach Hostsharing übertragen, beide Sites auf dem Standard (§14 Schritt 19); Kopfzeile |
 | 2.35 | 02.11.2026 | Hostsharing-Angaben (Hostname, Paket, Domain-Admin, Datenbank, Serverpfade, Basic-Auth-Benutzer, Webroot) in der gesamten Git-Historie durch Platzhalter ersetzt, §2 Zeile „Test-Site Hostsharing“ gekürzt mit Verweis auf die lokale Site-env; vor dem ersten Push |
 | 2.36 | 02.11.2026 | Schritt 20: Befunde aus Code-Review und wp-reviewer behoben (Identitätsprüfung und Capability beim Löschen der Beispielposts, `uninstall.php` mit `number => 0`, Sperrlogik in `all()`, `LINE_PATTERN` wie CF7, `JSON_HEX_*`, `page_url()` wiederverwendet; 9.1, 9.3, 9.4, 12, 13, 14), Prüfzähler 30/41, §15 um Entscheidungen, Refactorings und CSP-Hinweis ergänzt |
+| 2.37 | 02.11.2026 | Schritt 21: Präfixe `jgor_floating_labels*`, `jgor_nofloat`, Menü-Slug `jgor-flcf7` (Konstanten in `JGOR_FLCF7_Settings`), readme, `.pot`, Prüfscripte, Screenshots 5 und 7, Konzeptabschnitte 7.5, 9, 9.3, 9.4, 13; §15 Präfix-Punkt erledigt |

@@ -119,7 +119,7 @@ $jgor_flcf7_admin_id = (int) $jgor_flcf7_admins[0];
 wp_set_current_user( $jgor_flcf7_admin_id );
 
 // A form of its own, with one foreign line, one unknown value and one known value.
-$jgor_flcf7_three = "skip_mail: on\nfloating_labels: maybe\nfloating_labels_style: filled";
+$jgor_flcf7_three = "skip_mail: on\njgor_floating_labels: maybe\njgor_floating_labels_style: filled";
 $jgor_flcf7_form  = WPCF7_ContactForm::get_template( array( 'title' => 'FL Test Panel - may be deleted' ) );
 $jgor_flcf7_form->set_properties( array( 'additional_settings' => $jgor_flcf7_three ) );
 $jgor_flcf7_id = (int) $jgor_flcf7_form->save();
@@ -143,14 +143,14 @@ $jgor_flcf7_form->set_properties( array( 'additional_settings' => 'skip_mail: on
 $jgor_flcf7_panels = apply_filters( 'wpcf7_editor_panels', array() ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- the Contact Form 7 hook, applied on purpose.
 jgor_flcf7_check( 'panel: title without counter when no line is set', 'Floating labels' === ( $jgor_flcf7_panels[ JGOR_FLCF7_Form_Panel::PANEL_ID ]['title'] ?? '' ) );
 // Lines Contact Form 7 does not read (indented, other case) are not ours either.
-$jgor_flcf7_form->set_properties( array( 'additional_settings' => "  floating_labels: off\nFloating_Labels_style: filled\nskip_mail: on" ) );
+$jgor_flcf7_form->set_properties( array( 'additional_settings' => "  jgor_floating_labels: off\nFloating_Labels_style: filled\nskip_mail: on" ) );
 $jgor_flcf7_panels = apply_filters( 'wpcf7_editor_panels', array() ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- the Contact Form 7 hook, applied on purpose.
 jgor_flcf7_check( 'panel: indented or differently cased lines are not counted (same rule as Contact Form 7)', 'Floating labels' === ( $jgor_flcf7_panels[ JGOR_FLCF7_Form_Panel::PANEL_ID ]['title'] ?? '' ), (string) ( $jgor_flcf7_panels[ JGOR_FLCF7_Form_Panel::PANEL_ID ]['title'] ?? '' ) );
 $jgor_flcf7_form->set_properties( array( 'additional_settings' => $jgor_flcf7_three ) );
 
 // Rendering.
 $jgor_flcf7_html = jgor_flcf7_render_panel( $jgor_flcf7_panel, $jgor_flcf7_form );
-jgor_flcf7_check( 'render: heading, fieldset and legend with a link to the settings screen', str_contains( $jgor_flcf7_html, '<h2>Floating labels</h2>' ) && str_contains( $jgor_flcf7_html, '<fieldset class="' . JGOR_FLCF7_Form_Panel::PANEL_CLASS . '">' ) && str_contains( $jgor_flcf7_html, 'defaults of Contact &gt; <a href="' . esc_url( JGOR_FLCF7_Admin::page_url() ) . '">Floating Labels</a>. They are saved as lines in the tab "Additional Settings"' ) && str_contains( JGOR_FLCF7_Admin::page_url(), 'admin.php?page=wpcf7-floating-labels' ) );
+jgor_flcf7_check( 'render: heading, fieldset and legend with a link to the settings screen', str_contains( $jgor_flcf7_html, '<h2>Floating labels</h2>' ) && str_contains( $jgor_flcf7_html, '<fieldset class="' . JGOR_FLCF7_Form_Panel::PANEL_CLASS . '">' ) && str_contains( $jgor_flcf7_html, 'defaults of Contact &gt; <a href="' . esc_url( JGOR_FLCF7_Admin::page_url() ) . '">Floating Labels</a>. They are saved as lines in the tab "Additional Settings"' ) && str_contains( JGOR_FLCF7_Admin::page_url(), 'admin.php?page=jgor-flcf7' ) );
 jgor_flcf7_check( 'render: labels of the selects', (bool) preg_match( '#<label for="jgor-flcf7-form-mode">Floating labels</label>#', $jgor_flcf7_html ) && (bool) preg_match( '#<label for="jgor-flcf7-form-marker">Marker for required fields</label>#', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'render: four selects named mode, style, effect, marker', 4 === preg_match_all( '#<select id="jgor-flcf7-form-(mode|style|effect|marker)" name="jgor_flcf7_form\[\1\]">#', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'render: every select starts with "Default (settings page)"', 4 === preg_match_all( '#<select[^>]*>\s*<option value=""[^>]*>Default \(settings page\)</option>#', $jgor_flcf7_html ) );
@@ -158,13 +158,13 @@ jgor_flcf7_check( 'render: unknown value "maybe" -> Default selected for the mod
 jgor_flcf7_check( 'render: style filled selected', (bool) preg_match( '#<option value="filled" selected=\'selected\'>Filled</option>#', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'render: effect and marker on Default', (bool) preg_match( '#name="jgor_flcf7_form\[effect\]">\s*<option value="" selected#', $jgor_flcf7_html ) && (bool) preg_match( '#name="jgor_flcf7_form\[marker\]">\s*<option value="" selected#', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'render: limit unticked, 8 type checkboxes all ticked (types of the settings screen), column layout', (bool) preg_match( '#name="jgor_flcf7_form\[limit\]" value="1"\s*>#', $jgor_flcf7_html ) && ! preg_match( '#name="jgor_flcf7_form\[limit\]" value="1"\s+checked#', $jgor_flcf7_html ) && 8 === preg_match_all( '#name="jgor_flcf7_form\[types\]\[\]" value="[a-z]+"\s+checked=\'checked\'#', $jgor_flcf7_html ) && str_contains( $jgor_flcf7_html, '<fieldset class="' . JGOR_FLCF7_Admin::COLUMNS_CLASS . '">' ) && str_contains( $jgor_flcf7_html, 'Select (select)' ) );
-jgor_flcf7_check( 'render: description names the lines', str_contains( $jgor_flcf7_html, 'floating_labels, floating_labels_style, floating_labels_effect, floating_labels_marker, floating_labels_types.' ) );
+jgor_flcf7_check( 'render: description names the lines', str_contains( $jgor_flcf7_html, 'jgor_floating_labels, jgor_floating_labels_style, jgor_floating_labels_effect, jgor_floating_labels_marker, jgor_floating_labels_types.' ) );
 
-$jgor_flcf7_form->set_properties( array( 'additional_settings' => "floating_labels: NO\nfloating_labels_marker: yes\nfloating_labels_effect: sweep\nfloating_labels_types: text, EMAIL bogus" ) );
+$jgor_flcf7_form->set_properties( array( 'additional_settings' => "jgor_floating_labels: NO\njgor_floating_labels_marker: yes\njgor_floating_labels_effect: sweep\njgor_floating_labels_types: text, EMAIL bogus" ) );
 $jgor_flcf7_html = jgor_flcf7_render_panel( $jgor_flcf7_panel, $jgor_flcf7_form );
 jgor_flcf7_check( 'render: "NO" -> Off, "yes" -> On, sweep selected (spellings module 2 accepts)', (bool) preg_match( '#<option value="off" selected=\'selected\'>Off</option>#', $jgor_flcf7_html ) && (bool) preg_match( '#<option value="on" selected=\'selected\'>On</option>#', $jgor_flcf7_html ) && (bool) preg_match( '#<option value="sweep" selected=\'selected\'>Running light</option>#', $jgor_flcf7_html ) );
 jgor_flcf7_check( 'render: types line -> limit ticked, only text and email ticked', (bool) preg_match( '#name="jgor_flcf7_form\[limit\]" value="1"\s+checked#', $jgor_flcf7_html ) && 2 === preg_match_all( '#name="jgor_flcf7_form\[types\]\[\]" value="[a-z]+"\s+checked=\'checked\'#', $jgor_flcf7_html ) && (bool) preg_match( '#value="text"\s+checked#', $jgor_flcf7_html ) && (bool) preg_match( '#value="email"\s+checked#', $jgor_flcf7_html ) );
-$jgor_flcf7_form->set_properties( array( 'additional_settings' => 'floating_labels_types:' ) );
+$jgor_flcf7_form->set_properties( array( 'additional_settings' => 'jgor_floating_labels_types:' ) );
 $jgor_flcf7_html = jgor_flcf7_render_panel( $jgor_flcf7_panel, $jgor_flcf7_form );
 jgor_flcf7_check( 'render: empty types line -> limit ticked, nothing ticked', (bool) preg_match( '#name="jgor_flcf7_form\[limit\]" value="1"\s+checked#', $jgor_flcf7_html ) && 0 === preg_match_all( '#name="jgor_flcf7_form\[types\]\[\]" value="[a-z]+"\s+checked#', $jgor_flcf7_html ) );
 ob_start();
@@ -186,7 +186,7 @@ $jgor_flcf7_saved = jgor_flcf7_save_as_editor(
 	),
 	$jgor_flcf7_nonce
 );
-jgor_flcf7_check( 'save: own lines replaced and appended in order, foreign line kept, types in the order of the settings', "skip_mail: on\nfloating_labels: placeholder\nfloating_labels_style: minimal\nfloating_labels_effect: glow\nfloating_labels_marker: off\nfloating_labels_types: text email" === $jgor_flcf7_saved, $jgor_flcf7_saved );
+jgor_flcf7_check( 'save: own lines replaced and appended in order, foreign line kept, types in the order of the settings', "skip_mail: on\njgor_floating_labels: placeholder\njgor_floating_labels_style: minimal\njgor_floating_labels_effect: glow\njgor_floating_labels_marker: off\njgor_floating_labels_types: text email" === $jgor_flcf7_saved, $jgor_flcf7_saved );
 $jgor_flcf7_saved = jgor_flcf7_save_as_editor(
 	$jgor_flcf7_id,
 	$jgor_flcf7_saved,
@@ -211,9 +211,9 @@ $jgor_flcf7_saved = jgor_flcf7_save_as_editor(
 	),
 	$jgor_flcf7_nonce
 );
-jgor_flcf7_check( 'save: invalid values ignored, limit without types -> empty types line, blank line inside kept', "skip_mail: on\n\ndemo_mode: on\nfloating_labels_types:" === $jgor_flcf7_saved, $jgor_flcf7_saved );
+jgor_flcf7_check( 'save: invalid values ignored, limit without types -> empty types line, blank line inside kept', "skip_mail: on\n\ndemo_mode: on\njgor_floating_labels_types:" === $jgor_flcf7_saved, $jgor_flcf7_saved );
 $jgor_flcf7_saved = jgor_flcf7_save_as_editor( $jgor_flcf7_id, "Floating_Labels : off\nskip_mail: on", array( 'mode' => 'text' ), $jgor_flcf7_nonce );
-jgor_flcf7_check( 'save: a line in other spelling is not ours (Contact Form 7 ignores it) and stays untouched', "Floating_Labels : off\nskip_mail: on\nfloating_labels: text" === $jgor_flcf7_saved, $jgor_flcf7_saved );
+jgor_flcf7_check( 'save: a line in other spelling is not ours (Contact Form 7 ignores it) and stays untouched', "Floating_Labels : off\nskip_mail: on\njgor_floating_labels: text" === $jgor_flcf7_saved, $jgor_flcf7_saved );
 
 // Second layer: nonce and capability.
 $jgor_flcf7_saved = jgor_flcf7_save_as_editor( $jgor_flcf7_id, $jgor_flcf7_three, array( 'mode' => 'off' ), null );

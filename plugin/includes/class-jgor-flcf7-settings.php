@@ -38,6 +38,23 @@ final class JGOR_FLCF7_Settings {
 	public const GROUP = 'jgor_flcf7';
 
 	/**
+	 * Names of the lines in the "Additional Settings" of a form (concept 7.5):
+	 * the mode line and its four companions. One place for module 2 (reads
+	 * them through WPCF7_ContactForm::pref()), module 7 (reads and writes
+	 * them in the form editor) and the help texts.
+	 */
+	public const PREF_MODE   = 'jgor_floating_labels';
+	public const PREF_STYLE  = 'jgor_floating_labels_style';
+	public const PREF_EFFECT = 'jgor_floating_labels_effect';
+	public const PREF_MARKER = 'jgor_floating_labels_marker';
+	public const PREF_TYPES  = 'jgor_floating_labels_types';
+
+	/**
+	 * Form-tag option that keeps one field out of the floating labels (concept 7.5).
+	 */
+	public const TAG_OPTION_NOFLOAT = 'jgor_nofloat';
+
+	/**
 	 * Contact Form 7 base types the plugin handles out of the box.
 	 *
 	 * Types that render a single text-like control: inputs with a placeholder
