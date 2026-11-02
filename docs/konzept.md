@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.40 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Reviews behoben, Präfixe `jgor_floating_labels*`, Hostsharing synchron; nächster Schritt 5.6 Veröffentlichung)
+Version: 2.41 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Reviews behoben, Präfixe `jgor_floating_labels*`, Hostsharing synchron; nächster Schritt 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -1954,9 +1954,14 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     85 KB, Versionen in Header, Konstante, `Stable tag` und Changelog
     stimmen), in einen frischen Ordner entpackt, `wp plugin check` ohne
     Befund, ebenso mit experimentellen Prüfungen und niedriger Schwere.
-    Offen in 5.6: Repo öffentlich mit Branch-Schutz, GitHub-Release 1.0.0
-    mit dem ZIP, Einreichung bei WordPress.org, nach der Freischaltung SVN
-    und GlotPress.
+    GitHub-Repo am 02.11.2026 öffentlich gestellt (`gh api -X PATCH …
+    private=false`; `gh repo edit --visibility` kennt in gh 2.46 die
+    Bestätigungsoption nicht) und Ruleset „main schützen“ (26389735,
+    Löschen und Force-Push auf dem Standardbranch verboten) angelegt wie
+    auf den anderen öffentlichen Repos; Branch-Regeln geprüft. Kein
+    GitHub-Release und kein Git-Tag, wie bei den anderen Plugins. Offen in
+    5.6: Einreichung bei WordPress.org mit dem ZIP, nach der Freischaltung
+    SVN und GlotPress.
 
 ## 15. Offen
 
@@ -2053,3 +2058,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.38 | 02.11.2026 | Schritt 22: Refactorings aus den Reviews (statische Helfer `word_to_bool()`, `choice()`, `intersect_types()`, `parse_types_line()`, `declaration()` in `JGOR_FLCF7_Settings`; `WP_HTML_Tag_Processor` für das `style`-Attribut der Platzierung), readme-FAQ zur CSP; §15 bereinigt |
 | 2.39 | 02.11.2026 | Schritt 23: Hostsharing nach den Schritten 20–22 mit `dateien` und `datenbank` nachgezogen und lesend geprüft (18 Dateien identisch, Beispielseite 881 mit Formularen 873–880, Plugin Check ohne Befund); Kopfzeile |
 | 2.40 | 02.11.2026 | Schritt 24: Release-ZIP neu gebaut (18 Dateien, 85 KB) und Plugin Check ohne Befund, auch experimentell und niedrige Schwere (§13, §14) |
+| 2.41 | 02.11.2026 | Schritt 24: GitHub-Repo öffentlich, Ruleset „main schützen“ angelegt und geprüft |
