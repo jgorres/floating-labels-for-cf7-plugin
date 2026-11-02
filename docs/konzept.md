@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.35 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Hostsharing synchron, Browser-Matrix automatisiert in sechs Browsern bestanden, Variante beidseitig wieder Outlined; offen Sichtung der Galerie und des Tabs durch den Nutzer, Push, dann 5.6 Veröffentlichung)
+Version: 2.36 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Code-Review und wp-reviewer durch, Befunde behoben; offen Entscheidungen aus §15, Hostsharing `dateien`, dann 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -886,7 +886,11 @@ add_filter( 'jgor_flcf7_settings', function ( $settings ) {
 Der Filter erhält das vollständige Array (gespeicherte Werte plus Defaults)
 und gibt es zurück; welche Schlüssel er „gesetzt“ hat, ist daran nicht
 ablesbar. Gesperrt ist deshalb jeder Schlüssel, dessen gefilterter Wert nach
-Sanitize vom gespeicherten Wert abweicht. Folgen:
+Sanitize vom ebenfalls bereinigten gespeicherten Wert abweicht (seit 2.36;
+vorher verglich `all()` mit dem rohen gespeicherten Wert, sodass ein Wert,
+der die Bereinigung nicht mehr überlebt, etwa ein per
+`jgor_flcf7_field_types` entfernter Typ, fälschlich als gesperrt galt und
+auf der Einstellungsseite unänderbar blieb). Folgen:
 
 - Setzt der Filter einen Wert, der ohnehin gespeichert ist, gilt der
   Schlüssel als frei und ist auf der Einstellungsseite änderbar. Speichert
@@ -986,8 +990,14 @@ Ausprobieren nach der Installation, jederzeit wieder entfernbar.
 - **Option** `jgor_flcf7_samples` (nicht autoload): `page` (ID) und `forms`
   (IDs in der Reihenfolge der Tabelle). Sie existiert nur, solange die
   Beispielseite angelegt ist, und ist die einzige Quelle beim Entfernen:
-  gelöscht werden genau diese IDs (`wp_delete_post( $id, true )`,
-  endgültig; Formulare sind Posts vom Typ `wpcf7_contact_form`). Fehlt die
+  gelöscht werden diese IDs (`wp_delete_post( $id, true )`,
+  endgültig; Formulare sind Posts vom Typ `wpcf7_contact_form`), aber nur,
+  wenn der Post wirklich ein Beispielpost ist (`is_sample_post()`: die
+  Seite am Slug `testpage-floating-labels-for-cf7`, auch mit Zahlensuffix,
+  ein Formular an Präfix und Suffix des Titels) und der Nutzer ihn löschen
+  darf (`current_user_can( 'delete_post' )`); eine wiederverwendete ID oder
+  eine von Hand geänderte Option trifft so keinen fremden Post (Befund
+  wp-reviewer, 2.36). Fehlt die
   Seite (von Hand gelöscht), gilt die Beispielseite als nicht angelegt;
   verwaiste Formular-IDs werden beim nächsten Anlegen entfernt und die
   Option neu geschrieben. Anlegen bei vorhandener Seite tut nichts (keine
@@ -1079,7 +1089,10 @@ die der Nutzer auch von Hand schreiben kann; Modul 2 liest weiter nur
   Aus `$contact_form->prop( 'additional_settings' )` (von CF7 schon aus
   demselben POST gesetzt) werden alle Zeilen entfernt, die mit
   `floating_labels` oder `floating_labels_<style|effect|marker|types>` plus
-  Doppelpunkt beginnen (Groß-/Kleinschreibung egal), neue Zeilen für
+  Doppelpunkt beginnen (wie der Parser von CF7 `additional_setting()`: am
+  Zeilenanfang ohne Einrückung, exakte Schreibweise; eine eingerückte oder
+  anders geschriebene Zeile liest CF7 nicht, das Panel zählt sie nicht und
+  lässt sie beim Speichern stehen, seit 2.36), neue Zeilen für
   Nicht-Default-Werte angehängt, `set_properties()`; CF7 speichert danach.
   Andere Zeilen (`skip_mail: on`, `demo_mode: on`) bleiben unberührt.
 - `admin.css` wird zusätzlich auf dem Hook der CF7-Editorseite geladen
@@ -1272,7 +1285,10 @@ Multisite über alle Sites (`get_sites()`, `switch_to_blog()` /
 
 `defined( 'WP_UNINSTALL_PLUGIN' ) || exit;`, dann je Site (bei Multisite
 über `switch_to_blog()`): Beispielseite und -formulare aus
-`jgor_flcf7_samples` endgültig löschen (9.3, nur die gespeicherten IDs),
+`jgor_flcf7_samples` endgültig löschen (9.3, nur die gespeicherten IDs und
+nur echte Beispielposts per `JGOR_FLCF7_Samples::is_sample_post()`; die
+Klassendatei wird dafür geladen, sie hat keine Seiteneffekte), bei Multisite
+`get_sites()` mit `number => 0` (sonst höchstens 100 Sites),
 `delete_option()` für `jgor_flcf7_samples` und `jgor_flcf7_settings`,
 `delete_transient( 'jgor_flcf7_activated' )`. Keine Tabellen, keine
 Dateien.
@@ -1453,7 +1469,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Design-Panel nur die eigene Gruppe; CF7- und Shortcode-Block) und das
   Script ohne Server-Daten (nur das erste Panel). `node --check` läuft
   davor.
-- `tests/verify-samples.php` prüft Modul 6 ohne Browser (39 Punkte,
+- `tests/verify-samples.php` prüft Modul 6 ohne Browser (41 Punkte,
   achtes Formular „Date and select“ mit fünf Labels und zwei geleerten
   Leeroptionen):
   Anlegen (Seite privat mit Slug, sieben (seit Schritt 15 acht) Formulare mit Suffix und
@@ -1463,7 +1479,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   bricht ohne `manage_options` ab), Entfernen (Posts endgültig weg, Option
   weg). Räumt nach sich auf; eine vorher vorhandene Beispielseite legt das
   Script am Ende wieder an (neue IDs).
-- `tests/verify-form-panel.php` prüft Modul 7 ohne Browser (29 Punkte,
+- `tests/verify-form-panel.php` prüft Modul 7 ohne Browser (30 Punkte,
   seit 2.31 mit Link in der Legende und Beschriftungen der Selects):
   Panel im Ergebnis von `wpcf7_editor_panels` hinter „Additional
   Settings“, Titel ohne und mit Zähler, Rendering (Selects mit dem Wert
@@ -1473,7 +1489,7 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   `wpcf7_save_contact_form()` mit Kontext `save` und Nonce in `$data`
   (eigene Zeilen ersetzt und angehängt, fremde und leere Zeilen bleiben,
   Defaults entfernen Zeilen, Limit ohne Haken schreibt die leere Zeile,
-  ungültige Werte verworfen, andere Schreibweise ersetzt), zweite Schicht
+  ungültige Werte verworfen, andere Schreibweise und eingerückte Zeile bleiben stehen und zählen nicht), zweite Schicht
   (ohne Nonce, falscher Nonce, Abonnent mit gültigem Nonce), Kontext
   `copy` und Post ohne Panel ohne Wirkung, Hook auf `wpcf7_admin_load` nur
   für die Editorseiten und Enqueue von `admin.css`. Legt ein eigenes
@@ -1867,6 +1883,26 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     Nicht automatisierbar und beim Nutzer: Autofill, geöffnete native
     Popups, Sichteindruck.
 
+20. Code-Review (`/code-review high plugin/`) und `wp-reviewer` am
+    02.11.2026, beide lesend, keine Befunde kritisch oder hoch. Behoben:
+    Identitätsprüfung vor dem endgültigen Löschen der Beispielposts
+    (`is_sample_post()` plus `delete_post`-Capability, 9.3, auch in
+    `uninstall.php`); `get_sites()` mit `number => 0` und DocBlock in
+    `uninstall.php` (12); `all()` vergleicht mit dem bereinigten
+    gespeicherten Wert, kein falsches „gesperrt“ mehr (9.1);
+    `LINE_PATTERN` des Tabs wie der CF7-Parser, Einrückung und Schreibweise
+    (9.4); `wp_json_encode()` der Editor-Daten mit `JSON_HEX_*` (10);
+    `Samples::settings_url()` durch `Admin::page_url()` ersetzt.
+    Prüfscripte: `verify-form-panel.php` 30, `verify-samples.php` 41
+    (neue Prüfungen für fremde Seite/Formular in der Option und für
+    eingerückte oder anders geschriebene Zeilen), übrige unverändert,
+    `composer check` ohne Befund; `verify-samples.php` legt die lokale
+    Beispielseite neu an (jetzt Seite 758, Formulare 750–757; Hostsharing
+    behält 655/647–654, funktional gleich). Nicht übernommen: „`css_defaults()`
+    ist tot“ (die Prüfscripte nutzen es). Entscheidungen und
+    Refactor-Vorschläge der Reviews stehen in §15. Hostsharing `dateien`
+    nach diesem Schritt offen.
+
 ## 15. Offen
 
 - Die Erweiterungen aus §15 bis 2.24 (Feldtypen `date`/`select`, Tab im
@@ -1876,6 +1912,25 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   Changelog-Eintrag 1.1.0 entfällt.
 - `range`, `file`, `checkbox`, `radio`, `acceptance`, `quiz`, `captchar` und
   `select` mit `multiple`: bewusst nie.
+- Aus den Reviews vom 02.11.2026, Entscheidung des Nutzers vor 1.0.0:
+  Menü-Slug `wpcf7-floating-labels`, die Additional-Settings-Schlüssel
+  `floating_labels*` und die Form-Tag-Option `nofloat` tragen kein
+  `jgor`-Präfix (Kollisionsrisiko mit anderen CF7-Erweiterungen; nach dem
+  Release nicht mehr änderbar, weil gespeicherte Formulare die Schlüssel
+  tragen). `exit` nach `wp_safe_redirect()` bleibt (Core-üblich).
+- Aus den Reviews, Refactorings ohne Verhaltensänderung, vor oder nach
+  1.0.0: `Settings::sanitize_choice()` öffentlich statt vier Kopien der
+  Wahlprüfung (Markup, Form_Panel); `parse_types()` und die on/off-Wortlisten
+  an einer Stelle (Markup, Form_Panel, Settings); ein Helfer für die
+  CSS-Deklaration `--jgor-flcf7-<key>: <value>;` (Placement_Design, Assets,
+  Admin) und `css_defaults()` dort nutzen; das `style`-Attribut der
+  Platzierung per `WP_HTML_Tag_Processor` statt Regex auf `<div class="wpcf7`
+  setzen (robust gegen Attributreihenfolge).
+- Hinweis für readme/FAQ: Inline-Styles der Design-Werte (Einstellungsseite
+  als `<style>`, Platzierung als `style`-Attribut) fallen unter einer
+  strikten CSP ohne `'unsafe-inline'` weg; bewusste Abweichung von der
+  Hausregel „kein Inline-CSS“, weil es für Werte je Platzierung keinen
+  CSP-sauberen Weg gibt.
 - Verknüpftes Label mit Inline-Markup: ändert der Filter
   `jgor_flcf7_label_text` den Text, bleibt nur Klartext (7.2). Bewusst so;
   ein Filter für HTML-Inhalt kommt nur bei Bedarf.
@@ -1949,3 +2004,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.33 | 02.11.2026 | Schritt 19: Browser-Matrix automatisiert mit `tests/verify-browser.js` über die Toolchain-Stufe 10 (Windows-VM browser-dev und bodhran, sechs Browser × 67 PASS, Galerie unter `tests/browser-results/`, gitignored); §3 Baum, §13 Prüfscript und Umfang der Matrix, §14 Schritte 17 und 19 mit Edge-Befund |
 | 2.34 | 02.11.2026 | Variante lokal zurück auf Outlined und Datenbank nach Hostsharing übertragen, beide Sites auf dem Standard (§14 Schritt 19); Kopfzeile |
 | 2.35 | 02.11.2026 | Hostsharing-Angaben (Hostname, Paket, Domain-Admin, Datenbank, Serverpfade, Basic-Auth-Benutzer, Webroot) in der gesamten Git-Historie durch Platzhalter ersetzt, §2 Zeile „Test-Site Hostsharing“ gekürzt mit Verweis auf die lokale Site-env; vor dem ersten Push |
+| 2.36 | 02.11.2026 | Schritt 20: Befunde aus Code-Review und wp-reviewer behoben (Identitätsprüfung und Capability beim Löschen der Beispielposts, `uninstall.php` mit `number => 0`, Sperrlogik in `all()`, `LINE_PATTERN` wie CF7, `JSON_HEX_*`, `page_url()` wiederverwendet; 9.1, 9.3, 9.4, 12, 13, 14), Prüfzähler 30/41, §15 um Entscheidungen, Refactorings und CSP-Hinweis ergänzt |

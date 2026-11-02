@@ -58,8 +58,13 @@ final class JGOR_FLCF7_Form_Panel {
 
 	/**
 	 * Pattern of the additional-settings lines this panel owns.
+	 *
+	 * Anchored like the parser of Contact Form 7 (additional_setting():
+	 * name at the start of the line, no leading whitespace, exact case),
+	 * so the panel owns exactly the lines the renderer reads; an indented
+	 * or differently cased line is left alone.
 	 */
-	private const LINE_PATTERN = '/^\s*floating_labels(?:_style|_effect|_marker|_types)?\s*:/i';
+	private const LINE_PATTERN = '/^floating_labels(?:_style|_effect|_marker|_types)?[\t ]*:/';
 
 	/**
 	 * Values of the line "floating_labels" the panel offers (concept 7.5).
@@ -506,7 +511,9 @@ final class JGOR_FLCF7_Form_Panel {
 		$ours   = array();
 		$others = array();
 
-		foreach ( explode( "\n", trim( $text ) ) as $line ) {
+		// Only surrounding line breaks are trimmed: an indented first line must
+		// keep its indent, Contact Form 7 does not read it and neither do we.
+		foreach ( explode( "\n", trim( $text, "\r\n" ) ) as $line ) {
 			$line = rtrim( $line, "\r" );
 
 			if ( preg_match( self::LINE_PATTERN, $line ) ) {

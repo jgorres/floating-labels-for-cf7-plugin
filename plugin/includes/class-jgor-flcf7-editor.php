@@ -121,7 +121,9 @@ final class JGOR_FLCF7_Editor {
 
 		wp_set_script_translations( self::HANDLE, 'floating-labels-for-cf7', JGOR_FLCF7_PATH . 'languages' );
 
-		$json = wp_json_encode( $this->inline_data() );
+		// HEX flags: the data carries translated labels; a string with "</script>"
+		// must not be able to end the inline script.
+		$json = wp_json_encode( $this->inline_data(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
 		if ( is_string( $json ) ) {
 			wp_add_inline_script( self::HANDLE, 'window.' . self::DATA_GLOBAL . ' = ' . $json . ';', 'before' );
 		}

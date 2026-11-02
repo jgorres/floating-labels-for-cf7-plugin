@@ -299,18 +299,24 @@ final class JGOR_FLCF7_Settings {
 		 * @param array<string, mixed> $settings Stored settings merged with the defaults.
 		 */
 		$filtered = apply_filters( 'jgor_flcf7_settings', $stored );
+		$defaults = $this->defaults();
 
-		if ( is_array( $filtered ) ) {
-			foreach ( $stored as $key => $value ) {
-				if ( ! array_key_exists( $key, $filtered ) ) {
-					continue;
-				}
+		foreach ( $stored as $key => $value ) {
+			// The stored value, sanitized the same way as the filtered one:
+			// a value that no longer survives sanitizing (for example a field
+			// type a theme removed through jgor_flcf7_field_types) is
+			// corrected here and must not count as locked by the filter.
+			$base                   = $this->sanitize_value( $key, $value, $defaults[ $key ] ?? $value );
+			$this->settings[ $key ] = $base;
 
-				$clean = $this->sanitize_value( $key, $filtered[ $key ], $value );
-				if ( $clean !== $value ) {
-					$this->settings[ $key ] = $clean;
-					$this->locked[]         = $key;
-				}
+			if ( ! is_array( $filtered ) || ! array_key_exists( $key, $filtered ) ) {
+				continue;
+			}
+
+			$clean = $this->sanitize_value( $key, $filtered[ $key ], $base );
+			if ( $clean !== $base ) {
+				$this->settings[ $key ] = $clean;
+				$this->locked[]         = $key;
 			}
 		}
 

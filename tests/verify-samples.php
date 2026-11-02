@@ -333,6 +333,62 @@ $jgor_flcf7_samples->remove();
 jgor_flcf7_check( 'remove(): a post of another type in the option is left alone, option dropped', get_post( $jgor_flcf7_foreign ) instanceof WP_Post && false === get_option( JGOR_FLCF7_Samples::OPTION, false ) );
 wp_delete_post( (int) $jgor_flcf7_foreign, true );
 
+// Safety: a page or a contact form that is not a sample post (reused id, edited option) is never deleted.
+$jgor_flcf7_foreign_page    = wp_insert_post(
+	array(
+		'post_type'   => 'page',
+		'post_status' => 'draft',
+		'post_title'  => 'FL foreign page',
+		'post_name'   => 'fl-foreign-page',
+	)
+);
+$jgor_flcf7_foreign_form    = WPCF7_ContactForm::get_template( array( 'title' => 'FL foreign form' ) );
+$jgor_flcf7_foreign_form_id = (int) $jgor_flcf7_foreign_form->save();
+update_option(
+	JGOR_FLCF7_Samples::OPTION,
+	array(
+		'page'  => $jgor_flcf7_foreign_page,
+		'forms' => array( $jgor_flcf7_foreign_form_id ),
+	),
+	false
+);
+$jgor_flcf7_samples->remove();
+jgor_flcf7_check( 'remove(): a page and a form that are not sample posts are left alone', get_post( $jgor_flcf7_foreign_page ) instanceof WP_Post && get_post( $jgor_flcf7_foreign_form_id ) instanceof WP_Post && false === get_option( JGOR_FLCF7_Samples::OPTION, false ) );
+jgor_flcf7_check(
+	'is_sample_post(): slug of the page (also with a numeric suffix) and title prefix/suffix of a form, nothing else',
+	JGOR_FLCF7_Samples::is_sample_post(
+		new WP_Post(
+			(object) array(
+				'post_type'  => 'page',
+				'post_name'  => JGOR_FLCF7_Samples::PAGE_SLUG . '-2',
+				'post_title' => 'x',
+			)
+		)
+	)
+	&& JGOR_FLCF7_Samples::is_sample_post(
+		new WP_Post(
+			(object) array(
+				'post_type'  => JGOR_FLCF7_Samples::FORM_POST_TYPE,
+				'post_name'  => 'x',
+				'post_title' => JGOR_FLCF7_Samples::TITLE_PREFIX . 'Anything' . JGOR_FLCF7_Samples::TITLE_SUFFIX,
+			)
+		)
+	)
+	&& ! JGOR_FLCF7_Samples::is_sample_post( get_post( $jgor_flcf7_foreign_page ) )
+	&& ! JGOR_FLCF7_Samples::is_sample_post( get_post( $jgor_flcf7_foreign_form_id ) )
+	&& ! JGOR_FLCF7_Samples::is_sample_post(
+		new WP_Post(
+			(object) array(
+				'post_type'  => 'post',
+				'post_name'  => JGOR_FLCF7_Samples::PAGE_SLUG,
+				'post_title' => JGOR_FLCF7_Samples::TITLE_PREFIX . 'x' . JGOR_FLCF7_Samples::TITLE_SUFFIX,
+			)
+		)
+	)
+);
+wp_delete_post( (int) $jgor_flcf7_foreign_page, true );
+wp_delete_post( $jgor_flcf7_foreign_form_id, true );
+
 // Give the user back the sample page that existed before the run.
 if ( $jgor_flcf7_had_samples ) {
 	WP_CLI::log( 'Sample page created again: ' . $jgor_flcf7_samples->create() . ' (page ' . $jgor_flcf7_samples->page_id() . ').' );

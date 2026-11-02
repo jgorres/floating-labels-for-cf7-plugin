@@ -142,6 +142,10 @@ jgor_flcf7_check( 'panel: title counts the lines of this form (two of three)', '
 $jgor_flcf7_form->set_properties( array( 'additional_settings' => 'skip_mail: on' ) );
 $jgor_flcf7_panels = apply_filters( 'wpcf7_editor_panels', array() ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- the Contact Form 7 hook, applied on purpose.
 jgor_flcf7_check( 'panel: title without counter when no line is set', 'Floating labels' === ( $jgor_flcf7_panels[ JGOR_FLCF7_Form_Panel::PANEL_ID ]['title'] ?? '' ) );
+// Lines Contact Form 7 does not read (indented, other case) are not ours either.
+$jgor_flcf7_form->set_properties( array( 'additional_settings' => "  floating_labels: off\nFloating_Labels_style: filled\nskip_mail: on" ) );
+$jgor_flcf7_panels = apply_filters( 'wpcf7_editor_panels', array() ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- the Contact Form 7 hook, applied on purpose.
+jgor_flcf7_check( 'panel: indented or differently cased lines are not counted (same rule as Contact Form 7)', 'Floating labels' === ( $jgor_flcf7_panels[ JGOR_FLCF7_Form_Panel::PANEL_ID ]['title'] ?? '' ), (string) ( $jgor_flcf7_panels[ JGOR_FLCF7_Form_Panel::PANEL_ID ]['title'] ?? '' ) );
 $jgor_flcf7_form->set_properties( array( 'additional_settings' => $jgor_flcf7_three ) );
 
 // Rendering.
@@ -209,7 +213,7 @@ $jgor_flcf7_saved = jgor_flcf7_save_as_editor(
 );
 jgor_flcf7_check( 'save: invalid values ignored, limit without types -> empty types line, blank line inside kept', "skip_mail: on\n\ndemo_mode: on\nfloating_labels_types:" === $jgor_flcf7_saved, $jgor_flcf7_saved );
 $jgor_flcf7_saved = jgor_flcf7_save_as_editor( $jgor_flcf7_id, "Floating_Labels : off\nskip_mail: on", array( 'mode' => 'text' ), $jgor_flcf7_nonce );
-jgor_flcf7_check( 'save: an own line in other spelling is replaced too', "skip_mail: on\nfloating_labels: text" === $jgor_flcf7_saved, $jgor_flcf7_saved );
+jgor_flcf7_check( 'save: a line in other spelling is not ours (Contact Form 7 ignores it) and stays untouched', "Floating_Labels : off\nskip_mail: on\nfloating_labels: text" === $jgor_flcf7_saved, $jgor_flcf7_saved );
 
 // Second layer: nonce and capability.
 $jgor_flcf7_saved = jgor_flcf7_save_as_editor( $jgor_flcf7_id, $jgor_flcf7_three, array( 'mode' => 'off' ), null );

@@ -267,7 +267,7 @@ final class JGOR_FLCF7_Samples {
 			$back = wp_get_referer();
 			wp_safe_redirect( is_string( $back ) && '' !== $back ? $back : admin_url() );
 		} else {
-			wp_safe_redirect( add_query_arg( self::RESULT_ARG, $result, $this->settings_url() ) );
+			wp_safe_redirect( add_query_arg( self::RESULT_ARG, $result, JGOR_FLCF7_Admin::page_url() ) );
 		}
 
 		// The redirect is on its way; the request has to end here.
@@ -392,17 +392,6 @@ final class JGOR_FLCF7_Samples {
 	}
 
 	/**
-	 * Returns the URL of the settings screen of module 4.
-	 *
-	 * @return string
-	 */
-	private function settings_url(): string {
-		$url = menu_page_url( JGOR_FLCF7_Admin::PAGE_SLUG, false );
-
-		return '' === $url ? admin_url( 'admin.php?page=' . JGOR_FLCF7_Admin::PAGE_SLUG ) : $url;
-	}
-
-	/**
 	 * Whether a post exists with the given type and is not in the trash.
 	 *
 	 * @param int    $id   Post id.
@@ -420,9 +409,35 @@ final class JGOR_FLCF7_Samples {
 	}
 
 	/**
-	 * Deletes posts permanently, but only pages and contact forms.
+	 * Whether a post is one of the sample posts this module creates.
 	 *
-	 * @param int[] $ids Post ids; unknown ids are skipped.
+	 * The stored ids alone are not trusted: an id can be reused after the
+	 * post is gone, and the option can be edited. The identity is checked on
+	 * the post itself: the sample page by its slug (the slug the plugin
+	 * sets, possibly with a numeric suffix WordPress added), a sample form
+	 * by its post type and the title prefix and suffix. Also used by
+	 * uninstall.php, so it is static and touches no other class.
+	 *
+	 * @param WP_Post $post Post to check.
+	 * @return bool
+	 */
+	public static function is_sample_post( WP_Post $post ): bool {
+		if ( 'page' === $post->post_type ) {
+			return str_starts_with( $post->post_name, self::PAGE_SLUG );
+		}
+
+		if ( self::FORM_POST_TYPE === $post->post_type ) {
+			return str_starts_with( $post->post_title, self::TITLE_PREFIX ) && str_ends_with( $post->post_title, self::TITLE_SUFFIX );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Deletes posts permanently, but only sample posts of this module
+	 * (is_sample_post()) the current user may delete.
+	 *
+	 * @param int[] $ids Post ids; unknown, foreign and protected ids are skipped.
 	 * @return void
 	 */
 	private function delete_posts( array $ids ): void {
@@ -432,7 +447,11 @@ final class JGOR_FLCF7_Samples {
 			}
 
 			$post = get_post( $id );
-			if ( $post instanceof WP_Post && in_array( $post->post_type, self::DELETABLE_TYPES, true ) ) {
+			if ( ! $post instanceof WP_Post || ! in_array( $post->post_type, self::DELETABLE_TYPES, true ) ) {
+				continue;
+			}
+
+			if ( self::is_sample_post( $post ) && current_user_can( 'delete_post', $post->ID ) ) {
 				wp_delete_post( $id, true );
 			}
 		}
