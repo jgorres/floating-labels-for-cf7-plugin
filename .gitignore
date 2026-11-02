@@ -19,3 +19,6 @@
 # Betriebssystem
 .DS_Store
 Thumbs.db
+
+# Ergebnisse der Browser-Matrix (tests/verify-browser.js)
+/tests/browser-results/

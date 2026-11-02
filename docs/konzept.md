@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.32 · Stand: 30.10.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Hostsharing synchron; offen Browser-Matrix und Sichtprüfung Datum/Select, dann 5.6 Veröffentlichung)
+Version: 2.33 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Hostsharing synchron, Browser-Matrix automatisiert in sechs Browsern bestanden; offen Sichtung der Galerie und des Tabs durch den Nutzer, dann 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -93,6 +93,8 @@ floating-labels-for-cf7/
 │   ├── verify-samples.php            37 PASS/FAIL-Prüfungen für die Beispielseite (wp eval-file)
 │   ├── verify-editor.php             27 PASS/FAIL-Prüfungen für Modul 5, Enqueue und Block-Attribut (wp eval-file)
 │   ├── verify-form-panel.php         PASS/FAIL-Prüfungen für Modul 7, Tab im CF7-Editor (wp eval-file; Schritt 16)
+│   ├── verify-browser.js             Browser-Matrix: 67 Prüfungen je Browser in Chromium, Edge, Firefox (bodhran) und Edge, Chrome, Firefox (Windows-VM) über die Toolchain-Stufe 10 (Node; Schritt 19)
+│   ├── browser-results/              Ergebnisse der Browser-Matrix: Screenshots, werte.json, index.html je Lauf (nicht versioniert)
 │   └── verify-editor-js.mjs          99 PASS/FAIL-Prüfungen für das Editor-Script (node)
 ├── docs/
 │   ├── konzept.md                    dieses Dokument
@@ -1476,13 +1478,43 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   `copy` und Post ohne Panel ohne Wirkung, Hook auf `wpcf7_admin_load` nur
   für die Editorseiten und Enqueue von `admin.css`. Legt ein eigenes
   Formular und einen Abonnenten an und entfernt beide wieder.
+- `tests/verify-browser.js` fährt die Browser-Matrix automatisch (67
+  Punkte je Browser, Schritt 19) über die Toolchain-Stufe 10
+  (`~/bin/local-sites/local-sites-browser.sh run tests/verify-browser.js
+  --ziel beide`, Bibliothek `lib/browser-matrix.js`, Konzept
+  `~/dev/Dokumentation/browsertests-vm.md`): lokal Chromium, Edge (apt, per
+  CDP) und Firefox ESR (WebDriver BiDi), in der Windows-VM `browser-dev`
+  Edge, Chrome und Firefox über einen Playwright-Server. Das Script legt
+  einen temporären Administrator an (die Beispielseite ist privat), schaltet
+  die Variante über `wp option patch update jgor_flcf7_settings style` durch
+  und stellt den Ausgangswert am Ende zurück, löscht das Konto. Je Variante
+  auf der Beispielseite: Ruhe, Fokus per Klick und per Tab, Eingabe und
+  Verlassen, Fehlerfall nach leerem Absenden (Control `wpcf7-not-valid`,
+  Label in Fehlerfarbe, Tip innerhalb des Wraps, Senden-Button in
+  Fehlerfarbe mit Text, Outlined zusätzlich Rahmenfarbe), Versand mit
+  `skip_mail` (Labels sinken zurück), Select mit Leeroption (ruht, floatet
+  bei Fokus, bleibt oben nach Auswahl), Datum und Select ohne Leeroption
+  (oben), Pflicht-Select leer (Tip endet vor dem Pfeil), schmale Ansicht
+  390 px (Ruhe, Fokus); einmal je Browser die drei Effekte (Glow:
+  `box-shadow` in Effektfarbe, Puls: `animation-name`, Lauflicht: `::before`
+  mit `opacity` 1 und Animation) und die Verknüpfung `label[for]` aller
+  Felder. Farben kommen aus den Custom Properties des Formulars, Float aus
+  `transform: matrix(0.75, …)`. Jede Aufnahme ist ein Ausschnitt-Screenshot
+  mit Rand plus berechnete Stile; `index.html` zeigt Szenarien × Browser,
+  der Pixelvergleich läuft nur innerhalb einer Plattform (Chromium/Edge
+  lokal, Edge/Chrome in der VM). Laufzeit etwa vier Minuten für alle sechs
+  Browser. Ergebnis vom 02.11.2026: 6 × 67 PASS; Pixelunterschiede nur bei
+  laufenden Animationen (Puls, Lauflicht) und in der minimalen Variante
+  beim Fokus zwischen Chromium und Edge (1416 px, Antialiasing der
+  Theme-Outline, mit dem Auge gleich), in der VM Edge/Chrome identisch bis
+  auf 9 px im Lauflicht.
 - Sichtprüfung auf Bodhran headless (`chromium --headless=new
   --ignore-certificate-errors --screenshot`), interaktiv im Browser auf
   Silentium (Frontend und Einstellungsseite
-  `wp-admin/admin.php?page=wpcf7-floating-labels`). Browser-Matrix vor dem
-  Release von Hand in Firefox und Edge auf Silentium (der Playwright-MCP
-  steht auf Bodhran ohne Chrome nicht zur Verfügung, playwright-core mit dem
-  System-Chromium schon, siehe `docs/screenshots-admin-erzeugen.js`):
+  `wp-admin/admin.php?page=wpcf7-floating-labels`). Browser-Matrix seit
+  Schritt 19 automatisiert (`tests/verify-browser.js`, oben); von Hand
+  bleiben Autofill, geöffnete native Popups (Select-Liste, Datumswähler)
+  und der Sichteindruck anhand der Galerie. Umfang der Matrix:
   Ruhezustand, Fokus per Klick
   und per Tab, Eingabe, Autofill, seit Schritt 15 Datum und Select
   (Leeroption gewählt → Label ruht, Fokus und Auswahl → Label oben),
@@ -1795,8 +1827,9 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     mit den Formularen 647–654, Plugin Check auf dem Server ohne Befund,
     `<webroot>/.htaccess` nur mit dem Basic-Auth-Block (401 ohne, 200 mit
     Zugangsdaten), Frontend lädt `floating-labels.css?ver=1.0.0.<Zeit>`.
-    Offen: Browser-Matrix (Nutzer), Sichtprüfung des Tabs im CF7-Editor und
-    der Felder Datum/Select (Nutzer); danach 5.6.
+    Browser-Matrix am 02.11.2026 automatisiert erledigt (Schritt 19).
+    Offen: Sichtprüfung des Tabs im CF7-Editor und Sichtung der Galerie
+    (Nutzer); danach 5.6.
 18. Nachbesserungen aus der Sichtprüfung des Nutzers vom 30.10.2026 (Block-
     Seitenleiste und Tab, Konzept 2.31): Einleitungssatz im Panel „Floating
     labels“ (10), Link „Floating Labels“ in der Legende des Tabs und
@@ -1809,6 +1842,24 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     Plugin-Dateien, 0 Löschungen; Sicherung des Webroots 38 MB), lesend
     geprüft: alle 18 Plugin-Dateien md5-identisch, Plugin Check auf dem
     Server ohne Befund. Offen: Sichtprüfung (Nutzer).
+19. Browser-Matrix automatisiert (02.11.2026): `tests/verify-browser.js`
+    über die neue Toolchain-Stufe 10 (Windows-VM `browser-dev` mit Edge
+    156.0.4314.58, Chrome 156.0.8078.80, Firefox 159.0; bodhran mit Chromium
+    156.0.8078.73, Edge 156.0.4314.58, Firefox ESR 153.6; Konzept
+    `~/dev/Dokumentation/browsertests-vm.md` 1.4). Ergebnis: 6 × 67 PASS,
+    0 FAIL, Galerie `tests/browser-results/20261102-152505/index.html`
+    (Ordner nicht versioniert). Befunde: keine Abweichung zwischen den
+    Browsern in den geprüften Werten; Datum- und Select-Regeln mit `:has()`
+    greifen auch in Firefox 153 und 159; die Fehlerfarbe des Senden-Buttons
+    und der Tip neben dem Pfeil stimmen überall. Der Edge-Befund des Nutzers
+    vom 30.10.2026 (blauer Punkt oben links, schwarze Rahmen) tritt auch im
+    Windows-Edge headless nicht auf: die schwarzen Rahmen sind die
+    Theme-Rahmen der Variante Minimal (das Plugin zeichnet dort keine), der
+    Punkt bleibt ohne Screenshot (`3.png`) unerklärt und ist vermutlich eine
+    Profil- oder Erweiterungsanzeige des Browsers. Beide Sites stehen
+    weiter auf Minimal (Rückstellung auf Outlined plus `datenbank` offen).
+    Nicht automatisierbar und beim Nutzer: Autofill, geöffnete native
+    Popups, Sichteindruck.
 
 ## 15. Offen
 
@@ -1889,3 +1940,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.30 | 30.10.2026 | Hostsharing nach den Schritten 14–17 mit `dateien` und `datenbank` nachgezogen und lesend geprüft (§14 Schritt 17): 18 Dateien md5-identisch, Option, Beispielseite 655, Plugin Check remote ohne Befund |
 | 2.31 | 30.10.2026 | Sichtprüfung des Tabs: Einleitungssatz im Panel „Floating labels“ (10, Blockbeschreibung und Logo von CF7 bewusst nicht genutzt), Link in der Legende und Beschriftung „Marker for required fields“ im Tab (9.4), `page_url()` statisch; §13 `verify-form-panel.php` 29, §14 Schritt 18 |
 | 2.32 | 30.10.2026 | Hostsharing nach Schritt 18 mit `dateien` nachgezogen und lesend geprüft (§14 Schritt 18): 18 Dateien md5-identisch, Plugin Check remote ohne Befund |
+| 2.33 | 02.11.2026 | Schritt 19: Browser-Matrix automatisiert mit `tests/verify-browser.js` über die Toolchain-Stufe 10 (Windows-VM browser-dev und bodhran, sechs Browser × 67 PASS, Galerie unter `tests/browser-results/`, gitignored); §3 Baum, §13 Prüfscript und Umfang der Matrix, §14 Schritte 17 und 19 mit Edge-Befund |
