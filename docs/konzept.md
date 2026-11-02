@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.41 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Reviews behoben, Präfixe `jgor_floating_labels*`, Hostsharing synchron; nächster Schritt 5.6 Veröffentlichung)
+Version: 2.42 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (am 02.11.2026 bei WordPress.org eingereicht; warten auf das Review-Team, danach SVN und GlotPress)
 
 ## 1. Zweck
 
@@ -1962,6 +1962,13 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     GitHub-Release und kein Git-Tag, wie bei den anderen Plugins. Offen in
     5.6: Einreichung bei WordPress.org mit dem ZIP, nach der Freischaltung
     SVN und GlotPress.
+25. Einreichung bei WordPress.org am 02.11.2026 durch den Nutzer mit
+    `dist/floating-labels-for-cf7-1.0.0.zip` (Formular
+    wordpress.org/plugins/developers/add). Offen: Antwort des Review-Teams;
+    bei Rückfragen Änderungen im Repo, ZIP neu bauen, Antwort per Mail.
+    Nach der Freischaltung `svn co`, `plugin/` nach `svn/trunk/`, `svn cp
+    trunk tags/1.0.0`, `assets/` nach `svn/assets/`, `svn ci`; danach die
+    deutschen Übersetzungen (du und Sie) über GlotPress.
 
 ## 15. Offen
 
@@ -2059,3 +2066,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.39 | 02.11.2026 | Schritt 23: Hostsharing nach den Schritten 20–22 mit `dateien` und `datenbank` nachgezogen und lesend geprüft (18 Dateien identisch, Beispielseite 881 mit Formularen 873–880, Plugin Check ohne Befund); Kopfzeile |
 | 2.40 | 02.11.2026 | Schritt 24: Release-ZIP neu gebaut (18 Dateien, 85 KB) und Plugin Check ohne Befund, auch experimentell und niedrige Schwere (§13, §14) |
 | 2.41 | 02.11.2026 | Schritt 24: GitHub-Repo öffentlich, Ruleset „main schützen“ angelegt und geprüft |
+| 2.42 | 02.11.2026 | Schritt 25: bei WordPress.org eingereicht; Kopfzeile |
