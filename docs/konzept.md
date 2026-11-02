@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.38 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Code-Review und wp-reviewer durch, Befunde behoben; offen Entscheidungen aus §15, Hostsharing `dateien`, dann 5.6 Veröffentlichung)
+Version: 2.39 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Reviews behoben, Präfixe `jgor_floating_labels*`, Hostsharing synchron; nächster Schritt 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -1935,6 +1935,17 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     und `inline_css()` drucken aktuelle Werte, nicht die Defaults. readme:
     FAQ zur strikten Content Security Policy. `composer check` und alle
     Prüfscripte (128/65/40/28/41/30, Editor-JS) ohne Befund.
+23. Hostsharing nach den Schritten 20–22 am 02.11.2026 mit `dateien
+    --ueberschreiben --ja` (Probelauf vorher: 92 geänderte Dateien, davon
+    die 18 Plugin-Dateien, Rest WordPress-Sprachdateien mit neuem
+    Zeitstempel; Sicherung des Webroots 38 MB) und `datenbank
+    --ueberschreiben --ja` (56 Ersetzungen, lokale und Remote-Sicherung,
+    bekannte Warnung beim `rewrite flush`, erneuter Flush per SSH sauber)
+    nachgezogen. Lesend geprüft: alle 18 Plugin-Dateien md5-identisch,
+    `style` outlined, Beispielseite 881 privat mit den Formularen 873–880,
+    deren Additional Settings die Zeilen `jgor_floating_labels*` tragen,
+    Plugin Check auf dem Server ohne Befund. Beide Sites sind damit auf
+    dem Stand von Konzept 2.38; offen nur noch 5.6.
 
 ## 15. Offen
 
@@ -2029,3 +2040,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.36 | 02.11.2026 | Schritt 20: Befunde aus Code-Review und wp-reviewer behoben (Identitätsprüfung und Capability beim Löschen der Beispielposts, `uninstall.php` mit `number => 0`, Sperrlogik in `all()`, `LINE_PATTERN` wie CF7, `JSON_HEX_*`, `page_url()` wiederverwendet; 9.1, 9.3, 9.4, 12, 13, 14), Prüfzähler 30/41, §15 um Entscheidungen, Refactorings und CSP-Hinweis ergänzt |
 | 2.37 | 02.11.2026 | Schritt 21: Präfixe `jgor_floating_labels*`, `jgor_nofloat`, Menü-Slug `jgor-flcf7` (Konstanten in `JGOR_FLCF7_Settings`), readme, `.pot`, Prüfscripte, Screenshots 5 und 7, Konzeptabschnitte 7.5, 9, 9.3, 9.4, 13; §15 Präfix-Punkt erledigt |
 | 2.38 | 02.11.2026 | Schritt 22: Refactorings aus den Reviews (statische Helfer `word_to_bool()`, `choice()`, `intersect_types()`, `parse_types_line()`, `declaration()` in `JGOR_FLCF7_Settings`; `WP_HTML_Tag_Processor` für das `style`-Attribut der Platzierung), readme-FAQ zur CSP; §15 bereinigt |
+| 2.39 | 02.11.2026 | Schritt 23: Hostsharing nach den Schritten 20–22 mit `dateien` und `datenbank` nachgezogen und lesend geprüft (18 Dateien identisch, Beispielseite 881 mit Formularen 873–880, Plugin Check ohne Befund); Kopfzeile |
