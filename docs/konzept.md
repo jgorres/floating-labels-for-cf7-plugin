@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.33 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Hostsharing synchron, Browser-Matrix automatisiert in sechs Browsern bestanden; offen Sichtung der Galerie und des Tabs durch den Nutzer, dann 5.6 Veröffentlichung)
+Version: 2.34 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Hostsharing synchron, Browser-Matrix automatisiert in sechs Browsern bestanden, Variante beidseitig wieder Outlined; offen Sichtung der Galerie und des Tabs durch den Nutzer, Push, dann 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -1856,8 +1856,14 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     Windows-Edge headless nicht auf: die schwarzen Rahmen sind die
     Theme-Rahmen der Variante Minimal (das Plugin zeichnet dort keine), der
     Punkt bleibt ohne Screenshot (`3.png`) unerklärt und ist vermutlich eine
-    Profil- oder Erweiterungsanzeige des Browsers. Beide Sites stehen
-    weiter auf Minimal (Rückstellung auf Outlined plus `datenbank` offen).
+    Profil- oder Erweiterungsanzeige des Browsers. Variante am 02.11.2026
+    lokal per `wp option patch update jgor_flcf7_settings style outlined`
+    zurückgesetzt und per `datenbank --ueberschreiben --ja` (Probelauf
+    vorher; lokale und Remote-Sicherung unter
+    `~/backups/local-sites/hostsharing/`, 54 Ersetzungen) nach Hostsharing
+    übertragen; lesend geprüft: `style` outlined, `siteurl`/`home`,
+    Beispielseite 655 privat, `rewrite flush` nach der bekannten Warnung
+    erneut sauber. Beide Sites stehen wieder auf Outlined.
     Nicht automatisierbar und beim Nutzer: Autofill, geöffnete native
     Popups, Sichteindruck.
 
@@ -1941,3 +1947,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.31 | 30.10.2026 | Sichtprüfung des Tabs: Einleitungssatz im Panel „Floating labels“ (10, Blockbeschreibung und Logo von CF7 bewusst nicht genutzt), Link in der Legende und Beschriftung „Marker for required fields“ im Tab (9.4), `page_url()` statisch; §13 `verify-form-panel.php` 29, §14 Schritt 18 |
 | 2.32 | 30.10.2026 | Hostsharing nach Schritt 18 mit `dateien` nachgezogen und lesend geprüft (§14 Schritt 18): 18 Dateien md5-identisch, Plugin Check remote ohne Befund |
 | 2.33 | 02.11.2026 | Schritt 19: Browser-Matrix automatisiert mit `tests/verify-browser.js` über die Toolchain-Stufe 10 (Windows-VM browser-dev und bodhran, sechs Browser × 67 PASS, Galerie unter `tests/browser-results/`, gitignored); §3 Baum, §13 Prüfscript und Umfang der Matrix, §14 Schritte 17 und 19 mit Edge-Befund |
+| 2.34 | 02.11.2026 | Variante lokal zurück auf Outlined und Datenbank nach Hostsharing übertragen, beide Sites auf dem Standard (§14 Schritt 19); Kopfzeile |
