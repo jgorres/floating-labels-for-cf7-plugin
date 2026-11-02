@@ -164,14 +164,23 @@ final class JGOR_FLCF7_Placement_Design {
 			return $output;
 		}
 
-		$result = preg_replace(
-			'/<div class="wpcf7(?: [^"]*)?"/',
-			'$0 style="' . esc_attr( self::style( $design ) ) . '"',
-			$output,
-			1
-		);
+		// The first div.wpcf7 is the wrapper Contact Form 7 prints; the tag
+		// processor finds it whatever the order or quoting of its attributes,
+		// escapes the attribute value itself and puts the new attribute right
+		// after the tag name.
+		$processor = new WP_HTML_Tag_Processor( $output );
+		if ( $processor->next_tag(
+			array(
+				'tag_name'   => 'DIV',
+				'class_name' => 'wpcf7',
+			)
+		) ) {
+			$processor->set_attribute( 'style', self::style( $design ) );
 
-		return is_string( $result ) ? $result : $output;
+			return $processor->get_updated_html();
+		}
+
+		return $output;
 	}
 
 	/**
@@ -247,7 +256,7 @@ final class JGOR_FLCF7_Placement_Design {
 	public static function style( array $design ): string {
 		$declarations = array();
 		foreach ( $design as $key => $value ) {
-			$declarations[] = JGOR_FLCF7_Settings::PROPERTY_PREFIX . $key . ': ' . $value . ';';
+			$declarations[] = JGOR_FLCF7_Settings::declaration( $key, $value );
 		}
 
 		return implode( ' ', $declarations );

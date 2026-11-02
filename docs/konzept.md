@@ -1,6 +1,6 @@
 # Floating Labels for CF7 – Konzept und Aufbau
 
-Version: 2.37 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Code-Review und wp-reviewer durch, Befunde behoben; offen Entscheidungen aus §15, Hostsharing `dateien`, dann 5.6 Veröffentlichung)
+Version: 2.38 · Stand: 02.11.2026 · Plugin-Version: 1.0.0 (Module 1–7 umgesetzt, Browser-Matrix bestanden und gesichtet, Code-Review und wp-reviewer durch, Befunde behoben; offen Entscheidungen aus §15, Hostsharing `dateien`, dann 5.6 Veröffentlichung)
 
 ## 1. Zweck
 
@@ -1919,6 +1919,23 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
     `verify-samples.php` neu angelegt, Formulare tragen die neuen Zeilen.
     Hostsharing (`dateien` und `datenbank`) nach dem Refactoring-Zug.
 
+22. Refactorings aus den Reviews (02.11.2026), ohne Verhaltensänderung:
+    gemeinsame statische Helfer in `JGOR_FLCF7_Settings`: `ON_WORDS`/
+    `OFF_WORDS` und `word_to_bool()` (statt `Markup::to_bool()`,
+    `Settings::sanitize_bool()` und den Wortlisten des Tabs), `choice()`
+    (statt vier Kopien der Wahlprüfung in Markup, Settings und Form_Panel),
+    `intersect_types()` und `parse_types_line()` (statt `sanitize_types()`
+    und zwei `parse_types()`), `declaration()` für `--jgor-flcf7-<key>:
+    <value>;` (Placement_Design, Assets, Admin). Das `style`-Attribut der
+    Platzierung setzt `WP_HTML_Tag_Processor` (`next_tag()` mit
+    `tag_name`/`class_name`, `set_attribute()`) statt eines Regex auf
+    `<div class="wpcf7`; das Attribut steht damit direkt hinter dem
+    Tag-Namen (zwei Erwartungen in `verify-markup.php` angepasst).
+    `css_defaults()` bleibt, weil die Prüfscripte es nutzen; `css_snippet()`
+    und `inline_css()` drucken aktuelle Werte, nicht die Defaults. readme:
+    FAQ zur strikten Content Security Policy. `composer check` und alle
+    Prüfscripte (128/65/40/28/41/30, Editor-JS) ohne Befund.
+
 ## 15. Offen
 
 - Die Erweiterungen aus §15 bis 2.24 (Feldtypen `date`/`select`, Tab im
@@ -1930,19 +1947,12 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
   `select` mit `multiple`: bewusst nie.
 - `exit` nach `wp_safe_redirect()` bleibt (Core-üblich; `wp_die()` würde
   die Weiterleitung mit eigenen Kopfzeilen und Status 500 überschreiben).
-- Aus den Reviews, Refactorings ohne Verhaltensänderung, vor oder nach
-  1.0.0: `Settings::sanitize_choice()` öffentlich statt vier Kopien der
-  Wahlprüfung (Markup, Form_Panel); `parse_types()` und die on/off-Wortlisten
-  an einer Stelle (Markup, Form_Panel, Settings); ein Helfer für die
-  CSS-Deklaration `--jgor-flcf7-<key>: <value>;` (Placement_Design, Assets,
-  Admin) und `css_defaults()` dort nutzen; das `style`-Attribut der
-  Platzierung per `WP_HTML_Tag_Processor` statt Regex auf `<div class="wpcf7`
-  setzen (robust gegen Attributreihenfolge).
-- Hinweis für readme/FAQ: Inline-Styles der Design-Werte (Einstellungsseite
-  als `<style>`, Platzierung als `style`-Attribut) fallen unter einer
-  strikten CSP ohne `'unsafe-inline'` weg; bewusste Abweichung von der
-  Hausregel „kein Inline-CSS“, weil es für Werte je Platzierung keinen
-  CSP-sauberen Weg gibt.
+- Inline-Styles der Design-Werte (Einstellungsseite als `<style>`,
+  Platzierung als `style`-Attribut) fallen unter einer strikten CSP ohne
+  `'unsafe-inline'` weg: bewusste Abweichung von der Hausregel „kein
+  Inline-CSS“, weil es für Werte je Platzierung keinen CSP-sauberen Weg
+  gibt; seit 2.38 als FAQ in der readme beschrieben (Ausweg: Design-Felder
+  leer lassen, Custom Properties im Theme-Stylesheet setzen).
 - Verknüpftes Label mit Inline-Markup: ändert der Filter
   `jgor_flcf7_label_text` den Text, bleibt nur Klartext (7.2). Bewusst so;
   ein Filter für HTML-Inhalt kommt nur bei Bedarf.
@@ -2018,3 +2028,4 @@ node --check plugin/assets/js/block-editor.js && node tests/verify-editor-js.mjs
 | 2.35 | 02.11.2026 | Hostsharing-Angaben (Hostname, Paket, Domain-Admin, Datenbank, Serverpfade, Basic-Auth-Benutzer, Webroot) in der gesamten Git-Historie durch Platzhalter ersetzt, §2 Zeile „Test-Site Hostsharing“ gekürzt mit Verweis auf die lokale Site-env; vor dem ersten Push |
 | 2.36 | 02.11.2026 | Schritt 20: Befunde aus Code-Review und wp-reviewer behoben (Identitätsprüfung und Capability beim Löschen der Beispielposts, `uninstall.php` mit `number => 0`, Sperrlogik in `all()`, `LINE_PATTERN` wie CF7, `JSON_HEX_*`, `page_url()` wiederverwendet; 9.1, 9.3, 9.4, 12, 13, 14), Prüfzähler 30/41, §15 um Entscheidungen, Refactorings und CSP-Hinweis ergänzt |
 | 2.37 | 02.11.2026 | Schritt 21: Präfixe `jgor_floating_labels*`, `jgor_nofloat`, Menü-Slug `jgor-flcf7` (Konstanten in `JGOR_FLCF7_Settings`), readme, `.pot`, Prüfscripte, Screenshots 5 und 7, Konzeptabschnitte 7.5, 9, 9.3, 9.4, 13; §15 Präfix-Punkt erledigt |
+| 2.38 | 02.11.2026 | Schritt 22: Refactorings aus den Reviews (statische Helfer `word_to_bool()`, `choice()`, `intersect_types()`, `parse_types_line()`, `declaration()` in `JGOR_FLCF7_Settings`; `WP_HTML_Tag_Processor` für das `style`-Attribut der Platzierung), readme-FAQ zur CSP; §15 bereinigt |

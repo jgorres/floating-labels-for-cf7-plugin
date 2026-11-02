@@ -910,7 +910,7 @@ final class JGOR_FLCF7_Admin {
 		$lines = array( '.wpcf7 {' );
 
 		foreach ( $this->settings->design() as $key => $value ) {
-			$lines[] = "\t" . JGOR_FLCF7_Settings::PROPERTY_PREFIX . $key . ': ' . $value . ';';
+			$lines[] = "\t" . JGOR_FLCF7_Settings::declaration( $key, $value );
 		}
 
 		$lines[] = '}';

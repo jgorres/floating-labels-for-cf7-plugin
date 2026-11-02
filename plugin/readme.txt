@@ -169,6 +169,10 @@ Checkboxes, radio buttons, acceptance, quiz, file, range and CAPTCHA fields, and
 
 Every rebuilt field keeps or gets an `id` and a real `<label for>` pointing at it. The visible placeholder is replaced by a single space, so screen readers read one name only. Contact Form 7's `aria-required`, `aria-invalid` and `aria-describedby` attributes are preserved, and the stylesheet respects `prefers-reduced-motion` for the label transitions and the focus effects.
 
+= Does the plugin work with a strict Content Security Policy? =
+
+The stylesheet is an enqueued file, so it loads under any policy. Values you change under Design, and design values of a placement, are printed inline: as a small `<style>` rule after the stylesheet and as a `style` attribute on the form wrapper. A policy whose `style-src` has no `'unsafe-inline'` drops both, and the defaults of the stylesheet apply. To keep custom values under such a policy, leave the design fields empty and set the custom properties in your theme's stylesheet instead; the section "CSS for themes" on the settings screen shows the snippet.
+
 == Screenshots ==
 
 1. Outlined variant: labels at rest and floated, with a focused field.

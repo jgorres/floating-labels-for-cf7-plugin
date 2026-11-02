@@ -55,6 +55,16 @@ final class JGOR_FLCF7_Settings {
 	public const TAG_OPTION_NOFLOAT = 'jgor_nofloat';
 
 	/**
+	 * Spellings of "on" and "off" accepted in settings lines, html_class
+	 * tokens, the settings form and filter values (concept 7.5): one list
+	 * for every module, read through word_to_bool().
+	 *
+	 * @var string[]
+	 */
+	public const ON_WORDS  = array( 'on', 'true', 'yes', '1' );
+	public const OFF_WORDS = array( 'off', 'false', 'no', '0' );
+
+	/**
 	 * Contact Form 7 base types the plugin handles out of the box.
 	 *
 	 * Types that render a single text-like control: inputs with a placeholder
@@ -504,13 +514,13 @@ final class JGOR_FLCF7_Settings {
 	private function sanitize_value( string $key, $raw, $fallback ) {
 		switch ( $key ) {
 			case 'types':
-				return $this->sanitize_types( $raw );
+				return self::intersect_types( $raw, $this->field_types() );
 
 			case 'style':
-				return $this->sanitize_choice( $raw, self::STYLES, $fallback );
+				return self::choice( $raw, self::STYLES, (string) $fallback );
 
 			case 'effect':
-				return $this->sanitize_choice( $raw, self::EFFECTS, $fallback );
+				return self::choice( $raw, self::EFFECTS, (string) $fallback );
 
 			case 'submit_error_text':
 				return $this->sanitize_text( $raw );
@@ -520,44 +530,112 @@ final class JGOR_FLCF7_Settings {
 		}
 
 		if ( is_bool( $fallback ) ) {
-			return $this->sanitize_bool( $raw );
+			return true === self::word_to_bool( $raw );
 		}
 
 		return $fallback;
 	}
 
 	/**
-	 * Coerces a checkbox or boolean-like value to bool.
+	 * Reads a boolean from a bool, an int or one of the ON_WORDS/OFF_WORDS
+	 * (trimmed, case-insensitive). A missing or unknown value is null, so a
+	 * caller can tell "not set" from "off"; sanitize_value() treats it as false
+	 * (an unticked checkbox).
 	 *
-	 * A missing value (unticked checkbox) is false.
-	 *
-	 * @param mixed $raw Raw value.
-	 * @return bool
+	 * @param mixed $value Raw value.
+	 * @return bool|null Null when the value is none of the known spellings.
 	 */
-	private function sanitize_bool( $raw ): bool {
-		if ( is_bool( $raw ) ) {
-			return $raw;
+	public static function word_to_bool( $value ): ?bool {
+		if ( is_bool( $value ) ) {
+			return $value;
 		}
 
-		if ( is_string( $raw ) || is_int( $raw ) ) {
-			return in_array( (string) $raw, array( '1', 'true', 'on', 'yes' ), true );
+		if ( is_int( $value ) ) {
+			return 0 !== $value;
 		}
 
-		return false;
+		if ( ! is_string( $value ) ) {
+			return null;
+		}
+
+		$word = strtolower( trim( $value ) );
+		if ( in_array( $word, self::ON_WORDS, true ) ) {
+			return true;
+		}
+
+		if ( in_array( $word, self::OFF_WORDS, true ) ) {
+			return false;
+		}
+
+		return null;
 	}
 
 	/**
-	 * Keeps a value only if it is one of the allowed choices.
+	 * Keeps a value only if it is one of the allowed choices (after
+	 * sanitize_key()). Used for the settings form, the settings lines of a
+	 * form, html_class tokens and filter values alike.
 	 *
-	 * @param mixed    $raw      Raw value.
+	 * @param mixed    $raw      Raw value; anything but a string is rejected.
 	 * @param string[] $allowed  Allowed values.
-	 * @param mixed    $fallback Fallback.
+	 * @param string   $fallback Returned for anything else.
 	 * @return string
 	 */
-	private function sanitize_choice( $raw, array $allowed, $fallback ): string {
+	public static function choice( $raw, array $allowed, string $fallback = '' ): string {
 		$raw = is_string( $raw ) ? sanitize_key( $raw ) : '';
 
-		return in_array( $raw, $allowed, true ) ? $raw : (string) $fallback;
+		return in_array( $raw, $allowed, true ) ? $raw : $fallback;
+	}
+
+	/**
+	 * Keeps the known field types out of a raw list, in the order of $known.
+	 *
+	 * @param mixed    $raw   Raw list; entries that are not strings are skipped.
+	 * @param string[] $known Known types, see field_types().
+	 * @return string[]
+	 */
+	public static function intersect_types( $raw, array $known ): array {
+		if ( ! is_array( $raw ) ) {
+			return array();
+		}
+
+		$wanted = array();
+		foreach ( $raw as $type ) {
+			if ( is_string( $type ) ) {
+				$type = sanitize_key( $type );
+				if ( '' !== $type ) {
+					$wanted[] = $type;
+				}
+			}
+		}
+
+		return array_values( array_intersect( $known, $wanted ) );
+	}
+
+	/**
+	 * Parses a types line of the settings ("text email, textarea") into the
+	 * known types.
+	 *
+	 * @param string   $line  The line as written in the form.
+	 * @param string[] $known Known types, see field_types().
+	 * @return string[]
+	 */
+	public static function parse_types_line( string $line, array $known ): array {
+		$parts = preg_split( '/[\s,]+/', strtolower( trim( $line ) ) );
+
+		return self::intersect_types( is_array( $parts ) ? $parts : array(), $known );
+	}
+
+	/**
+	 * One CSS declaration for a design value: "--jgor-flcf7-<key>: <value>;".
+	 * The single formatter for the inline rule of the settings screen, the
+	 * style attribute of a placement and the snippet for themes.
+	 *
+	 * @param string $key   Design key, see DESIGN_DEFAULTS.
+	 * @param string $value Clean value.
+	 * @return string
+	 */
+	public static function declaration( string $key, string $value ): string {
+		return self::PROPERTY_PREFIX . $key . ': ' . $value . ';';
 	}
 
 	/**
@@ -644,29 +722,5 @@ final class JGOR_FLCF7_Settings {
 
 		// Remaining type: time.
 		return preg_match( '/^(?:\d+(?:\.\d+)?|\.\d+)(?:s|ms)$/', $value ) ? $value : '';
-	}
-
-	/**
-	 * Keeps only known field types, in the order of field_types().
-	 *
-	 * An empty list is a valid choice: it switches the rebuild off for every
-	 * type without touching the mode switches.
-	 *
-	 * @param mixed $raw Raw value, an array of type names.
-	 * @return string[]
-	 */
-	private function sanitize_types( $raw ): array {
-		if ( ! is_array( $raw ) ) {
-			return array();
-		}
-
-		$wanted = array();
-		foreach ( $raw as $type ) {
-			if ( is_string( $type ) ) {
-				$wanted[] = sanitize_key( $type );
-			}
-		}
-
-		return array_values( array_intersect( $this->field_types(), $wanted ) );
 	}
 }

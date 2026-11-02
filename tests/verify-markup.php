@@ -459,7 +459,7 @@ jgor_flcf7_check(
 
 // Shortcode attribute -> style on the wrapper div.wpcf7.
 $jgor_flcf7_pd = do_shortcode( '[contact-form-7 id="' . $jgor_flcf7_id_c . '" jgor_flcf7_design="label-color:#ABCDEF; font-size:1.2em;radius:round;bogus:1px;padding-x:"]' );
-jgor_flcf7_check( 'placement design: valid values as custom properties on div.wpcf7, invalid and unknown dropped', str_contains( $jgor_flcf7_pd, '<div class="wpcf7 no-js" style="--jgor-flcf7-font-size: 1.2em; --jgor-flcf7-label-color: #abcdef;" id="wpcf7-f' . $jgor_flcf7_id_c . '-' ), substr( $jgor_flcf7_pd, 0, 200 ) );
+jgor_flcf7_check( 'placement design: valid values as custom properties on div.wpcf7, invalid and unknown dropped', str_contains( $jgor_flcf7_pd, '<div style="--jgor-flcf7-font-size: 1.2em; --jgor-flcf7-label-color: #abcdef;" class="wpcf7 no-js" id="wpcf7-f' . $jgor_flcf7_id_c . '-' ), substr( $jgor_flcf7_pd, 0, 200 ) );
 jgor_flcf7_check( 'placement design: form still rebuilt', 4 === preg_match_all( '#class="jgor-flcf7-label"#', $jgor_flcf7_pd ) && 1 === preg_match_all( '# style="#', $jgor_flcf7_pd ) );
 $jgor_flcf7_pd = do_shortcode( '[contact-form-7 id="' . $jgor_flcf7_id_c . '" jgor_flcf7_design="radius:round"]' );
 jgor_flcf7_check( 'placement design: only invalid values -> no style attribute', ! str_contains( $jgor_flcf7_pd, ' style="' ) && str_contains( $jgor_flcf7_pd, '<div class="wpcf7 no-js" id="' ) );
@@ -471,7 +471,7 @@ $jgor_flcf7_block    = '<!-- wp:contact-form-7/contact-form-selector {"id":' . $
 $jgor_flcf7_rendered = render_block( parse_blocks( $jgor_flcf7_block )[0] );
 jgor_flcf7_check( 'placement design: block attribute carried into the shortcode text at render time', str_contains( $jgor_flcf7_rendered, '[contact-form-7 jgor_flcf7_design="padding-x:2em;border-color:#00ff00" id="' . $jgor_flcf7_id_c . '" title="FL Test C Mixed"]' ), $jgor_flcf7_rendered );
 $jgor_flcf7_pd = do_shortcode( $jgor_flcf7_rendered );
-jgor_flcf7_check( 'placement design: block -> style on the wrapper', str_contains( $jgor_flcf7_pd, '<div class="wpcf7 no-js" style="--jgor-flcf7-padding-x: 2em; --jgor-flcf7-border-color: #00ff00;"' ) );
+jgor_flcf7_check( 'placement design: block -> style on the wrapper', str_contains( $jgor_flcf7_pd, '<div style="--jgor-flcf7-padding-x: 2em; --jgor-flcf7-border-color: #00ff00;" class="wpcf7 no-js"' ) );
 $jgor_flcf7_rendered = render_block( parse_blocks( str_replace( ',"jgorFlcf7Design":{"border-color":"#00FF00","padding-x":"2em","bogus":"1px","radius":"round"}', '', $jgor_flcf7_block ) )[0] );
 jgor_flcf7_check( 'placement design: block without the attribute -> content untouched', ! str_contains( $jgor_flcf7_rendered, 'jgor_flcf7_design' ) && str_contains( $jgor_flcf7_rendered, '[contact-form-7 id="' . $jgor_flcf7_id_c . '" title="FL Test C Mixed"]' ) );
 $jgor_flcf7_rendered = render_block( parse_blocks( str_replace( '[contact-form-7 id=', '[contact-form-7 jgor_flcf7_design="radius:9px" id=', $jgor_flcf7_block ) )[0] );

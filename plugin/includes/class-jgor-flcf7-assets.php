@@ -188,7 +188,7 @@ final class JGOR_FLCF7_Assets {
 
 		$declarations = array();
 		foreach ( $overrides as $key => $value ) {
-			$declarations[] = JGOR_FLCF7_Settings::PROPERTY_PREFIX . $key . ': ' . $value . ';';
+			$declarations[] = JGOR_FLCF7_Settings::declaration( $key, $value );
 		}
 
 		return '.wpcf7 { ' . implode( ' ', $declarations ) . ' }';

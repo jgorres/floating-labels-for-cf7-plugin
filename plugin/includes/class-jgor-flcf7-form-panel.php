@@ -74,20 +74,6 @@ final class JGOR_FLCF7_Form_Panel {
 	private const MODES = array( 'off', 'placeholder', 'label', 'text' );
 
 	/**
-	 * Spellings of "off" module 2 accepts for the line "jgor_floating_labels".
-	 *
-	 * @var string[]
-	 */
-	private const OFF_WORDS = array( 'off', 'false', 'no', '0' );
-
-	/**
-	 * Spellings of "on" module 2 accepts for the line "jgor_floating_labels_marker".
-	 *
-	 * @var string[]
-	 */
-	private const ON_WORDS = array( 'on', 'true', 'yes', '1' );
-
-	/**
 	 * Values of the line "jgor_floating_labels_marker" the panel offers.
 	 *
 	 * @var string[]
@@ -369,16 +355,16 @@ final class JGOR_FLCF7_Form_Panel {
 	 */
 	private function values_of( WPCF7_ContactForm $form ): array {
 		$mode = $this->pref( $form, JGOR_FLCF7_Settings::PREF_MODE );
-		if ( in_array( $mode, self::OFF_WORDS, true ) ) {
+		if ( in_array( $mode, JGOR_FLCF7_Settings::OFF_WORDS, true ) ) {
 			$mode = 'off';
 		} elseif ( ! in_array( $mode, self::MODES, true ) ) {
 			$mode = '';
 		}
 
 		$marker = $this->pref( $form, JGOR_FLCF7_Settings::PREF_MARKER );
-		if ( in_array( $marker, self::ON_WORDS, true ) ) {
+		if ( in_array( $marker, JGOR_FLCF7_Settings::ON_WORDS, true ) ) {
 			$marker = 'on';
-		} elseif ( in_array( $marker, self::OFF_WORDS, true ) ) {
+		} elseif ( in_array( $marker, JGOR_FLCF7_Settings::OFF_WORDS, true ) ) {
 			$marker = 'off';
 		} else {
 			$marker = '';
@@ -389,12 +375,12 @@ final class JGOR_FLCF7_Form_Panel {
 
 		$types_line = $form->pref( JGOR_FLCF7_Settings::PREF_TYPES );
 		$limit      = is_string( $types_line );
-		$types      = $limit ? $this->parse_types( $types_line ) : $this->settings->get( 'types' );
+		$types      = $limit ? JGOR_FLCF7_Settings::parse_types_line( $types_line, $this->settings->field_types() ) : $this->settings->get( 'types' );
 
 		return array(
 			'mode'   => $mode,
-			'style'  => in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ? $style : '',
-			'effect' => in_array( $effect, JGOR_FLCF7_Settings::EFFECTS, true ) ? $effect : '',
+			'style'  => JGOR_FLCF7_Settings::choice( $style, JGOR_FLCF7_Settings::STYLES ),
+			'effect' => JGOR_FLCF7_Settings::choice( $effect, JGOR_FLCF7_Settings::EFFECTS ),
 			'marker' => $marker,
 			'limit'  => $limit,
 			'types'  => is_array( $types ) ? array_values( array_filter( $types, 'is_string' ) ) : array(),
@@ -413,19 +399,6 @@ final class JGOR_FLCF7_Form_Panel {
 		$value = $form->pref( $name );
 
 		return is_string( $value ) ? strtolower( trim( $value ) ) : '';
-	}
-
-	/**
-	 * Parses a types line (space or comma separated) into known base types.
-	 *
-	 * @param string $line Value of the line jgor_floating_labels_types.
-	 * @return string[]
-	 */
-	private function parse_types( string $line ): array {
-		$parts = preg_split( '/[\s,]+/', strtolower( trim( $line ) ) );
-		$parts = is_array( $parts ) ? array_map( 'sanitize_key', $parts ) : array();
-
-		return array_values( array_intersect( $this->settings->field_types(), $parts ) );
 	}
 
 	/**
@@ -462,8 +435,7 @@ final class JGOR_FLCF7_Form_Panel {
 		}
 
 		if ( ! empty( $input['limit'] ) ) {
-			$raw   = isset( $input['types'] ) && is_array( $input['types'] ) ? array_filter( $input['types'], 'is_string' ) : array();
-			$types = array_values( array_intersect( $this->settings->field_types(), array_map( 'sanitize_key', $raw ) ) );
+			$types = JGOR_FLCF7_Settings::intersect_types( $input['types'] ?? array(), $this->settings->field_types() );
 
 			$lines[] = rtrim( JGOR_FLCF7_Settings::PREF_TYPES . ': ' . implode( ' ', $types ) );
 		}
@@ -480,13 +452,7 @@ final class JGOR_FLCF7_Form_Panel {
 	 * @return string
 	 */
 	private function choice( array $input, string $key, array $allowed ): string {
-		if ( ! isset( $input[ $key ] ) || ! is_string( $input[ $key ] ) ) {
-			return '';
-		}
-
-		$value = sanitize_key( $input[ $key ] );
-
-		return in_array( $value, $allowed, true ) ? $value : '';
+		return JGOR_FLCF7_Settings::choice( $input[ $key ] ?? null, $allowed );
 	}
 
 	/**

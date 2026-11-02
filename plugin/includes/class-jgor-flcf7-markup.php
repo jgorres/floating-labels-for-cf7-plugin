@@ -382,33 +382,24 @@ final class JGOR_FLCF7_Markup {
 			}
 		}
 
-		$pref = $form->pref( JGOR_FLCF7_Settings::PREF_STYLE );
-		if ( is_string( $pref ) ) {
-			$style = sanitize_key( $pref );
-			if ( in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ) {
-				$current['style'] = $style;
-			}
+		$style = JGOR_FLCF7_Settings::choice( $form->pref( JGOR_FLCF7_Settings::PREF_STYLE ), JGOR_FLCF7_Settings::STYLES );
+		if ( '' !== $style ) {
+			$current['style'] = $style;
 		}
 
-		$pref = $form->pref( JGOR_FLCF7_Settings::PREF_EFFECT );
-		if ( is_string( $pref ) ) {
-			$effect = sanitize_key( $pref );
-			if ( in_array( $effect, JGOR_FLCF7_Settings::EFFECTS, true ) ) {
-				$current['effect'] = $effect;
-			}
+		$effect = JGOR_FLCF7_Settings::choice( $form->pref( JGOR_FLCF7_Settings::PREF_EFFECT ), JGOR_FLCF7_Settings::EFFECTS );
+		if ( '' !== $effect ) {
+			$current['effect'] = $effect;
 		}
 
-		$pref = $form->pref( JGOR_FLCF7_Settings::PREF_MARKER );
-		if ( is_string( $pref ) ) {
-			$marker = $this->to_bool( $pref );
-			if ( null !== $marker ) {
-				$current['required_marker'] = $marker;
-			}
+		$marker = JGOR_FLCF7_Settings::word_to_bool( $form->pref( JGOR_FLCF7_Settings::PREF_MARKER ) );
+		if ( null !== $marker ) {
+			$current['required_marker'] = $marker;
 		}
 
 		$pref = $form->pref( JGOR_FLCF7_Settings::PREF_TYPES );
 		if ( is_string( $pref ) ) {
-			$current['types'] = $this->parse_types( $pref, $known );
+			$current['types'] = JGOR_FLCF7_Settings::parse_types_line( $pref, $known );
 		}
 
 		return $current;
@@ -482,13 +473,13 @@ final class JGOR_FLCF7_Markup {
 
 				default:
 					if ( str_starts_with( $token, self::HTML_CLASS_STYLE_PREFIX ) ) {
-						$style = substr( $token, strlen( self::HTML_CLASS_STYLE_PREFIX ) );
-						if ( in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ) {
+						$style = JGOR_FLCF7_Settings::choice( substr( $token, strlen( self::HTML_CLASS_STYLE_PREFIX ) ), JGOR_FLCF7_Settings::STYLES );
+						if ( '' !== $style ) {
 							$current['style'] = $style;
 						}
 					} elseif ( str_starts_with( $token, self::HTML_CLASS_EFFECT_PREFIX ) ) {
-						$effect = substr( $token, strlen( self::HTML_CLASS_EFFECT_PREFIX ) );
-						if ( in_array( $effect, JGOR_FLCF7_Settings::EFFECTS, true ) ) {
+						$effect = JGOR_FLCF7_Settings::choice( substr( $token, strlen( self::HTML_CLASS_EFFECT_PREFIX ) ), JGOR_FLCF7_Settings::EFFECTS );
+						if ( '' !== $effect ) {
 							$current['effect'] = $effect;
 						}
 					}
@@ -514,34 +505,24 @@ final class JGOR_FLCF7_Markup {
 				continue;
 			}
 
-			$value = $this->to_bool( $filtered[ $key ] );
+			$value = JGOR_FLCF7_Settings::word_to_bool( $filtered[ $key ] );
 			if ( null !== $value ) {
 				$current[ $key ] = $value;
 			}
 		}
 
-		if ( isset( $filtered['style'] ) && is_string( $filtered['style'] ) ) {
-			$style = sanitize_key( $filtered['style'] );
-			if ( in_array( $style, JGOR_FLCF7_Settings::STYLES, true ) ) {
-				$current['style'] = $style;
-			}
+		$style = JGOR_FLCF7_Settings::choice( $filtered['style'] ?? null, JGOR_FLCF7_Settings::STYLES );
+		if ( '' !== $style ) {
+			$current['style'] = $style;
 		}
 
-		if ( isset( $filtered['effect'] ) && is_string( $filtered['effect'] ) ) {
-			$effect = sanitize_key( $filtered['effect'] );
-			if ( in_array( $effect, JGOR_FLCF7_Settings::EFFECTS, true ) ) {
-				$current['effect'] = $effect;
-			}
+		$effect = JGOR_FLCF7_Settings::choice( $filtered['effect'] ?? null, JGOR_FLCF7_Settings::EFFECTS );
+		if ( '' !== $effect ) {
+			$current['effect'] = $effect;
 		}
 
 		if ( isset( $filtered['types'] ) && is_array( $filtered['types'] ) ) {
-			$wanted = array();
-			foreach ( $filtered['types'] as $type ) {
-				if ( is_string( $type ) ) {
-					$wanted[] = sanitize_key( $type );
-				}
-			}
-			$current['types'] = array_values( array_intersect( $known, $wanted ) );
+			$current['types'] = JGOR_FLCF7_Settings::intersect_types( $filtered['types'], $known );
 		}
 
 		if ( isset( $filtered['submit_error_text'] ) && is_string( $filtered['submit_error_text'] ) ) {
@@ -549,70 +530,6 @@ final class JGOR_FLCF7_Markup {
 		}
 
 		return $current;
-	}
-
-	/**
-	 * Reads a boolean from a setting value.
-	 *
-	 * Accepts bool, int and the strings on/off, true/false, yes/no, 1/0
-	 * (case-insensitive). Anything else is null, which callers treat as
-	 * "leave unchanged".
-	 *
-	 * @param mixed $value Raw value.
-	 * @return bool|null
-	 */
-	private function to_bool( $value ): ?bool {
-		if ( is_bool( $value ) ) {
-			return $value;
-		}
-
-		if ( is_int( $value ) ) {
-			return 0 !== $value;
-		}
-
-		if ( ! is_string( $value ) ) {
-			return null;
-		}
-
-		switch ( strtolower( trim( $value ) ) ) {
-			case 'on':
-			case 'true':
-			case 'yes':
-			case '1':
-				return true;
-
-			case 'off':
-			case 'false':
-			case 'no':
-			case '0':
-				return false;
-		}
-
-		return null;
-	}
-
-	/**
-	 * Parses a list of base types from an additional setting.
-	 *
-	 * @param string   $setting Space or comma separated base types.
-	 * @param string[] $known   Base types the plugin may rebuild.
-	 * @return string[] Known types in the order of $known; empty when none match.
-	 */
-	private function parse_types( string $setting, array $known ): array {
-		$parts = preg_split( '/[\s,]+/', strtolower( trim( $setting ) ) );
-		if ( ! is_array( $parts ) ) {
-			return array();
-		}
-
-		$wanted = array();
-		foreach ( $parts as $part ) {
-			$part = sanitize_key( $part );
-			if ( '' !== $part ) {
-				$wanted[] = $part;
-			}
-		}
-
-		return array_values( array_intersect( $known, $wanted ) );
 	}
 
 	/**
